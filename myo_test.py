@@ -3,10 +3,10 @@ import xlwt
 
 import sys
 import numpy as np
-# sys.path.append('/home/wei')
-sys.path.append('G:\python')
-import  xlwt
+from myoAnalysis import *
 
+
+#isSave取True时时存储数据，取False时时分析数据
 from myo import MyoRaw
 
 import time
@@ -108,39 +108,12 @@ def imu_proc(a,b,c):
         c=t+a+b+c
         arr2 = c
 
-def testXlwt(file='new.xls', dataArray=arr1):
-        book = xlwt.Workbook()  # 创建一个Excel
-        sheet1 = book.add_sheet('hello')  # 在其中创建一个名为hello的sheet
-        for i in range(len(dataArray)):  # 行数
-            for j in range(len(dataArray[i])):  # 列数
-                sheet1.write(i, j, dataArray[i][j])
-        book.save(file)  # 创建保存文件
 
 
 
 
-    # try:
-    #     while True:
-    #       m.run(1)
-    #
-    #       if HAVE_PYGAME:
-    #            for ev in pygame.event.get():
-    #                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-    #
-    #                     # testXlwt('emgData.xls', arr1)
-    #                     # testXlwt('imuData.xls', arr2)
-    #                     raise KeyboardInterrupt()
-    #                     print('1')
-    #                 elif ev.type == KEYDOWN:
-    #                     if K_1 <= ev.key <= K_3:
-    #                         m.vibrate(ev.key - K_0)
-    #                     if K_KP1 <= ev.key <= K_KP3:
-    #                         m.vibrate(ev.key - K_KP0)
-    #
-    # except KeyboardInterrupt:
-    #     pass
-    # finally:
-    #     m.disconnect()
+
+
 def init():
     # 初始化配置，并打开emg数据开关
     global timeBegin
@@ -167,7 +140,8 @@ def init():
     # m.add_emg_raw_handler(proc_emg)
     timeBegin = time.time()
     return  m
-#获取原始数据
+
+#获取0.1s内原始数据
 def getData(m):
     global dataCounter
     global dataFresh
@@ -195,6 +169,7 @@ def getData(m):
                 dataFresh =False
         return emgCache ,imuCache
             # return data
+
 #求emg数据能力用来判断阈值
 def engery(emgData):
     emgArray = np.array(emgData)
@@ -240,14 +215,44 @@ def getGestureDtat(m):
                 imuData=[]
 
 
+global isSave
+isSave=True
 if __name__ == '__main__':
-     m=init()
-     emg=[]
-     imu=[]
-     while True:
-         emg,imu = getGestureDtat(m)
-         #特征提取
-         #识别
+    m = init()
+    #如果是存储数据
+    if isSave:
+        emgData=[]
+        imuData=[]
+        try:
+            while True:
+                emg, imu = getData(m)
+                emgData.append(emg)
+                imuData.append(imu)
+                if HAVE_PYGAME:
+                   for ev in pygame.event.get():
+                        if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
+
+                            testXlwt('emgData.xls', emgData)
+                            testXlwt('imuData.xls', imuData)
+                            raise KeyboardInterrupt()
+                        elif ev.type == KEYDOWN:
+                            if K_1 <= ev.key <= K_3:
+                                m.vibrate(ev.key - K_0)
+                            if K_KP1 <= ev.key <= K_KP3:
+                                m.vibrate(ev.key - K_KP0)
+
+        except KeyboardInterrupt:
+            pass
+        finally:
+            m.disconnect()
+    #否则是分析数据
+    else:
+         emg=[]
+         imu=[]
+         while True:
+             emg,imu = getGestureDtat(m)
+             #特征提取
+             #识别
 
 
 #测试阈值

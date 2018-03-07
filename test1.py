@@ -9,20 +9,8 @@
 # print(a)
 # eng.quit()
 import numpy as np
-
-a=[1,2,3]
-b=[4,5,6]
-e=[]
-# e.append(a)
-# e.append(b)
-e=e+a
-e=e+b
-c=np.array(e)
-print(c.dtype)
-print(c)
-d=np.sum(c)
-# c.reshape((1,6))
-# c.append(a)
-# c.append(b)
-print(d)
-print(c)
+a=[]
+a.append(1)
+a.append(2)
+a.append(3)
+print(a)
