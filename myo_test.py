@@ -184,6 +184,7 @@ quiet=1
 dataTimes=1
 isFinish =False
 #在原始数据基础上获取一次手势的数据
+#实现分段
 def getGestureDtat(m):
     global Threshold
     global active
@@ -215,25 +216,29 @@ def getGestureDtat(m):
                 imuData=[]
 
 
-global isSave
 isSave=True
 if __name__ == '__main__':
+    global isSave
     m = init()
     #如果是存储数据
     if isSave:
         emgData=[]
         imuData=[]
+        threshold=[]
         try:
             while True:
                 emg, imu = getData(m)
                 emgData.append(emg)
                 imuData.append(imu)
+                E=engery(emg)
+                threshold.append([E])
                 if HAVE_PYGAME:
                    for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
 
                             testXlwt('emgData.xls', emgData)
                             testXlwt('imuData.xls', imuData)
+                            testXlwt('threshold.xls', threshold)
                             raise KeyboardInterrupt()
                         elif ev.type == KEYDOWN:
                             if K_1 <= ev.key <= K_3:
