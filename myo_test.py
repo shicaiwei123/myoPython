@@ -6,7 +6,7 @@ import numpy as np
 from myoAnalysis import *
 
 
-#isSave取True时时存储数据，取False时时分析数据
+
 from myo import MyoRaw
 
 import time
@@ -27,11 +27,12 @@ isFull = False
 
 #初始化
 arr1=[]
-arr1Temp=arr1
-arr1.append(1)
 arr2=[]
-arr2.append(1)
-arr2Temp=arr2
+# arr1Temp=arr1
+# arr1.append(1)
+#
+# arr2.append(1)
+# arr2Temp=arr2
 
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
@@ -141,82 +142,81 @@ def init():
     timeBegin = time.time()
     return  m
 
-#获取0.1s内原始数据
+#yicishuju
 def getData(m):
+    global arr1
+    global arr2
     global dataCounter
     global dataFresh
     emgCache=[]
     imuCache=[]
-    while True:
-        while True:
-            m.run(1)
-            if dataFresh:
-                data = list(arr1) + list(arr2)
-                # 缓存5个数据
-                # emgCache[dataCounter * 8 + 0:dataCounter * 8 + 7] = arr1[1:8]
-                # imuCache[dataCounter * 6 + 0:dataCounter * 6 + 5] = arr2[5:10]
-                emgCache=emgCache+arr1[1:8]
-                imuCache=imuCache+arr2[5:10]
-                if dataCounter==5:
-                    # dataCache[(dataCounter*21)+0:(dataCounter*21)+20]=data
-                    # dataCounter=dataCounter+1
-                    dataCounter=0
-                    # isFull=True
-                    break
-                else:
-                    dataCounter=dataCounter+1
-                    print(data)
-                dataFresh =False
-        return emgCache ,imuCache
-            # return data
+    while  True:
+        m.run(1)
+        if dataFresh:
+            emgCache=arr1[1:9]
+            imuCache=arr2[5:11]
+            dataFresh =False
+            emgCache=list(np.array(emgCache)/100)
+            imuCache=list(np.array(imuCache)/20)
+            return emgCache ,imuCache
+
 
 #求emg数据能力用来判断阈值
 def engery(emgData):
     emgArray = np.array(emgData)
-    emgSquare = np.square(emgArray/100)
+    emgArray=emgArray
+    emgSquare = np.square(emgArray)
     emgSum = np.sum(emgSquare)
     emgMean=emgSum/5    #在过去的0.1s内
     return emgMean
 
-Threshold=35
-active=1
-quiet=1
-dataTimes=1
+Threshold=15
 isFinish =False
 #在原始数据基础上获取一次手势的数据
 #实现分段
-def getGestureDtat(m):
+def getGestureData(m):
     global Threshold
-    global active
-    global quiet
-    global dataTimes
+    active = 1
+    quiet = 1
+    dataTimes = 1
     global isFinish
     emgData=[]
     imuData=[]
+    emg=[]  #huancun5ci
     while True:
          emgCache ,imuCache= getData(m)
-         emgData=emgData+emgCache
-         imuData=imuData+imuCache
-         dataTimes=dataTimes+1
-         E=engery(emgCache)
-         print(E)
-         if E>Threshold:
-             active=active+1
+         print(emgCache )
+         print(imuCache)
+         emgData.append(emgCache)
+         imuData.append(imuCache)
+         emg=emg+emgCache
+         #fenge
+         if dataTimes<5:
+             dataTimes=dataTimes+1
+
          else:
-             quiet=quiet+1
-         if quiet>3:
-             if active>5:
-                return emgData,imuData
-                print("新手势")
-             else:          #重置
-                dataTimes=1
-                active=1
-                quiet=1
-                emgData=[]
-                imuData=[]
+             E=engery(emg)
+             l=len(emg)
+             emg=[]
+             dataTimes=1
+             print(E)
+             if E>Threshold:
+                 active=active+1
+             else:
+                 quiet=quiet+1
+             if quiet>3:
+                 if active>5:
+                    return emgData,imuData
+                    print("新手势")
+                 else:          #重置
+                    dataTimes=1
+                    active=1
+                    quiet=1
+                    emgData=[]
+                    imuData=[]
 
-
-isSave=True
+#isSave取True时时存储数据，取False时时分析数据
+isSave=False
 if __name__ == '__main__':
     global isSave
     m = init()
@@ -255,7 +255,10 @@ if __name__ == '__main__':
          emg=[]
          imu=[]
          while True:
-             emg,imu = getGestureDtat(m)
+             emg,imu = getGestureData(m)
+             np.save('emg',emg)
+             np.save('imu',imu)
+             print(1)
              #特征提取
              #识别
 

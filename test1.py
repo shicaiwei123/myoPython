@@ -20,12 +20,22 @@ import numpy as np
 
 
 #读取mat数据测试
-import  scipy.io as scio
-data=scio.loadmat('1.mat')
-w=data['w']
-emgData=w['emgData']
-emgData=emgData[0,0]
+# import  scipy.io as scio
+# data=scio.loadmat('1.mat')
+# w=data['w']
+# emgData=w['emgData']
+# emgData=emgData[0,0]
+#
+# print(emgData)
+# # print(a)
+# print(data.keys())
 
-print(emgData)
-# print(a)
-print(data.keys())
+
+#ceshiixnshujugeshi
+emg=np.load('emg.npy')
+imu=np.load('imu.npy')
+emg1=emg[:,1]
+a=np.shape(emg1)
+b=np.shape(imu)
+print(emg1)
+print(b)

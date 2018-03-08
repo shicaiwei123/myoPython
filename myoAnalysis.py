@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#一些常用的数据处理的函数
+#数据储存
+#数据特征提取
+
 import numpy as np
 import  xlwt
 
@@ -18,10 +22,8 @@ def fetureGet(emgData,imuData):
     #转成数组
     emgData=np.array(emgData)
     imuData=np.array(imuData)
-    emgRow=emgData.size/8
-    imuRow=imuData.size/6
-    emgData=emgData.reshape(emgRow,8)
-    imuData=imuData.reshape(imuRow,6)
+    # emgRow=emgData.size/8
+    # imuRow=imuData.size/6
     accX=imuData[:,0]
     accY=imuData[:,1]
     accZ=imuData[:,2]
