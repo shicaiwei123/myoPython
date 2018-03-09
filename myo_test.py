@@ -220,6 +220,8 @@ isSave=False
 if __name__ == '__main__':
     global isSave
     m = init()
+    #导入模型
+
     #如果是存储数据
     if isSave:
         emgData=[]
@@ -259,7 +261,8 @@ if __name__ == '__main__':
              np.save('emg',emg)
              np.save('imu',imu)
              print(1)
-             #特征提取
+             feture=fetureGet(emg,imu)
+
              #识别
 
 
