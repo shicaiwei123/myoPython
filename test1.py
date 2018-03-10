@@ -51,8 +51,12 @@ import numpy as np
 
 
 #数字字符串转测试
-a=1
-b=str(a)
+# a=1
+# b=str(a)
+# print(b)
+# c=b+'.mat'
+# print(c)
+
+a=0
+b=a%10
 print(b)
-c=b+'.mat'
-print(c)

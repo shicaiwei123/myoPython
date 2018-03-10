@@ -216,7 +216,7 @@ def getGestureData(m):
                     imuData=[]
 
 #isSave取True时时存储数据，取False时时分析数据
-isSave=False
+isSave=True
 if __name__ == '__main__':
     global isSave
     m = init()
@@ -237,7 +237,6 @@ if __name__ == '__main__':
                 if HAVE_PYGAME:
                    for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-
                             testXlwt('emgData.xls', emgData)
                             testXlwt('imuData.xls', imuData)
                             testXlwt('threshold.xls', threshold)
@@ -247,7 +246,6 @@ if __name__ == '__main__':
                                 m.vibrate(ev.key - K_0)
                             if K_KP1 <= ev.key <= K_KP3:
                                 m.vibrate(ev.key - K_KP0)
-
         except KeyboardInterrupt:
             pass
         finally:

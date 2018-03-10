@@ -27,26 +27,73 @@ def dataRead(file):
 
 def getKNN(trainX,trainY):
     from  sklearn.neighbors import KNeighborsClassifier as knn
+    trainX=np.array(trainX)
+    trainY=np.array(trainY)
     model=knn(n_neighbors=10)
-    model.fit(trainX,trainY)
+    model.fit(trainX,trainY.ravel())
     return model
 
 if __name__ == '__main__':
     from sklearn.externals import joblib
+    #xunlieheceshi
+    isLearn =False
+    if isLearn:
+        #读并且处理换粗特征值和标签，等待一起训练
+        features=[]
+        labels=[]
+        counter=1
+        len=959   #数据总数
+        a=[]
+        for i in range(1,len):
+            if i%10 ==0:     #jimanshici
+                counter=counter+1
+                if counter==8:
+                    counter=1
+            if counter!=1:
+                a.append(i)
+                file ='data/'+str(i)+'.mat'
+                emg,imu,label=dataRead(file)
+                feature=mAna.fetureGet(emg,imu)
+                features.append(feature)
+                labels.append([label])
+        model=getKNN(features,labels)
+        joblib.dump(model,'KNN')
+    else:
+        feature = []
+        labels = []
+        result=[]
+        counter = 1
+        right=1
+        wrong=1
+        len = 959  # 数据总数
+        model=joblib.load('KNN')
+        a = []
+        for i in range(1, len):
+            if i % 10 == 0:  # jimanshici
+                counter = counter + 1
+                if counter == 8:
+                    counter = 1
+            if counter == 1:
+                # a.append(i)
+                file ='data/'+str(i)+'.mat'
+                emg,imu,label=dataRead(file)
+                labels.append(label)
+                feature=mAna.fetureGet(emg,imu)
+                r=model.predict([feature])
+                result.append(r)
+                #jielunjieguo
+                if r==label:
+                    right=right+1
+                else:
+                    wrong=wrong+1
+        score=right/(right+wrong)
+        #chucunjieguo
+        labels=np.array(labels)
+        result=np.array(result)
+        np.save('labels',labels)
+        np.save('result',result)
+        print(score)
+        # print(a)
 
-    #读并且处理换粗特征值和标签，等待一起训练
-    features=[]
-    labels=[]
-    #完成循环读取数据即可
-    len=500   #数据总数
-    for i in range(1,len):
-        file ='data'+str(i)+'.mat'
-        emg,imu,label=dataRead(file)
-        feature=mAna.fetureGet(emg,imu)
-        features.append(feature)
-        labels.append(label)
-    model=getKNN(feature,label)
-    joblib.dump(model,'KNN')
-    print(label)
 
 
