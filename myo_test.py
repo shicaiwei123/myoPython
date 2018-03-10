@@ -106,6 +106,10 @@ def imu_proc(a,b,c):
         a=list(a)
         b=list(b)
         c=list(c)
+        data=c
+        # if HAVE_PYGAME:
+        #     # update pygame display
+        #     plot(scr, [e / 2000. for e in data])
         c=t+a+b+c
         arr2 = c
 
@@ -174,6 +178,7 @@ Threshold=15
 isFinish =False
 #在原始数据基础上获取一次手势的数据
 #实现分段
+#
 def getGestureData(m):
     global Threshold
     active = 1
@@ -184,9 +189,15 @@ def getGestureData(m):
     imuData=[]
     emg=[]  #huancun5ci
     while True:
+         if HAVE_PYGAME:
+            for ev in pygame.event.get():
+                if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
+                    return 10000,10000
+                    m.disconnect()
+                    break
          emgCache ,imuCache= getData(m)
-         print(emgCache )
-         print(imuCache)
+         # print(emgCache )
+         # print(imuCache)
          emgData.append(emgCache)
          imuData.append(imuCache)
          emg=emg+emgCache
@@ -199,7 +210,7 @@ def getGestureData(m):
              l=len(emg)
              emg=[]
              dataTimes=1
-             print(E)
+             # print(E)
              if E>Threshold:
                  active=active+1
              else:
@@ -216,10 +227,12 @@ def getGestureData(m):
                     imuData=[]
 
 #isSave取True时时存储数据，取False时时分析数据
-isSave=True
 if __name__ == '__main__':
-    global isSave
+
+
     m = init()
+    #shifoubaocunshuju
+    isSave = False
     #导入模型
 
     #如果是存储数据
@@ -252,16 +265,23 @@ if __name__ == '__main__':
             m.disconnect()
     #否则是分析数据
     else:
-         emg=[]
-         imu=[]
-         while True:
+        from sklearn.externals import joblib
+        model=joblib.load('KNN')
+        emg=[]
+        imu=[]
+        while True:
              emg,imu = getGestureData(m)
+             if emg==10000:
+                 break
              np.save('emg',emg)
              np.save('imu',imu)
-             print(1)
              feture=fetureGet(emg,imu)
+             r=model.predict([feture])
+             print(r)
 
-             #识别
+
+
+
 
 
 #测试阈值

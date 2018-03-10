@@ -5,13 +5,13 @@
 
 import numpy as np
 import  xlwt
-
+#xlwtzhinegcunc floatleiixng
 def testXlwt(file='new.xls', dataArray=[]):
     book = xlwt.Workbook()  # 创建一个Excel
     sheet1 = book.add_sheet('hello')  # 在其中创建一个名为hello的sheet
     for i in range(len(dataArray)):  # 行数
         for j in range(len(dataArray[i])):  # 列数
-            sheet1.write(i, j, dataArray[i][j])
+            sheet1.write(i, j, float(dataArray[i][j]))
     book.save(file)  # 创建保存文件
 
 
