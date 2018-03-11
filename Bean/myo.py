@@ -7,9 +7,9 @@ import enum
 
 import time
 
-from bt import BT
+from .bt import BT
 from serial.tools.list_ports import comports
-from myo_utils import *
+from .myo_utils import *
 
 
 class MyoHandler(enum.Enum):

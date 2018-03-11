@@ -2,18 +2,14 @@
 import xlwt
 
 import sys
-import numpy as np
-from myoAnalysis import *
-
-
-
-from myo import MyoRaw
-
 import time
-
-from myo_config import MyoConfig
 import pygame
 from pygame.locals import *
+import numpy as np
+from myoAnalysis import *
+from Bean.myo import MyoRaw
+from Bean.myo_config import MyoConfig
+
 HAVE_PYGAME = True
 
 global timeBegin
@@ -28,11 +24,6 @@ isFull = False
 #初始化
 arr1=[]
 arr2=[]
-# arr1Temp=arr1
-# arr1.append(1)
-#
-# arr2.append(1)
-# arr2Temp=arr2
 
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
@@ -113,12 +104,6 @@ def imu_proc(a,b,c):
         c=t+a+b+c
         arr2 = c
 
-
-
-
-
-
-
 def init():
     # 初始化配置，并打开emg数据开关
     global timeBegin
@@ -147,7 +132,7 @@ def init():
     return  m
 
 #yicishuju
-def getData(m):
+def getOnceData(m):
     global arr1
     global arr2
     global dataCounter
@@ -226,65 +211,56 @@ def getGestureData(m):
                     emgData=[]
                     imuData=[]
 
+
 #isSave取True时时存储数据，取False时时分析数据
-if __name__ == '__main__':
-
-
-    m = init()
-    #shifoubaocunshuju
-    isSave = False
-    #导入模型
-
-    #如果是存储数据
-    if isSave:
-        emgData=[]
-        imuData=[]
-        threshold=[]
-        try:
-            while True:
-                emg, imu = getData(m)
-                emgData.append(emg)
-                imuData.append(imu)
-                E=engery(emg)
-                threshold.append([E])
-                if HAVE_PYGAME:
-                   for ev in pygame.event.get():
-                        if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                            testXlwt('emgData.xls', emgData)
-                            testXlwt('imuData.xls', imuData)
-                            testXlwt('threshold.xls', threshold)
-                            raise KeyboardInterrupt()
-                        elif ev.type == KEYDOWN:
-                            if K_1 <= ev.key <= K_3:
-                                m.vibrate(ev.key - K_0)
-                            if K_KP1 <= ev.key <= K_KP3:
-                                m.vibrate(ev.key - K_KP0)
-        except KeyboardInterrupt:
-            pass
-        finally:
-            m.disconnect()
-    #否则是分析数据
-    else:
-        from sklearn.externals import joblib
-        model=joblib.load('KNN')
-        emg=[]
-        imu=[]
-        while True:
-             emg,imu = getGestureData(m)
-             if emg==10000:
-                 break
-             np.save('emg',emg)
-             np.save('imu',imu)
-             feture=fetureGet(emg,imu)
-             r=model.predict([feture])
-             print(r)
-
-
-
-
-
-
-#测试阈值
-#测试分割
-#完成matlab
-#联调
+# if __name__ == '__main__':
+#
+#
+#     m = init()
+#     #shifoubaocunshuju
+#     isSave = False
+#     #导入模型
+#
+#     #如果是存储数据
+#     if isSave:
+#         emgData=[]
+#         imuData=[]
+#         threshold=[]
+#         try:
+#             while True:
+#                 emg, imu = getOnceData(m)
+#                 emgData.append(emg)
+#                 imuData.append(imu)
+#                 E=engery(emg)
+#                 threshold.append([E])
+#                 if HAVE_PYGAME:
+#                    for ev in pygame.event.get():
+#                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
+#                             testXlwt('emgData.xls', emgData)
+#                             testXlwt('imuData.xls', imuData)
+#                             testXlwt('threshold.xls', threshold)
+#                             raise KeyboardInterrupt()
+#                         elif ev.type == KEYDOWN:
+#                             if K_1 <= ev.key <= K_3:
+#                                 m.vibrate(ev.key - K_0)
+#                             if K_KP1 <= ev.key <= K_KP3:
+#                                 m.vibrate(ev.key - K_KP0)
+#         except KeyboardInterrupt:
+#             pass
+#         finally:
+#             m.disconnect()
+#     #否则是分析数据
+#     else:
+#         from sklearn.externals import joblib
+#         model=joblib.load('KNN')
+#         emg=[]
+#         imu=[]
+#         while True:
+#              emg,imu = getGestureData(m)
+#              if emg==10000:
+#                  break
+#              np.save('emg',emg)
+#              np.save('imu',imu)
+#              feture=fetureGet(emg,imu)
+#              r=model.predict([feture])
+#              print(r)

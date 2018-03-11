@@ -25,6 +25,9 @@ def dataRead(file):
     return emgData,imuData,labels
 
 
+
+
+
 def getKNN(trainX,trainY):
     from  sklearn.neighbors import KNeighborsClassifier as knn
     trainX=np.array(trainX)

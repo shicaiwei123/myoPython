@@ -4,17 +4,6 @@
 #数据特征提取
 
 import numpy as np
-import  xlwt
-#xlwtzhinegcunc floatleiixng
-def testXlwt(file='new.xls', dataArray=[]):
-    book = xlwt.Workbook()  # 创建一个Excel
-    sheet1 = book.add_sheet('hello')  # 在其中创建一个名为hello的sheet
-    for i in range(len(dataArray)):  # 行数
-        for j in range(len(dataArray[i])):  # 列数
-            sheet1.write(i, j, float(dataArray[i][j]))
-    book.save(file)  # 创建保存文件
-
-
 def fetureGet(emgData,imuData):
     #初始参数
     frq=50    #频率50Hz
@@ -83,6 +72,19 @@ def fetureGet(emgData,imuData):
     feature.append(meanEmg7)
     feature.append(meanEmg8)
     return feature
+
+
+import  xlwt
+#xlwt只能储存float数据
+def testXlwt(file='new.xls', dataArray=[]):
+    book = xlwt.Workbook()  # 创建一个Excel
+    sheet1 = book.add_sheet('hello')  # 在其中创建一个名为hello的sheet
+    for i in range(len(dataArray)):  # 行数
+        for j in range(len(dataArray[i])):  # 列数
+            sheet1.write(i, j, float(dataArray[i][j]))
+    book.save(file)  # 创建保存文件
+
+
 
 
 

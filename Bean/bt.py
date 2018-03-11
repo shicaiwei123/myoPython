@@ -1,10 +1,10 @@
 import time
 
-from packet import Packet
+from .packet import Packet
 import serial
 # from serial import serial
 import threading
-from myo_utils import *
+from .myo_utils import *
 
 
 class BT(object):
