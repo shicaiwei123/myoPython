@@ -1,108 +1,111 @@
 # -*- coding: utf-8 -*-
-import xlwt
 
 import sys
 import time
+
 import pygame
 from pygame.locals import *
-import numpy as np
-from myoAnalysis import *
+
 from Bean.myo import MyoRaw
 from Bean.myo_config import MyoConfig
+from myoAnalysis import *
 
 HAVE_PYGAME = True
 
 global timeBegin
 
-global arr1, arr2 ,arr1Temp ,arr2Temp   #缓存初始数据
-dataCache=list(range(1,105))    #缓存5个
-#存储一个手势的数据
-dataCounter=0
-dataFresh =False
+global arr1, arr2, arr1Temp, arr2Temp  # 缓存初始数据
+dataCache = list(range(1, 105))  # 缓存5个
+# 存储一个手势的数据
+dataCounter = 0
+dataFresh = False
 isFull = False
 
-#初始化
-arr1=[]
-arr2=[]
-
+# 初始化
+arr1 = []
+arr2 = []
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
 w, h = 1200, 400
 scr = pygame.display.set_mode((w, h))
 last_vals = None
+
+
 # 绘图函数，使用pygame绘制emg数据
 def plot(scr, vals):
-        global w,h
-        DRAW_LINES = True
+    global w, h
+    DRAW_LINES = True
 
-        global last_vals
-        if last_vals is None:
-            last_vals = vals
-            return
-
-        D = 5
-        scr.scroll(-D)
-        scr.fill((0, 0, 0), (w - D, 0, w, h))
-        for i, (u, v) in enumerate(zip(last_vals, vals)):
-            if DRAW_LINES:
-                pygame.draw.line(scr, (0, 255, 0),
-                                 (w - D, int(h / 8 * (i + 1 - u))),
-                                 (w, int(h / 8 * (i + 1 - v))))
-                pygame.draw.line(scr, (255, 255, 255),
-                                 (w - D, int(h / 8 * (i + 1))),
-                                 (w, int(h / 8 * (i + 1))))
-            else:
-                c = int(255 * max(0, min(1, v)))
-                scr.fill((c, c, c), (w - D, i * h / 8, D, (i + 1) * h / 8 - i * h / 8));
-
-        pygame.display.flip()
+    global last_vals
+    if last_vals is None:
         last_vals = vals
+        return
+
+    D = 5
+    scr.scroll(-D)
+    scr.fill((0, 0, 0), (w - D, 0, w, h))
+    for i, (u, v) in enumerate(zip(last_vals, vals)):
+        if DRAW_LINES:
+            pygame.draw.line(scr, (0, 255, 0),
+                             (w - D, int(h / 8 * (i + 1 - u))),
+                             (w, int(h / 8 * (i + 1 - v))))
+            pygame.draw.line(scr, (255, 255, 255),
+                             (w - D, int(h / 8 * (i + 1))),
+                             (w, int(h / 8 * (i + 1))))
+        else:
+            c = int(255 * max(0, min(1, v)))
+            scr.fill((c, c, c), (w - D, i * h / 8, D, (i + 1) * h / 8 - i * h / 8));
+
+    pygame.display.flip()
+    last_vals = vals
+
 
 def proc_emg(emg, times=[]):
-        global dataFresh
-        global arr1
-        dataFresh=True
-        t=[1.1]
-        global emgCount
-        if HAVE_PYGAME:
-            # update pygame display
-            plot(scr, [e / 2000. for e in emg])
+    global dataFresh
+    global arr1
+    dataFresh = True
+    t = [1.1]
+    global emgCount
+    if HAVE_PYGAME:
+        # update pygame display
+        plot(scr, [e / 2000. for e in emg])
 
-        # print(emg)
+    # print(emg)
 
-        # print frame rate of received data
-        times.append(time.time())
-        if len(times) > 20:
-            # print((len(times) - 1) / (times[-1] - times[0]))
-            times.pop(0)
-        if emg[0]>0:
-            t1 = (time.time() - timeBegin)
-            emg=list(emg)
-            t[0]=t1
-            data=t+emg
-            arr1 = data
-
-
-def imu_proc(a,b,c):
-        global imuCount
-        global arr2
-        # imuCount = imuCount + 1
-        t = [1.1]
-        # print(a,b,c)
-        global timeBegin
-        t1=(time.time()-timeBegin)
-        # print(t1)
+    # print frame rate of received data
+    times.append(time.time())
+    if len(times) > 20:
+        # print((len(times) - 1) / (times[-1] - times[0]))
+        times.pop(0)
+    if emg[0] > 0:
+        t1 = (time.time() - timeBegin)
+        emg = list(emg)
         t[0] = t1
-        # t[0] = int(t1*10000)
-        a=list(a)
-        b=list(b)
-        c=list(c)
-        data=c
-        # if HAVE_PYGAME:
-        #     # update pygame display
-        #     plot(scr, [e / 2000. for e in data])
-        c=t+a+b+c
-        arr2 = c
+        data = t + emg
+        arr1 = data
+
+
+def imu_proc(a, b, c):
+    global imuCount
+    global arr2
+    # imuCount = imuCount + 1
+    t = [1.1]
+    # print(a,b,c)
+    global timeBegin
+    t1 = (time.time() - timeBegin)
+    # print(t1)
+    t[0] = t1
+    # t[0] = int(t1*10000)
+    a = list(a)
+    b = list(b)
+    c = list(c)
+    data = c
+    # if HAVE_PYGAME:
+    #     # update pygame display
+    #     plot(scr, [e / 2000. for e in data])
+    c = t + a + b + c
+    arr2 = c
+
 
 def init():
     # 初始化配置，并打开emg数据开关
@@ -129,40 +132,49 @@ def init():
     # m.add_pose_handler(lambda p: print('pose', p))
     # m.add_emg_raw_handler(proc_emg)
     timeBegin = time.time()
-    return  m
+    return m
 
-#yicishuju
+
+#
 def getOnceData(m):
+    """
+    Get One DataSet From Myo
+    :param m: Myo
+    :return: Emg DataSet and Imu DataSet( Only Accelerator Data and Gyro Data)
+    """
     global arr1
     global arr2
     global dataCounter
     global dataFresh
-    emgCache=[]
-    imuCache=[]
-    while  True:
+    emgCache = []
+    imuCache = []
+    while True:
         m.run(1)
         if dataFresh:
-            emgCache=arr1[1:9]
-            imuCache=arr2[5:11]
-            dataFresh =False
-            emgCache=list(np.array(emgCache)/100)
-            imuCache=list(np.array(imuCache)/20)
-            return emgCache ,imuCache
+            emgCache = arr1[1:9]
+            imuCache = arr2[5:11]
+            dataFresh = False
+            emgCache = list(np.array(emgCache) / 100)
+            imuCache = list(np.array(imuCache) / 20)
+            return emgCache, imuCache
 
 
-#求emg数据能力用来判断阈值
+# 求emg数据能力用来判断阈值
 def engery(emgData):
     emgArray = np.array(emgData)
-    emgArray=emgArray
+    emgArray = emgArray
     emgSquare = np.square(emgArray)
     emgSum = np.sum(emgSquare)
-    emgMean=emgSum/5    #在过去的0.1s内
+    emgMean = emgSum / 5  # 在过去的0.1s内
     return emgMean
 
-Threshold=15
-isFinish =False
-#在原始数据基础上获取一次手势的数据
-#实现分段
+
+Threshold = 15
+isFinish = False
+
+
+# 在原始数据基础上获取一次手势的数据
+# 实现分段
 #
 def getGestureData(m):
     global Threshold
@@ -170,49 +182,48 @@ def getGestureData(m):
     quiet = 1
     dataTimes = 1
     global isFinish
-    emgData=[]
-    imuData=[]
-    emg=[]  #huancun5ci
+    emgData = []
+    imuData = []
+    emg = []  # huancun5ci
     while True:
-         if HAVE_PYGAME:
+        if HAVE_PYGAME:
             for ev in pygame.event.get():
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                    return 10000,10000
+                    return 10000, 10000
                     m.disconnect()
                     break
-         emgCache ,imuCache= getData(m)
-         # print(emgCache )
-         # print(imuCache)
-         emgData.append(emgCache)
-         imuData.append(imuCache)
-         emg=emg+emgCache
-         #fenge
-         if dataTimes<5:
-             dataTimes=dataTimes+1
+        emgCache, imuCache = getData(m)
+        # print(emgCache )
+        # print(imuCache)
+        emgData.append(emgCache)
+        imuData.append(imuCache)
+        emg = emg + emgCache
+        # fenge
+        if dataTimes < 5:
+            dataTimes = dataTimes + 1
 
-         else:
-             E=engery(emg)
-             l=len(emg)
-             emg=[]
-             dataTimes=1
-             # print(E)
-             if E>Threshold:
-                 active=active+1
-             else:
-                 quiet=quiet+1
-             if quiet>3:
-                 if active>5:
-                    return emgData,imuData
+        else:
+            E = engery(emg)
+            l = len(emg)
+            emg = []
+            dataTimes = 1
+            # print(E)
+            if E > Threshold:
+                active = active + 1
+            else:
+                quiet = quiet + 1
+            if quiet > 3:
+                if active > 5:
+                    return emgData, imuData
                     print("新手势")
-                 else:          #重置
-                    dataTimes=1
-                    active=1
-                    quiet=1
-                    emgData=[]
-                    imuData=[]
+                else:  # 重置
+                    dataTimes = 1
+                    active = 1
+                    quiet = 1
+                    emgData = []
+                    imuData = []
 
-
-#isSave取True时时存储数据，取False时时分析数据
+# isSave取True时时存储数据，取False时时分析数据
 # if __name__ == '__main__':
 #
 #

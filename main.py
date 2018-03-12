@@ -1,28 +1,30 @@
+# coding=utf-8
 from getData.getData import *
 from myoAnalysis import *
-#isSave取True时时存储数据，取False时时分析数据
+
+# isSave取True时时存储数据，取False时时分析数据
 if __name__ == '__main__':
 
-
     m = init()
-    #shifoubaocunshuju
+    # whether to save data
     isSave = False
-    #导入模型
 
-    #如果是存储数据
+    # 导入模型
+
+    # 如果是存储数据
     if isSave:
-        emgData=[]
-        imuData=[]
-        threshold=[]
+        emgData = []
+        imuData = []
+        threshold = []
         try:
             while True:
                 emg, imu = getOnceData(m)
                 emgData.append(emg)
                 imuData.append(imu)
-                E=engery(emg)
+                E = engery(emg)
                 threshold.append([E])
                 if HAVE_PYGAME:
-                   for ev in pygame.event.get():
+                    for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
                             testXlwt('emgData.xls', emgData)
                             testXlwt('imuData.xls', imuData)
@@ -37,18 +39,19 @@ if __name__ == '__main__':
             pass
         finally:
             m.disconnect()
-    #否则是分析数据
+    # 否则是分析数据
     else:
         from sklearn.externals import joblib
-        model=joblib.load('KNN')
-        emg=[]
-        imu=[]
+
+        model = joblib.load('KNN')
+        emg = []
+        imu = []
         while True:
-             emg,imu = getGestureData(m)
-             if emg==10000:
-                 break
-             np.save('emg',emg)
-             np.save('imu',imu)
-             feture=fetureGet(emg,imu)
-             r=model.predict([feture])
-             print(r)
+            emg, imu = getGestureData(m)
+            if emg == 10000:
+                break
+            np.save('emg', emg)
+            np.save('imu', imu)
+            feture = fetureGet(emg, imu)
+            r = model.predict([feture])
+            print(r)
