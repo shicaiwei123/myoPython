@@ -22,7 +22,7 @@ import numpy as np
 # 读取mat数据测试
 import scipy.io as scio
 data=scio.loadmat('/home/intel/data/1.mat')
-w=data['w']
+w=data['data']
 emgData=w['emgData']
 imuData = w['imuData']
 labels = w['lables']

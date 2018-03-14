@@ -3,17 +3,17 @@ import  numpy as np
 import sklearn
 import myoAnalysis as mAna
 #mat数据结构
-#包含结构体w
+#包含结构体data
 #w包含四个数据，emgData imuData len以及 lables
 #len是包含了，但是当时统计错误
 #nonZeoLabel是非0数组下标，row是非0数据行数
 #读取数据
 def dataRead(file):
     data=scio.loadmat(file)
-    w = data['w']
-    emgData = w['emgData']
-    imuData = w['imuData']
-    labels = w['lables']
+    data=data['data']
+    emgData = data['emgData']
+    imuData = data['imuData']
+    labels = data['lables']
     emgData = emgData[0, 0]
     imuData = imuData[0, 0]
     labels = labels[0, 0]
@@ -45,7 +45,7 @@ if __name__ == '__main__':
         features=[]
         labels=[]
         counter=1
-        len=959   #数据总数
+        len=892   #数据总数
         a=[]
         for i in range(1,len):
             if i%10 ==0:     #jimanshici
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         counter = 1
         right=1
         wrong=1
-        len = 959  # 数据总数
+        len = 892  # 数据总数
         model=joblib.load('KNN')
         a = []
         for i in range(1, len):
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 else:
                     wrong=wrong+1
         score=right/(right+wrong)
-        #chucunjieguo
+        #储存结果
         labels=np.array(labels)
         result=np.array(result)
         np.save('labels',labels)

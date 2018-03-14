@@ -180,7 +180,7 @@ def getGestureData(m):
                     return 10000,10000
                     m.disconnect()
                     break
-         emgCache ,imuCache= getData(m)
+         emgCache ,imuCache= getOnceData(m)
          # print(emgCache )
          # print(imuCache)
          emgData.append(emgCache)

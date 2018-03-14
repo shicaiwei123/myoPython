@@ -1,5 +1,10 @@
 from getData.getData import *
 from myoAnalysis import *
+
+
+#译码，将识别到的标签翻译成手势含义
+# def decode(label):
+
 #isSave取True时时存储数据，取False时时分析数据
 if __name__ == '__main__':
 
