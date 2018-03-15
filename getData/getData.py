@@ -160,7 +160,6 @@ def engery(emgData):
     return emgMean
 
 Threshold=15
-isFinish =False
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
@@ -169,7 +168,6 @@ def getGestureData(m):
     active = 1
     quiet = 1
     dataTimes = 1
-    global isFinish
     emgData=[]
     imuData=[]
     emg=[]  #huancun5ci

@@ -2,8 +2,19 @@ from getData.getData import *
 from myoAnalysis import *
 
 
+
+
 #译码，将识别到的标签翻译成手势含义
 # def decode(label):
+#     dict=\
+#         {#称呼
+#          1:'大家',2:'你',3:'我',4:'他',5:'和',6:'同学',7:'朋友',8:'儿子',9:'女儿',10:'爸爸'\
+#          11:'妈妈',12:'爷爷',13:'奶奶',14:'人'\
+#          #时间
+#          31:'',32:'',33:'',34:,'',\
+#     }
+#     #
+
 
 #isSave取True时时存储数据，取False时时分析数据
 if __name__ == '__main__':
@@ -45,9 +56,28 @@ if __name__ == '__main__':
     #否则是分析数据
     else:
         from sklearn.externals import joblib
+        import threading
+        import queue
+        import time
+        # 预测函数，用于多线程的回调
+        #isFinsh 是线程锁
+        isFinish=False
+        def predict(model, data):
+            t1=time.time()
+            global isFinish
+            result = model.predict(data)
+            t2=time.time()
+            isFinish=True
+            print(t2-t1)    #测试识别时间
+            print(result)   #输出结果
+            # return result
+
+
+        threads = []
         model=joblib.load('KNN')
         emg=[]
         imu=[]
+        fetureCache=queue.Queue(10)
         while True:
              emg,imu = getGestureData(m)
              if emg==10000:
@@ -55,5 +85,8 @@ if __name__ == '__main__':
              np.save('emg',emg)
              np.save('imu',imu)
              feture=fetureGet(emg,imu)
-             r=model.predict([feture])
-             print(r)
+             fetureCache.put([feture])
+             t1 = threading.Thread(target=predict, args=(model,fetureCache.get(),))
+             # r=model.predict([feture])
+             t1.start()
+             # print(r)
