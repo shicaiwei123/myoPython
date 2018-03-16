@@ -1,11 +1,11 @@
+import queue
+import threading
 import time
 
 import numpy as np
 
-from Myo.Bean.myo import MyoRaw
-from Myo.myo_config import MyoConfig
-import queue
-import threading
+from Bean.myo import MyoRaw
+from Bean.myo_config import MyoConfig
 
 
 class DataPool:
@@ -38,11 +38,18 @@ class DataPool:
         self.gyro_queue = queue.Queue()
 
         self.timeout = timeout
+        # run time
         self.run_time = 0
+
         self.myo_data_thread = None
         self.monitor_thread = None
 
     def __get_queue_data(self, data_queue):
+        """
+        Get Different Specific Type of Data from data_queue
+        :param data_queue:
+        :return: Data or None
+        """
         try:
             data = data_queue.get(timeout=self.timeout)
             return data
@@ -50,17 +57,18 @@ class DataPool:
             return None
 
     def get_emg_data(self):
-        # emg数据形式
-        # (emg1, emg2, emg3, emg4, emg5, emg6, emg7, emg8)
+        """
+        Get EMG data
+        :return: (emg1, emg2, emg3, emg4, emg5, emg6, emg7, emg8, timestamp)
+        """
         return self.__get_queue_data(self.emg_queue)
 
     def get_acc_data(self):
         """
         获取加速度数据
-        :return:
+        :return:(acc1, acc2, acc3, timestamp)
         """
         # acc数据形式
-        # (acc1, acc2, acc3, time)
         return self.__get_queue_data(self.acc_queue)
 
     def get_gyro_data(self):
@@ -96,6 +104,7 @@ class DataPool:
                                                  self.gyro_queue,
                                                  self.angle_queue)
         if not self.myo_data_thread.is_alive():
+            # start time
             self.run_time = time.time()
             self.myo_data_thread.start()
 
@@ -141,6 +150,7 @@ class MonitorThread(threading.Thread):
 
 
 class GetDataThread(threading.Thread):
+
     def __init__(self, myo, emg_queue, acc_queue, gyro_queue, angle_queue, window_size=5):
         threading.Thread.__init__(self)
         # 临时数据缓存
@@ -157,6 +167,7 @@ class GetDataThread(threading.Thread):
         self.gyro_temp = list()
 
     def run(self):
+
         self.myo.add_emg_raw_handler(self.emg_raw_handler)
         self.myo.add_imu_handler(self.imu_handler)
         self.myo.connect()
@@ -171,7 +182,7 @@ class GetDataThread(threading.Thread):
                 break
 
     def emg_raw_handler(self, emg_raw):
-        data = list(emg_raw)
+        data = self.__process_emg_raw_data(list(emg_raw))
         data.append(time.time())
         self.emg_queue.put(data)
 
@@ -186,8 +197,8 @@ class GetDataThread(threading.Thread):
         #     self.emg_temp.clear()
 
     def imu_handler(self, quat, acc, gyro):
-        roll, pitch, yaw = self.__calc_angular(quat)
-        self.angle_queue.put([roll, pitch, yaw])
+        # roll, pitch, yaw = self.__calc_angular(quat)
+        # self.angle_queue.put([roll, pitch, yaw])
 
         # self.acc_temp.append(acc)
         # self.gyro_temp.append(gyro)
@@ -202,7 +213,7 @@ class GetDataThread(threading.Thread):
         acc_data.extend(time.time())
         self.acc_queue.put(acc_data)
 
-        self.gyro_queue.put(gyro)
+        # self.gyro_queue.put(gyro)
 
     def __calc_angular(self, orientation_data):
         """
@@ -222,3 +233,11 @@ class GetDataThread(threading.Thread):
         # 偏航角 z轴
         yaw = np.arctan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
         return roll, pitch, yaw
+
+    def __process_emg_raw_data(self, data):
+        """
+        process emg raw data, data from (0, 256)] will change to (-128, 128)
+        :param data: emg_raw_data
+        :return:
+        """
+        return [item if item < 128 else item - 256 for item in data]
