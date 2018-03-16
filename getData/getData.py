@@ -170,7 +170,6 @@ def engery(emgData):
 
 
 Threshold = 15
-isFinish = False
 
 
 # 在原始数据基础上获取一次手势的数据
@@ -181,7 +180,6 @@ def getGestureData(m):
     active = 1
     quiet = 1
     dataTimes = 1
-    global isFinish
     emgData = []
     imuData = []
     emg = []  # huancun5ci
@@ -192,7 +190,8 @@ def getGestureData(m):
                     return 10000, 10000
                     m.disconnect()
                     break
-        emgCache, imuCache = getData(m)
+
+        emgCache, imuCache = getOnceData(m)
         # print(emgCache )
         # print(imuCache)
         emgData.append(emgCache)

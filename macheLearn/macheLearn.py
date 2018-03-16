@@ -3,20 +3,18 @@ import scipy.io as scio
 
 import myoAnalysis as mAna
 
-
-# mat数据结构
-# 包含结构体w
-# w包含四个数据，emgData imuData len以及 lables
-# len是包含了，但是当时统计错误
-# nonZeoLabel是非0数组下标，row是非0数据行数
-# 读取数据
-
+#mat数据结构
+#包含结构体data
+#w包含四个数据，emgData imuData len以及 lables
+#len是包含了，但是当时统计错误
+#nonZeoLabel是非0数组下标，row是非0数据行数
+#读取数据
 def dataRead(file):
-    data = scio.loadmat(file)
-    w = data['w']
-    emgData = w['emgData']
-    imuData = w['imuData']
-    labels = w['lables']
+    data=scio.loadmat(file)
+    data=data['data']
+    emgData = data['emgData']
+    imuData = data['imuData']
+    labels = data['lables']
     emgData = emgData[0, 0]
     imuData = imuData[0, 0]
     labels = labels[0, 0]
@@ -43,18 +41,19 @@ if __name__ == '__main__':
     # xunlieheceshi
     isLearn = False
     if isLearn:
-        # 读并且处理换粗特征值和标签，等待一起训练
-        features = []
-        labels = []
-        counter = 1
-        len = 959  # 数据总数
-        a = []
-        for i in range(1, len):
-            if i % 10 == 0:  # jimanshici
-                counter = counter + 1
-                if counter == 8:
-                    counter = 1
-            if counter != 1:
+
+        #读并且处理换粗特征值和标签，等待一起训练
+        features=[]
+        labels=[]
+        counter=1
+        len=892   #数据总数
+        a=[]
+        for i in range(1,len):
+            if i%10 ==0:     #jimanshici
+                counter=counter+1
+                if counter==8:
+                    counter=1
+            if counter!=1:
                 a.append(i)
                 file = '/home/intel/data/' + str(i) + '.mat'
                 emg, imu, label = dataRead(file)
@@ -68,10 +67,10 @@ if __name__ == '__main__':
         labels = []
         result = []
         counter = 1
-        right = 1
-        wrong = 1
-        len = 959  # 数据总数
-        model = joblib.load('KNN')
+        right=1
+        wrong=1
+        len = 892  # 数据总数
+        model=joblib.load('KNN')
         a = []
         for i in range(1, len):
             if i % 10 == 0:  # jimanshici
@@ -90,12 +89,12 @@ if __name__ == '__main__':
                 if r == label:
                     right = right + 1
                 else:
-                    wrong = wrong + 1
-        score = right / (right + wrong)
-        # chucunjieguo
-        labels = np.array(labels)
-        result = np.array(result)
-        np.save('labels', labels)
-        np.save('result', result)
+                    wrong=wrong+1
+        score=right/(right+wrong)
+        #储存结果
+        labels=np.array(labels)
+        result=np.array(result)
+        np.save('labels',labels)
+        np.save('result',result)
         print(score)
         # print(a)
