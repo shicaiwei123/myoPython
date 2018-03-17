@@ -24,6 +24,7 @@ isFull = False
 #初始化
 arr1=[]
 arr2=[]
+emg_raw_list = []
 
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
@@ -57,6 +58,32 @@ def plot(scr, vals):
 
         pygame.display.flip()
         last_vals = vals
+
+
+def proc_emg_raw(emg_raw, times=[]):
+    global dataFresh
+    global emg_raw_list
+    dataFresh = True
+    t = [1.1]
+    global emgCount
+    # if HAVE_PYGAME:
+    #     # update pygame display
+    #     plot(scr, [e / 2000. for e in emg])
+
+    # print(emg)
+
+    # print frame rate of received data
+    times.append(time.time())
+    if len(times) > 20:
+        # print((len(times) - 1) / (times[-1] - times[0]))
+        times.pop(0)
+    if emg_raw_list[0] > 0:
+        t1 = (time.time() - timeBegin)
+        emg_raw_list = list(emg_raw_list)
+        t[0] = t1
+        data = t + emg_raw
+        emg_raw_list = data
+
 
 def proc_emg(emg, times=[]):
         global dataFresh
@@ -111,7 +138,7 @@ def init():
     config.emg_enable = True
     config.imu_enable = True
     config.arm_enable = False
-    config.emg_raw_enable = False
+    config.emg_raw_enable = True
 
     # 初始化myo实体
     m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
@@ -127,7 +154,7 @@ def init():
     # m.add_imu_handler(lambda a, b, c: print(a, b, c))
     # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     # m.add_pose_handler(lambda p: print('pose', p))
-    # m.add_emg_raw_handler(proc_emg)
+    m.add_emg_raw_handler(proc_emg_raw)
     timeBegin = time.time()
     return  m
 
@@ -137,6 +164,7 @@ def getOnceData(m):
     global arr2
     global dataCounter
     global dataFresh
+    global emg_raw_list
     emgCache=[]
     imuCache=[]
     while  True:
@@ -144,10 +172,12 @@ def getOnceData(m):
         if dataFresh:
             emgCache=arr1[1:9]
             imuCache=arr2[5:11]
+            emg_raw = emg_raw_list[1:9]
             dataFresh =False
             emgCache=list(np.array(emgCache)/100)
+            emgRawCache = list(np.array(emg_raw)/100)
             imuCache=list(np.array(imuCache)/20)
-            return emgCache ,imuCache
+            return emgCache, imuCache, emgRawCache
 
 
 #求emg数据能力用来判断阈值
@@ -178,7 +208,7 @@ def getGestureData(m):
                     return 10000,10000
                     m.disconnect()
                     break
-         emgCache ,imuCache= getOnceData(m)
+         emgCache ,imuCache,emgRaw= getOnceData(m)
          # print(emgCache )
          # print(imuCache)
          emgData.append(emgCache)
