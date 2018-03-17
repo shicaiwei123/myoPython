@@ -24,6 +24,8 @@ class DataPool:
         config = MyoConfig()
         config.emg_raw_enable = True
         config.imu_enable = True
+        config.emg_enable = True
+        config.arm_enable = True
 
         self.myo = MyoRaw(config=config)
         # 连接Myo
@@ -36,6 +38,8 @@ class DataPool:
         self.angle_queue = queue.Queue()
         # 陀螺仪值
         self.gyro_queue = queue.Queue()
+        # emg_raw
+        self.emg_raw_queue = queue.Queue()
 
         self.timeout = timeout
         # run time
@@ -55,6 +59,9 @@ class DataPool:
             return data
         except queue.Empty:
             return None
+
+    def get_emg_raw_data(self):
+        return self.__get_queue_data(self.emg_raw_queue)
 
     def get_emg_data(self):
         """
@@ -100,6 +107,7 @@ class DataPool:
         if self.myo_data_thread is None:
             self.myo_data_thread = GetDataThread(self.myo,
                                                  self.emg_queue,
+                                                 self.emg_raw_queue,
                                                  self.acc_queue,
                                                  self.gyro_queue,
                                                  self.angle_queue)
@@ -151,7 +159,9 @@ class MonitorThread(threading.Thread):
 
 class GetDataThread(threading.Thread):
 
-    def __init__(self, myo, emg_queue, acc_queue, gyro_queue, angle_queue, window_size=5):
+    def __init__(self, myo,
+                 emg_queue, emg_raw_queue, acc_queue, gyro_queue, angle_queue,
+                 window_size=5):
         threading.Thread.__init__(self)
         # 临时数据缓存
         self.myo = myo
@@ -159,6 +169,7 @@ class GetDataThread(threading.Thread):
         self.acc_queue = acc_queue
         self.gyro_queue = gyro_queue
         self.angle_queue = angle_queue
+        self.emg_raw_queue = emg_raw_queue
 
         self.window_size = window_size
 
@@ -170,6 +181,7 @@ class GetDataThread(threading.Thread):
 
         self.myo.add_emg_raw_handler(self.emg_raw_handler)
         self.myo.add_imu_handler(self.imu_handler)
+        self.myo.add_emg_handler(self.emg_handler)
         self.myo.connect()
 
         while True:
@@ -184,10 +196,11 @@ class GetDataThread(threading.Thread):
     def emg_raw_handler(self, emg_raw):
         data = self.__process_emg_raw_data(list(emg_raw))
         data.append(time.time())
-        self.emg_queue.put(data)
+        self.emg_raw_queue.put(data)
 
     def emg_handler(self, emg):
         temp = [x / 100 for x in emg]
+        temp.append(time.time())
         self.emg_queue.put(temp)
 
         # self.emg_temp.append(emg)

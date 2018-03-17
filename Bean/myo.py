@@ -312,7 +312,7 @@ class MyoRaw(object):
         if emg_enable:
             enable_code += b'\x01'
         elif emg_raw_enable:
-            enable_code += b'\x03'
+            enable_code += b'\x02'
         else:
             enable_code += b'\x00'
 
