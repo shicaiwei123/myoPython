@@ -3,29 +3,33 @@ import  numpy as np
 import sklearn
 import myoAnalysis as mAna
 #mat数据结构
-#包含结构体data
+#包含结构体w
 #w包含四个数据，emgData imuData len以及 lables
 #len是包含了，但是当时统计错误
 #nonZeoLabel是非0数组下标，row是非0数据行数
 #读取数据
 def dataRead(file):
     data=scio.loadmat(file)
-    data=data['data']
-    emgData = data['emgData']
-    imuData = data['imuData']
-    labels = data['lables']
+    w = data['data']
+    emgData = w['emgData']
+    imuData = w['imuData']
+    labels = w['lables']
+    len=w['len']
     emgData = emgData[0, 0]
     imuData = imuData[0, 0]
     labels = labels[0, 0]
-    labels=labels[0,0]
-    nonZeroLable = np.nonzero(emgData[:, 0])
-    row = np.size(nonZeroLable)
+    len=len[0,0]
+    row=(len-1)*5-1
+    row=row[0,0]
     emgData = emgData[0:row, :]
     imuData = imuData[0:row, :]
+    #归一化
+    emgMax=np.max(np.max(emgData))
+    imuMax=np.max(np.max(imuData))
+    imuMin=np.min(np.min(imuData))
+    emgData=(emgData)/emgMax
+    imuData=(imuData-imuMin)/(imuMax-imuMin)
     return emgData,imuData,labels
-
-
-
 
 
 def getKNN(trainX,trainY):
@@ -72,7 +76,7 @@ if __name__ == '__main__':
         model=joblib.load('KNN')
         a = []
         for i in range(1, len):
-            if i % 10 == 0:  # jimanshici
+            if i % 10 == 0:  # 集满十次
                 counter = counter + 1
                 if counter == 8:
                     counter = 1
@@ -90,7 +94,7 @@ if __name__ == '__main__':
                 else:
                     wrong=wrong+1
         score=right/(right+wrong)
-        #储存结果
+        #chucunjieguo
         labels=np.array(labels)
         result=np.array(result)
         np.save('labels',labels)

@@ -3,7 +3,7 @@ from myoAnalysis import *
 from voice.speech import xf_speech
 
 #speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-speaker = xf_speech('/dev/ttyUSB0')
+# speaker = xf_speech('/dev/ttyUSB0')
 
 
 #译码，将识别到的标签翻译成手势含义
@@ -63,10 +63,11 @@ if __name__ == '__main__':
                 if HAVE_PYGAME:
                    for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                            testXlwt('emgData.xls', emgData)
-                            testXlwt('imuData.xls', imuData)
-                            testXlwt('emgRawData.xls', emg_raw)
-                            testXlwt('threshold.xls', threshold)
+                            name='谢谢'
+                            testXlwt('data/'+name+'/emgData.xls', emgData)
+                            testXlwt('data/'+name+'/imuData.xls', imuData)
+                            testXlwt('data/'+name+'/emgRawData.xls', emg_raw)
+                            testXlwt('data/'+name+'/thresholdData.xls', threshold)
                             raise KeyboardInterrupt()
                         elif ev.type == KEYDOWN:
                             if K_1 <= ev.key <= K_3:
@@ -93,11 +94,11 @@ if __name__ == '__main__':
             t2=time.time()
             isFinish=True
             out=decode(result)
-            speaker.speech_sy(out)
+            # speaker.speech_sy(out)
             print(t2-t1)    #测试识别时间
             print(out)   #输出结果
             # return result
-
+        #导入模型
         threads = []
         model=joblib.load('KNN')
         emg=[]
@@ -107,11 +108,21 @@ if __name__ == '__main__':
              emg,imu = getGestureData(m)
              if emg==10000:
                  break
-             np.save('emg',emg)
-             np.save('imu',imu)
+             # np.save('emg',emg)
+             # np.save('imu',imu)
+             #归一化
+             emgMax = np.max(np.max(emg))
+             imuMax = np.max(np.max(imu))
+             imuMin = np.min(np.min(imu))
+             emg = (emg) / emgMax
+             imu = (imu - imuMin) / (imuMax - imuMin)
+             #特征提取
              feture=fetureGet(emg,imu)
+             #数据缓存
              fetureCache.put([feture])
+             #识别
              t1 = threading.Thread(target=predict, args=(model,fetureCache.get(),))
-             # r=model.predict([feture])
              t1.start()
+
+             # r=model.predict([feture])
              # print(r)

@@ -165,8 +165,6 @@ def getOnceData(m):
     global dataCounter
     global dataFresh
     global emg_raw_list
-    emgCache=[]
-    imuCache=[]
     while  True:
         m.run(1)
         if dataFresh:
@@ -189,7 +187,7 @@ def engery(emgData):
     emgMean=emgSum/5    #在过去的0.1s内
     return emgMean
 
-Threshold=15
+Threshold=35
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
@@ -200,7 +198,7 @@ def getGestureData(m):
     dataTimes = 1
     emgData=[]
     imuData=[]
-    emg=[]  #huancun5ci
+    emg=[]  #缓存5次
     while True:
          if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -214,7 +212,7 @@ def getGestureData(m):
          emgData.append(emgCache)
          imuData.append(imuCache)
          emg=emg+emgCache
-         #fenge
+         #分割
          if dataTimes<5:
              dataTimes=dataTimes+1
 
@@ -223,7 +221,6 @@ def getGestureData(m):
              l=len(emg)
              emg=[]
              dataTimes=1
-             # print(E)
              if E>Threshold:
                  active=active+1
              else:
