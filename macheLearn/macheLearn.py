@@ -40,6 +40,16 @@ def getKNN(trainX,trainY):
     model.fit(trainX,trainY.ravel())
     return model
 
+
+def getSVM(trainX,trainY):
+    from  sklearn.svm import SVC
+    trainX=np.array(trainX)
+    trainY=np.array(trainY)
+    model=SVC(kernel='rbf',degree=2)
+    model.fit(trainX,trainY.ravel())
+    return model
+
+
 if __name__ == '__main__':
     from sklearn.externals import joblib
     #xunlieheceshi
