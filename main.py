@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     m = init()
     #shifoubaocunshuju
-    isSave = False
+    isSave = True
     #导入模型
 
     #如果是存储数据
@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 if HAVE_PYGAME:
                    for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                            name='谢谢'
+                            name='大家'
                             testXlwt('data/'+name+'/emgData.xls', emgData)
                             testXlwt('data/'+name+'/imuData.xls', imuData)
                             testXlwt('data/'+name+'/emgRawData.xls', emg_raw)

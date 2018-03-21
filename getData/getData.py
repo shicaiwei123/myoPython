@@ -91,9 +91,9 @@ def proc_emg(emg, times=[]):
         dataFresh=True
         t=[1.1]
         global emgCount
-        if HAVE_PYGAME:
+        # if HAVE_PYGAME:
             # update pygame display
-            plot(scr, [e / 2000. for e in emg])
+            # plot(scr, [e / 2000. for e in emg])
 
         # print(emg)
 
@@ -125,9 +125,9 @@ def imu_proc(a,b,c):
         b=list(b)
         c=list(c)
         data=c
-        # if HAVE_PYGAME:
+        if HAVE_PYGAME:
         #     # update pygame display
-        #     plot(scr, [e / 2000. for e in data])
+            plot(scr, [e / 2000. for e in data])
         c=t+a+b+c
         arr2 = c
 
@@ -187,7 +187,14 @@ def engery(emgData):
     emgMean=emgSum/5    #在过去的0.1s内
     return emgMean
 
-Threshold=35
+def gyoEngery(gyoData):
+    gyoData=gyoData*10
+    gyoData=gyoData/100
+    gyoSquare=np.square(gyoData)
+    gyoSum=np.sum(gyoSquare)
+    return gyoSum
+
+Threshold=25
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
@@ -212,11 +219,16 @@ def getGestureData(m):
          emgData.append(emgCache)
          imuData.append(imuCache)
          emg=emg+emgCache
+         gyo=np.array(imuData)
+         gyo=(gyo[4:6])
+
          #分割
          if dataTimes<5:
              dataTimes=dataTimes+1
 
          else:
+             gyoE=gyoEngery(gyo)
+             print(gyoE)
              E=engery(emg)
              l=len(emg)
              emg=[]

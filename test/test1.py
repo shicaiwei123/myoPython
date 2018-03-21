@@ -105,7 +105,43 @@ import scipy.io as scio
 
 
 #字典测试
-dict=\
-    {1:'大家'\
-    ,2:'你'}
-print(dict[1])
+# dict=\
+#     {1:'大家'\
+#     ,2:'你'}
+# print(dict[1])
+
+from getData.getData import  *
+m=init()
+active = 1
+quiet = 1
+dataTimes = 1
+emgData = []
+imuData = []
+emg = []  # 缓存5次
+while True:
+    if HAVE_PYGAME:
+        for ev in pygame.event.get():
+            if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
+
+                m.disconnect()
+                break
+    emgCache, imuCache, emgRaw = getOnceData(m)
+    # print(emgCache )
+    # print(imuCache)
+    emgData.append(emgCache)
+    imuData.append(imuCache)
+    emg = emg + emgCache
+    gyo = np.array(imuData)
+    gyo = (gyo[4:6])
+
+    # 分割
+    if dataTimes < 5:
+        dataTimes = dataTimes + 1
+
+    else:
+        gyoE = gyoEngery(gyo)
+        print(gyoE)
+        emgData=[]
+        imuData=[]
+        dataTimes=1
+

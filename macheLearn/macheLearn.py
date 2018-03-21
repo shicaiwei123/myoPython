@@ -36,7 +36,7 @@ def getKNN(trainX,trainY):
     from  sklearn.neighbors import KNeighborsClassifier as knn
     trainX=np.array(trainX)
     trainY=np.array(trainY)
-    model=knn(n_neighbors=10)
+    model=knn(n_neighbors=10,metric='cosine',weights='distance')
     model.fit(trainX,trainY.ravel())
     return model
 
@@ -45,7 +45,7 @@ def getSVM(trainX,trainY):
     from  sklearn.svm import SVC
     trainX=np.array(trainX)
     trainY=np.array(trainY)
-    model=SVC(kernel='rbf',degree=2)
+    model=SVC(kernel='rbf',degree=3)
     model.fit(trainX,trainY.ravel())
     return model
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         features=[]
         labels=[]
         counter=1
-        len=892   #数据总数
+        len=1194  #数据总数
         a=[]
         for i in range(1,len):
             if i%10 ==0:     #jimanshici
@@ -73,6 +73,7 @@ if __name__ == '__main__':
                 feature=mAna.fetureGet(emg,imu)
                 features.append(feature)
                 labels.append([label])
+        #训练模型
         model=getKNN(features,labels)
         joblib.dump(model,'KNN')
     else:
@@ -82,7 +83,7 @@ if __name__ == '__main__':
         counter = 1
         right=1
         wrong=1
-        len = 892  # 数据总数
+        len = 1193  # 数据总数
         model=joblib.load('KNN')
         a = []
         for i in range(1, len):
