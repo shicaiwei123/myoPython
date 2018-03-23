@@ -44,7 +44,19 @@ def fetureGet(emgData,imuData):
     meanAccX=np.mean(accX)
     meanAccY=np.mean(accY)
     meanAccZ=np.mean(accZ)
+    meanDiffAccX=np.mean(np.abs(diffAccX))
+    meanDiffAccY = np.mean(np.abs(diffAccY))
+    meanDiffAccZ = np.mean(np.abs(diffAccZ))
+    meanDiffGcoX=np.mean(np.abs(diffGcoX))
+    meanDiffGcoY = np.mean(np.abs(diffGcoY))
+    meanDiffGcoZ = np.mean(np.abs(diffGcoZ))
     rmsAccX=np.sqrt(np.mean(accX**2))
+    rmsAccY=np.sqrt(np.mean(accY**2))
+    rmsAccZ=np.sqrt(np.mean(accZ**2))
+    rmsAcc=np.sqrt(np.mean(acc**2))
+    rmsGcoX=np.sqrt(np.mean(gcoX**2))
+    rmsGcoY=np.sqrt(np.mean(gcoY**2))
+    rmsGcoZ=np.sqrt(np.mean(gcoZ**2))
     integralAccX=np.sum(accX)*1/frq
     integralAccY=np.sum(accY)*1/frq
     integralAccZ=np.sum(accZ)*1/frq
@@ -60,9 +72,12 @@ def fetureGet(emgData,imuData):
     meanEmg8 = np.mean(emg8)
     feature=[]
     feature.append(meanAccX);feature.append(meanAccY);feature.append(meanAccZ)
-    feature.append(rmsAccX)
+    feature.append(rmsAccX);feature.append(rmsAccY);feature.append(rmsAccZ)
+    feature.append(rmsGcoX);feature.append(rmsGcoY);feature.append(rmsGcoZ)
     feature.append(integralAccX);feature.append(integralAccY);feature.append(integralAccZ)
     feature.append(rangeAccX);feature.append(rangeAccY)
+    # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
+    # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
     feature.append(meanEmg1)
     feature.append(meanEmg2)
     feature.append(meanEmg3)

@@ -109,39 +109,65 @@ import scipy.io as scio
 #     {1:'大家'\
 #     ,2:'你'}
 # print(dict[1])
+#
+# 分割测试
+# from getData.getData import  *
+# m=init()
+# active = 1
+# quiet = 1
+# dataTimes = 1
+# emgData = []
+# imuData = []
+# emg = []  # 缓存5次
+# gyo=[]
+# isactive=False
+# isDown=False
+# gyoLatter=0
+# gyoFormer=0
+# segTimes = 0;
+# while True:
+#     if HAVE_PYGAME:
+#         for ev in pygame.event.get():
+#             if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
+#
+#                 m.disconnect()
+#                 break
+#     emgCache, imuCache, emgRaw = getOnceData(m)
+#     # print(emgCache )
+#     # print(imuCache)
+#     emgData.append(emgCache)
+#     imuData.append(imuCache)
+#     emg = emg + emgCache
+#     gyo = gyo+imuCache[4:6]
+#
+#     # 分割
+#     if dataTimes < 5:
+#         dataTimes = dataTimes + 1
+#
+#     else:
+#         gyoE = gyoEngery(gyo)
+#         gyoFormer=gyoLatter
+#         gyoLatter=gyoE
+#         # print(gyoE)
+#         emgData=[]
+#         imuData=[]
+#         gyo=[]
+#         dataTimes=1
+#         if gyoE>50:
+#             isactive=True
+#         if isactive:
+#             gyoSub=gyoFormer-gyoLatter
+#             if gyoSub<0:
+#                 if gyoLatter<200:
+#                     isactive=False
+#                     print(segTimes)
+#                     segTimes+=1
 
-from getData.getData import  *
-m=init()
-active = 1
-quiet = 1
-dataTimes = 1
-emgData = []
-imuData = []
-emg = []  # 缓存5次
-while True:
-    if HAVE_PYGAME:
-        for ev in pygame.event.get():
-            if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
 
-                m.disconnect()
-                break
-    emgCache, imuCache, emgRaw = getOnceData(m)
-    # print(emgCache )
-    # print(imuCache)
-    emgData.append(emgCache)
-    imuData.append(imuCache)
-    emg = emg + emgCache
-    gyo = np.array(imuData)
-    gyo = (gyo[4:6])
 
-    # 分割
-    if dataTimes < 5:
-        dataTimes = dataTimes + 1
 
-    else:
-        gyoE = gyoEngery(gyo)
-        print(gyoE)
-        emgData=[]
-        imuData=[]
-        dataTimes=1
+
+
+
+
 

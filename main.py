@@ -11,7 +11,7 @@ def decode(label):
     label=int(label)
     dict=\
         {#称呼
-         1:'大家',2:'你',3:'我',4:'他',5:'和',6:'同学',7:'朋友',8:'儿子',9:'女儿',10:'爸爸',
+         1:'大家',2:'你',3:'我',4:'他',5:'和',6:'同',7:'学',8:'男',9:'女',10:'爸爸',
          11:'妈妈',12:'爷爷',13:'奶奶',14:'人',
          #时间
          31:'早上',32:'中午',33:'晚上',34:'年',
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     m = init()
     #shifoubaocunshuju
-    isSave = True
+    isSave = False
     #导入模型
 
     #如果是存储数据
@@ -63,11 +63,11 @@ if __name__ == '__main__':
                 if HAVE_PYGAME:
                    for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                            name='大家'
-                            testXlwt('data/'+name+'/emgData.xls', emgData)
-                            testXlwt('data/'+name+'/imuData.xls', imuData)
-                            testXlwt('data/'+name+'/emgRawData.xls', emg_raw)
-                            testXlwt('data/'+name+'/thresholdData.xls', threshold)
+                            name='中午'
+                            testXlwt('dataWSC/'+name+'/emgData.xls', emgData)
+                            testXlwt('dataWSC/'+name+'/imuData.xls', imuData)
+                            testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
+                            testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
                             raise KeyboardInterrupt()
                         elif ev.type == KEYDOWN:
                             if K_1 <= ev.key <= K_3:
@@ -100,11 +100,13 @@ if __name__ == '__main__':
             # return result
         #导入模型
         threads = []
-        model=joblib.load('KNN')
+        model=joblib.load('KNN30')
         emg=[]
         imu=[]
         fetureCache=queue.Queue(10)
         while True:
+             # w, h = 1200, 400
+             # scr = pygame.display.set_mode((w, h))
              emg,imu = getGestureData(m)
              if emg==10000:
                  break

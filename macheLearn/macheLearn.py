@@ -36,7 +36,7 @@ def getKNN(trainX,trainY):
     from  sklearn.neighbors import KNeighborsClassifier as knn
     trainX=np.array(trainX)
     trainY=np.array(trainY)
-    model=knn(n_neighbors=10,metric='cosine',weights='distance')
+    model=knn(n_neighbors=30,weights='distance')
     model.fit(trainX,trainY.ravel())
     return model
 
@@ -54,12 +54,13 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     #xunlieheceshi
     isLearn =False
+    modelName = 'KNN30'
     if isLearn:
         #读并且处理换粗特征值和标签，等待一起训练
         features=[]
         labels=[]
         counter=1
-        len=1194  #数据总数
+        len=1655  #数据总数
         a=[]
         for i in range(1,len):
             if i%10 ==0:     #jimanshici
@@ -73,9 +74,10 @@ if __name__ == '__main__':
                 feature=mAna.fetureGet(emg,imu)
                 features.append(feature)
                 labels.append([label])
+
         #训练模型
         model=getKNN(features,labels)
-        joblib.dump(model,'KNN')
+        joblib.dump(model,modelName)
     else:
         feature = []
         labels = []
@@ -83,8 +85,8 @@ if __name__ == '__main__':
         counter = 1
         right=1
         wrong=1
-        len = 1193  # 数据总数
-        model=joblib.load('KNN')
+        len = 1655  # 数据总数
+        model=joblib.load(modelName)
         a = []
         for i in range(1, len):
             if i % 10 == 0:  # 集满十次

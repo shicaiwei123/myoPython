@@ -30,6 +30,7 @@ emg_raw_list = []
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
 w, h = 1200, 400
 scr = pygame.display.set_mode((w, h))
+# scr1 = pygame.display.set_mode((w, h))
 last_vals = None
 # 绘图函数，使用pygame绘制emg数据
 def plot(scr, vals):
@@ -60,6 +61,7 @@ def plot(scr, vals):
         last_vals = vals
 
 
+
 def proc_emg_raw(emg_raw, times=[]):
     global dataFresh
     global emg_raw_list
@@ -86,14 +88,15 @@ def proc_emg_raw(emg_raw, times=[]):
 
 
 def proc_emg(emg, times=[]):
+        global scr2
         global dataFresh
         global arr1
         dataFresh=True
         t=[1.1]
         global emgCount
-        # if HAVE_PYGAME:
+        if HAVE_PYGAME:
             # update pygame display
-            # plot(scr, [e / 2000. for e in emg])
+            plot(scr, [e / 2000. for e in emg])
 
         # print(emg)
 
@@ -111,6 +114,7 @@ def proc_emg(emg, times=[]):
 
 
 def imu_proc(a,b,c):
+        global scr1
         global imuCount
         global arr2
         # imuCount = imuCount + 1
@@ -125,9 +129,9 @@ def imu_proc(a,b,c):
         b=list(b)
         c=list(c)
         data=c
-        if HAVE_PYGAME:
-        #     # update pygame display
-            plot(scr, [e / 2000. for e in data])
+        # if HAVE_PYGAME:
+        # #     # update pygame display
+        #     plot(scr, [e / 2000. for e in data])
         c=t+a+b+c
         arr2 = c
 
@@ -188,13 +192,14 @@ def engery(emgData):
     return emgMean
 
 def gyoEngery(gyoData):
+    gyoData=np.array(gyoData)
     gyoData=gyoData*10
     gyoData=gyoData/100
     gyoSquare=np.square(gyoData)
     gyoSum=np.sum(gyoSquare)
     return gyoSum
 
-Threshold=25
+Threshold=30
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
@@ -206,6 +211,7 @@ def getGestureData(m):
     emgData=[]
     imuData=[]
     emg=[]  #缓存5次
+    gyo=[]
     while True:
          if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -219,8 +225,7 @@ def getGestureData(m):
          emgData.append(emgCache)
          imuData.append(imuCache)
          emg=emg+emgCache
-         gyo=np.array(imuData)
-         gyo=(gyo[4:6])
+         gyo=gyo+imuCache[4:6]
 
          #分割
          if dataTimes<5:
@@ -228,10 +233,11 @@ def getGestureData(m):
 
          else:
              gyoE=gyoEngery(gyo)
-             print(gyoE)
+             # print(gyoE)
              E=engery(emg)
              l=len(emg)
              emg=[]
+             gyo=[]
              dataTimes=1
              if E>Threshold:
                  active=active+1
