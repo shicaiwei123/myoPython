@@ -59,6 +59,9 @@ def fetureGet(emgData,imuData):
     meanAccX=np.mean(accX)
     meanAccY=np.mean(accY)
     meanAccZ=np.mean(accZ)
+    meanGcoX=np.mean(gcoX)
+    meanGcoY=np.mean(gcoY)
+    meanGcoZ=np.mean(gcoZ)
     meanDiffAccX=np.mean(np.abs(diffAccX))
     meanDiffAccY = np.mean(np.abs(diffAccY))
     meanDiffAccZ = np.mean(np.abs(diffAccZ))
@@ -80,6 +83,9 @@ def fetureGet(emgData,imuData):
     #范围
     rangeAccX=np.max(accX)-np.min(accX)
     rangeAccY=np.max(accY)-np.min(accY)
+    rangeGcoX=np.max(gcoX)-np.min(gcoX)
+    rangeGcoY=np.max(gcoX)-np.min(gcoY)
+    rangeGcoZ=np.max(gcoX)-np.min(gcoZ)
     #过零率
     gcoXZCR=ZCR(gcoX)
     gcoYZCR=ZCR(gcoY)
@@ -95,10 +101,12 @@ def fetureGet(emgData,imuData):
     meanEmg8 = np.mean(emg8)
     feature=[]
     feature.append(meanAccX);feature.append(meanAccY);feature.append(meanAccZ)
+    # feature.append(meanGcoX);feature.append(meanGcoY);feature.append(meanGcoZ)
     feature.append(rmsAccX);feature.append(rmsAccY);feature.append(rmsAccZ)
     feature.append(rmsGcoX);feature.append(rmsGcoY);feature.append(rmsGcoZ)
     feature.append(integralAccX);feature.append(integralAccY);feature.append(integralAccZ)
     feature.append(rangeAccX);feature.append(rangeAccY)
+    feature.append(rangeGcoX);feature.append(rangeGcoY);feature.append(rangeGcoZ)
     # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
     # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
     feature.append(gcoXZCR);feature.append(gcoYZCR);feature.append(gcoZZCR)

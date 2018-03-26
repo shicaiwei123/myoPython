@@ -36,7 +36,7 @@ def getKNN(trainX,trainY):
     from  sklearn.neighbors import KNeighborsClassifier as knn
     trainX=np.array(trainX)
     trainY=np.array(trainY)
-    model=knn(n_neighbors=30,weights='distance')
+    model=knn(n_neighbors=10,weights='distance')
     model.fit(trainX,trainY.ravel())
     return model
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     #xunlieheceshi
     isLearn =False
-    modelName = 'KNN30'
+    modelName = 'KNN10'
     if isLearn:
         #读并且处理换粗特征值和标签，等待一起训练
         features=[]
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                     counter=1
             if counter!=1:
                 a.append(i)
-                file ='/home/intel/dataOneFiginer/'+str(i)+'.mat'
+                file ='/home/shicaiwei/dataOneFiginer/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 feature=mAna.fetureGet(emg,imu)
                 features.append(feature)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                     counter = 1
             if counter == 1:
                 # a.append(i)
-                file ='/home/intel/dataOneFiginer/'+str(i)+'.mat'
+                file ='/home/shicaiwei/dataOneFiginer/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 labels.append(label)
                 feature=mAna.fetureGet(emg,imu)

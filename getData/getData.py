@@ -94,9 +94,9 @@ def proc_emg(emg, times=[]):
         dataFresh=True
         t=[1.1]
         global emgCount
-        # if HAVE_PYGAME:
-        #     # update pygame display
-        #     plot(scr, [e / 2000. for e in emg])
+        if HAVE_PYGAME:
+            # update pygame display
+            plot(scr, [e / 2000. for e in emg])
 
         # print(emg)
 
@@ -129,9 +129,9 @@ def imu_proc(a,b,c):
         b=list(b)
         c=list(c)
         data=b
-        if HAVE_PYGAME:
-        #     # update pygame display
-            plot(scr, [e / 2000. for e in data])
+        # if HAVE_PYGAME:
+        # #     # update pygame display
+        #     plot(scr, [e / 2000. for e in data])
         c=t+a+b+c
         arr2 = c
 
@@ -204,7 +204,7 @@ def gyoEngery(gyoData):
     gyoSum=np.sum(gyoSquare)
     return gyoSum
 
-Threshold=30
+Threshold=25
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
