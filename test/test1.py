@@ -1,3 +1,4 @@
+#coding=utf8
 #veriso = ""
 #description =""
 #author = "shicaiwei"
@@ -10,7 +11,7 @@
 # print(a)
 # eng.quit()
 import numpy as np
-#测试图像----完成
+# 测试图像----完成
 # import  matplotlib.pyplot as plt
 # import matplotlib.image as mimg
 # a=[1,2,3,4,5]
@@ -22,6 +23,7 @@ import numpy as np
 
 # 读取mat数据测试
 import scipy.io as scio
+
 # data=scio.loadmat('/home/intel/data/1.mat')
 # w=data['data']
 # emgData=w['emgData']
@@ -40,7 +42,6 @@ import scipy.io as scio
 # # print(a)
 # print(data.keys())
 
-
 # #测试新数据结构
 # emg=np.load('emg.npy')
 # imu=np.load('imu.npy')
@@ -51,7 +52,7 @@ import scipy.io as scio
 # print(b)
 
 
-#数字字符串转测试
+# 数字字符串转测试
 # a=1
 # b=str(a)
 # print(b)

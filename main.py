@@ -1,9 +1,11 @@
+# coding=utf-8
 from getData.getData import *
 from myoAnalysis import *
 from voice.speech import xf_speech
 
 #speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
 # speaker = xf_speech('/dev/ttyUSB0')
+
 
 
 #译码，将识别到的标签翻译成手势含义
@@ -39,29 +41,30 @@ def decode(label):
     return dict[label]
 
 
-#isSave取True时时存储数据，取False时时分析数据
+
+# isSave取True时时存储数据，取False时时分析数据
 if __name__ == '__main__':
 
-
     m = init()
-    #shifoubaocunshuju
+    # whether to save data
     isSave = False
-    #导入模型
 
-    #如果是存储数据
+    # 导入模型
+
+    # 如果是存储数据
     if isSave:
-        emgData=[]
-        imuData=[]
-        threshold=[]
+        emgData = []
+        imuData = []
+        threshold = []
         try:
             while True:
                 emg, imu, emg_raw = getOnceData(m)
                 emgData.append(emg)
                 imuData.append(imu)
-                E=engery(emg)
+                E = engery(emg)
                 threshold.append([E])
                 if HAVE_PYGAME:
-                   for ev in pygame.event.get():
+                    for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
                             name='中午'
                             testXlwt('dataWSC/'+name+'/emgData.xls', emgData)
@@ -78,7 +81,7 @@ if __name__ == '__main__':
             pass
         finally:
             m.disconnect()
-    #否则是分析数据
+    # 否则是分析数据
     else:
         from sklearn.externals import joblib
         import threading

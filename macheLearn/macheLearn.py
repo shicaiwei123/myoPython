@@ -1,7 +1,8 @@
-import  scipy.io as scio
-import  numpy as np
-import sklearn
+import numpy as np
+import scipy.io as scio
+
 import myoAnalysis as mAna
+
 #mat数据结构
 #包含结构体w
 #w包含四个数据，emgData imuData len以及 lables
@@ -56,6 +57,7 @@ if __name__ == '__main__':
     isLearn =False
     modelName = 'KNN30'
     if isLearn:
+
         #读并且处理换粗特征值和标签，等待一起训练
         features=[]
         labels=[]
@@ -81,7 +83,7 @@ if __name__ == '__main__':
     else:
         feature = []
         labels = []
-        result=[]
+        result = []
         counter = 1
         right=1
         wrong=1
@@ -98,12 +100,12 @@ if __name__ == '__main__':
                 file ='/home/intel/dataOneFiginer/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 labels.append(label)
-                feature=mAna.fetureGet(emg,imu)
-                r=model.predict([feature])
+                feature = mAna.fetureGet(emg, imu)
+                r = model.predict([feature])
                 result.append(r)
-                #jielunjieguo
-                if r==label:
-                    right=right+1
+                # jielunjieguo
+                if r == label:
+                    right = right + 1
                 else:
                     wrong=wrong+1
         score=right/(right+wrong)
@@ -114,6 +116,3 @@ if __name__ == '__main__':
         np.save('result',result)
         print(score)
         # print(a)
-
-
-

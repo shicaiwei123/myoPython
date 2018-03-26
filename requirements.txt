@@ -1,0 +1,6 @@
+scipy==0.19.0
+numpy==1.12.1
+xlwt==1.2.0
+pygame==1.9.3
+pyserial==3.4
+scikit_learn==0.19.1
