@@ -8,13 +8,13 @@ from pygame.locals import *
 
 from Bean.myo import MyoRaw
 from Bean.myo_config import MyoConfig
+from Bean.myo_hub import MyoHub
 from myoAnalysis import *
 
 HAVE_PYGAME = True
 
 global timeBegin
 
-global arr1, arr2, arr1Temp, arr2Temp  # 缓存初始数据
 dataCache = list(range(1, 105))  # 缓存5个
 # 存储一个手势的数据
 dataCounter = 0
@@ -22,8 +22,10 @@ dataFresh = False
 isFull = False
 
 # 初始化
-arr1 = []
-arr2 = []
+left_emg_list = []
+right_emg_list = []
+left_imu_list = []
+right_imu_list = []
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
 w, h = 1200, 400
@@ -60,9 +62,9 @@ def plot(scr, vals):
     last_vals = vals
 
 
-def proc_emg(emg, times=[]):
+def left_proc_emg(emg, times=[]):
     global dataFresh
-    global arr1
+    global left_emg_list
     dataFresh = True
     t = [1.1]
     global emgCount
@@ -82,12 +84,37 @@ def proc_emg(emg, times=[]):
         emg = list(emg)
         t[0] = t1
         data = t + emg
-        arr1 = data
+        left_emg_list = data
 
 
-def imu_proc(a, b, c):
+def right_proc_emg(emg, times=[]):
+    global dataFresh
+    global right_emg_list
+    dataFresh = True
+    t = [1.1]
+    global emgCount
+    # if HAVE_PYGAME:
+    #     # update pygame display
+    #     plot(scr, [e / 2000. for e in emg])
+
+    # print(emg)
+
+    # print frame rate of received data
+    times.append(time.time())
+    if len(times) > 20:
+        # print((len(times) - 1) / (times[-1] - times[0]))
+        times.pop(0)
+    if emg[0] > 0:
+        t1 = (time.time() - timeBegin)
+        emg = list(emg)
+        t[0] = t1
+        data = t + emg
+        right_emg_list = data
+
+
+def left_imu_proc(a, b, c):
     global imuCount
-    global arr2
+    global left_imu_list
     # imuCount = imuCount + 1
     t = [1.1]
     # print(a,b,c)
@@ -104,7 +131,30 @@ def imu_proc(a, b, c):
     #     # update pygame display
     #     plot(scr, [e / 2000. for e in data])
     c = t + a + b + c
-    arr2 = c
+    left_imu_list = c
+
+
+def right_imu_proc(a, b, c):
+    global imuCount
+    global right_imu_list
+    # imuCount = imuCount + 1
+    t = [1.1]
+    # print(a,b,c)
+    global timeBegin
+    t1 = (time.time() - timeBegin)
+    # print(t1)
+    t[0] = t1
+    # t[0] = int(t1*10000)
+    a = list(a)
+    b = list(b)
+    c = list(c)
+    data = c
+    # if HAVE_PYGAME:
+    #     # update pygame display
+    #     plot(scr, [e / 2000. for e in data])
+    c = t + a + b + c
+    right_imu_list = c
+
 
 
 def init():
@@ -117,15 +167,17 @@ def init():
     config.emg_raw_enable = False
 
     # 初始化myo实体
-    m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
-               config=config)
+    # m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
+    #            config=config)
+    m = MyoHub()
 
     # 连接
-    m.connect()
+    m.add_left_myo_imu_handler(left_imu_proc)
+    m.add_left_myo_emg_handler(left_proc_emg)
 
     # 添加各种数据的回调
-    m.add_emg_handler(proc_emg)
-    m.add_imu_handler(imu_proc)
+    m.add_right_myo_imu_handler(right_imu_proc)
+    m.add_right_myo_emg_handler(right_proc_emg)
     # m.add_emg_handler(lambda emg: print(emg))
     # m.add_imu_handler(lambda a, b, c: print(a, b, c))
     # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
@@ -142,21 +194,27 @@ def getOnceData(m):
     :param m: Myo
     :return: Emg DataSet and Imu DataSet( Only Accelerator Data and Gyro Data)
     """
-    global arr1
-    global arr2
+    global left_emg_list
+    global left_imu_list
     global dataCounter
     global dataFresh
-    emgCache = []
-    imuCache = []
+    emgLeftCache = []
+    imuLeftCache = []
+    emgRightCache = []
+    imuRightCache = []
     while True:
         m.run(1)
         if dataFresh:
-            emgCache = arr1[1:9]
-            imuCache = arr2[5:11]
+            emgLeftCache = left_emg_list[1:9]
+            imuLeftCache = left_imu_list[5:11]
+            emgRightCache = right_emg_list[1:9]
+            imuRightCache = right_imu_list[5:11]
             dataFresh = False
-            emgCache = list(np.array(emgCache) / 100)
-            imuCache = list(np.array(imuCache) / 20)
-            return emgCache, imuCache
+            emgLeftCache = list(np.array(emgLeftCache) / 100)
+            emgRightCache = list(np.array(emgRightCache) / 100)
+            imuLeftCache = list(np.array(imuLeftCache) / 20)
+            imuRightCache = list(np.array(imuRightCache) / 20)
+            return emgLeftCache, emgRightCache, imuLeftCache, imuRightCache
 
 
 # 求emg数据能力用来判断阈值
