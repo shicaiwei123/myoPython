@@ -28,8 +28,9 @@ left_imu_list = []
 right_imu_list = []
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
-w, h = 1200, 400
+w, h = 1200, 500
 scr = pygame.display.set_mode((w, h))
+# scr1 = pygame.display.set_mode((w, h))
 last_vals = None
 
 
@@ -42,7 +43,6 @@ def plot(scr, vals):
     if last_vals is None:
         last_vals = vals
         return
-
     D = 5
     scr.scroll(-D)
     scr.fill((0, 0, 0), (w - D, 0, w, h))
@@ -104,6 +104,7 @@ def right_proc_emg(emg, times=[]):
     if len(times) > 20:
         # print((len(times) - 1) / (times[-1] - times[0]))
         times.pop(0)
+
     if emg[0] > 0:
         t1 = (time.time() - timeBegin)
         emg = list(emg)
@@ -156,7 +157,6 @@ def right_imu_proc(a, b, c):
     right_imu_list = c
 
 
-
 def init():
     # 初始化配置，并打开emg数据开关
     global timeBegin
@@ -164,7 +164,7 @@ def init():
     config.emg_enable = True
     config.imu_enable = True
     config.arm_enable = False
-    config.emg_raw_enable = False
+    config.emg_raw_enable = True
 
     # 初始化myo实体
     # m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
@@ -182,7 +182,7 @@ def init():
     # m.add_imu_handler(lambda a, b, c: print(a, b, c))
     # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     # m.add_pose_handler(lambda p: print('pose', p))
-    # m.add_emg_raw_handler(proc_emg)
+    m.add_emg_raw_handler(proc_emg_raw)
     timeBegin = time.time()
     return m
 
@@ -225,7 +225,6 @@ def engery(emgData):
     emgSum = np.sum(emgSquare)
     emgMean = emgSum / 5  # 在过去的0.1s内
     return emgMean
-
 
 Threshold = 15
 

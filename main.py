@@ -1,21 +1,44 @@
 # coding=utf-8
 from getData.getData import *
 from myoAnalysis import *
+from voice.speech import xf_speech
 
-
+#speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
+# speaker = xf_speech('/dev/ttyUSB0')
 
 
 
 #译码，将识别到的标签翻译成手势含义
-# def decode(label):
-#     dict=\
-#         {#称呼
-#          1:'大家',2:'你',3:'我',4:'他',5:'和',6:'同学',7:'朋友',8:'儿子',9:'女儿',10:'爸爸'\
-#          11:'妈妈',12:'爷爷',13:'奶奶',14:'人'\
-#          #时间
-#          31:'',32:'',33:'',34:,'',\
-#     }
-#     #
+def decode(label):
+    label=int(label)
+    dict=\
+        {#称呼
+         1:'大家',2:'你',3:'我',4:'他',5:'和',6:'同',7:'学',8:'男',9:'女',10:'爸爸',
+         11:'妈妈',12:'爷爷',13:'奶奶',14:'人',
+         #时间
+         31:'早上',32:'中午',33:'晚上',34:'年',
+         #礼貌用语
+         51:'请',52:'好',53:'对不起',54:'谢谢',55:'不用',56:'再见',
+         #地点
+         71:'去',72:'在',73:'到',74:'家',75:'火车站',76:'机场',77:'汽车站',
+         #交通
+         101:'坐',102:'火车',103:'飞机',104:'公交车',105:'大巴',106:'地铁',
+         #证件
+         121:'证',122:'身份',123:'学生',
+         #疑问
+         131:'问',132:'什么',133:'多少',134:'哪里',
+         #数字
+         141:0,142:1,143:2,144:3,145:4,146:5,147:6,148:7,149:8,150:9,
+         151:10,152:20,153:30,154:40,155:50,156:60,157:70,158:80,159:90,
+         160:100,161:200,162:300,163:400,164:500,165:600,166:700,167:800,168:900,
+         #就餐
+         191:'吃',192:'饭',193:'饮料',194:'啤酒',195:'果汁',196:'钱',
+         #生活
+         211:'手机',212:'钱包',213:'没有',214:'看见',
+         #情绪
+         231:'爱',232:'我爱你',233:'高兴',234:'危险',235:'误会',236:'想',237:'不要'
+    }
+    return dict[label]
 
 
 
@@ -35,7 +58,7 @@ if __name__ == '__main__':
         threshold = []
         try:
             while True:
-                emg, imu = getOnceData(m)
+                emg, imu, emg_raw = getOnceData(m)
                 emgData.append(emg)
                 imuData.append(imu)
                 E = engery(emg)
@@ -43,9 +66,11 @@ if __name__ == '__main__':
                 if HAVE_PYGAME:
                     for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                            testXlwt('emgData.xls', emgData)
-                            testXlwt('imuData.xls', imuData)
-                            testXlwt('threshold.xls', threshold)
+                            name='中午'
+                            testXlwt('dataWSC/'+name+'/emgData.xls', emgData)
+                            testXlwt('dataWSC/'+name+'/imuData.xls', imuData)
+                            testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
+                            testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
                             raise KeyboardInterrupt()
                         elif ev.type == KEYDOWN:
                             if K_1 <= ev.key <= K_3:
@@ -71,13 +96,14 @@ if __name__ == '__main__':
             result = model.predict(data)
             t2=time.time()
             isFinish=True
+            out=decode(result)
+            # speaker.speech_sy(out)
             print(t2-t1)    #测试识别时间
-            print(result)   #输出结果
+            print(out)   #输出结果
             # return result
-
-
+        #导入模型
         threads = []
-        model=joblib.load('KNN')
+        model=joblib.load('KNN30')
         emg=[]
         imu=[]
         fetureCache=queue.Queue(10)
@@ -85,11 +111,21 @@ if __name__ == '__main__':
              emg,imu = getGestureData(m)
              if emg==10000:
                  break
-             np.save('emg',emg)
-             np.save('imu',imu)
+             # np.save('emg',emg)
+             # np.save('imu',imu)
+             #归一化
+             emgMax = np.max(np.max(emg))
+             imuMax = np.max(np.max(imu))
+             imuMin = np.min(np.min(imu))
+             emg = (emg) / emgMax
+             imu = (imu - imuMin) / (imuMax - imuMin)
+             #特征提取
              feture=fetureGet(emg,imu)
+             #数据缓存
              fetureCache.put([feture])
+             #识别
              t1 = threading.Thread(target=predict, args=(model,fetureCache.get(),))
-             # r=model.predict([feture])
              t1.start()
+
+             # r=model.predict([feture])
              # print(r)
