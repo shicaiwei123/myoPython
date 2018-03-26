@@ -100,7 +100,7 @@ if __name__ == '__main__':
             # return result
         #导入模型
         threads = []
-        model=joblib.load('SVM3')
+        model=joblib.load('KNN30')
         emg=[]
         imu=[]
         fetureCache=queue.Queue(10)

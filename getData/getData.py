@@ -28,7 +28,7 @@ emg_raw_list = []
 
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
-w, h = 1200, 400
+w, h = 1200, 500
 scr = pygame.display.set_mode((w, h))
 # scr1 = pygame.display.set_mode((w, h))
 last_vals = None
@@ -94,9 +94,9 @@ def proc_emg(emg, times=[]):
         dataFresh=True
         t=[1.1]
         global emgCount
-        if HAVE_PYGAME:
-            # update pygame display
-            plot(scr, [e / 2000. for e in emg])
+        # if HAVE_PYGAME:
+        #     # update pygame display
+        #     plot(scr, [e / 2000. for e in emg])
 
         # print(emg)
 
@@ -128,10 +128,10 @@ def imu_proc(a,b,c):
         a=list(a)
         b=list(b)
         c=list(c)
-        data=c
-        # if HAVE_PYGAME:
-        # #     # update pygame display
-        #     plot(scr, [e / 2000. for e in data])
+        data=b
+        if HAVE_PYGAME:
+        #     # update pygame display
+            plot(scr, [e / 2000. for e in data])
         c=t+a+b+c
         arr2 = c
 
@@ -174,11 +174,16 @@ def getOnceData(m):
         if dataFresh:
             emgCache=arr1[1:9]
             imuCache=arr2[5:11]
+            data=arr1[1:9]+arr2[5:11]
             emg_raw = emg_raw_list[1:9]
             dataFresh =False
             emgCache=list(np.array(emgCache)/100)
             emgRawCache = list(np.array(emg_raw)/100)
             imuCache=list(np.array(imuCache)/20)
+
+            # if HAVE_PYGAME:
+            #     # update pygame display
+            #     plot(scr, [e / 2000. for e in data])
             return emgCache, imuCache, emgRawCache
 
 
