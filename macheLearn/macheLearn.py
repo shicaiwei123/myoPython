@@ -54,7 +54,7 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     #xunlieheceshi
     isLearn =False
-    modelName = 'KNN30'
+    modelName = 'SVM3'
     if isLearn:
         #读并且处理换粗特征值和标签，等待一起训练
         features=[]
@@ -69,14 +69,14 @@ if __name__ == '__main__':
                     counter=1
             if counter!=1:
                 a.append(i)
-                file ='/home/intel/data/'+str(i)+'.mat'
+                file ='/home/shicaiwei/dataNew/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 feature=mAna.fetureGet(emg,imu)
                 features.append(feature)
                 labels.append([label])
 
         #训练模型
-        model=getKNN(features,labels)
+        model=getSVM(features,labels)
         joblib.dump(model,modelName)
     else:
         feature = []
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                     counter = 1
             if counter == 1:
                 # a.append(i)
-                file ='/home/intel/data/'+str(i)+'.mat'
+                file ='/home/shicaiwei/dataNew/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 labels.append(label)
                 feature=mAna.fetureGet(emg,imu)

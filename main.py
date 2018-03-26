@@ -100,13 +100,11 @@ if __name__ == '__main__':
             # return result
         #导入模型
         threads = []
-        model=joblib.load('KNN30')
+        model=joblib.load('SVM3')
         emg=[]
         imu=[]
         fetureCache=queue.Queue(10)
         while True:
-             # w, h = 1200, 400
-             # scr = pygame.display.set_mode((w, h))
              emg,imu = getGestureData(m)
              if emg==10000:
                  break

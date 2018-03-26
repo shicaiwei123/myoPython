@@ -4,6 +4,19 @@
 #数据特征提取
 
 import numpy as np
+import  math
+
+def ZCR(data):
+    # 输入是numpy的一维数组
+    # 输出是过零率
+    zcrSum=0
+    len=np.size(data)
+    for i in range(len):
+        if i>=1:
+            result=np.abs(np.sign(data[i])-np.sign(data[i-1]))
+            zcrSum=zcrSum+result
+    return zcrSum
+
 def fetureGet(emgData,imuData):
     #初始参数
     frq=50    #频率50Hz
@@ -34,6 +47,7 @@ def fetureGet(emgData,imuData):
     #特征提取
     # 了解一下各个参数的物理意义呢？这样就可以转换
     #是不是某一类的特征多，他就会占据主要地位，就算其他变量很有用，影响也会被消除
+    #差分
     diffAccX=np.diff(accX)
     diffAccY=np.diff(accY)
     diffAccZ=np.diff(accZ)
@@ -41,6 +55,7 @@ def fetureGet(emgData,imuData):
     diffGcoX=np.diff(gcoX)
     diffGcoY=np.diff(gcoY)
     diffGcoZ=np.diff(gcoZ)
+    #均值
     meanAccX=np.mean(accX)
     meanAccY=np.mean(accY)
     meanAccZ=np.mean(accZ)
@@ -50,6 +65,7 @@ def fetureGet(emgData,imuData):
     meanDiffGcoX=np.mean(np.abs(diffGcoX))
     meanDiffGcoY = np.mean(np.abs(diffGcoY))
     meanDiffGcoZ = np.mean(np.abs(diffGcoZ))
+    #均方值
     rmsAccX=np.sqrt(np.mean(accX**2))
     rmsAccY=np.sqrt(np.mean(accY**2))
     rmsAccZ=np.sqrt(np.mean(accZ**2))
@@ -57,11 +73,18 @@ def fetureGet(emgData,imuData):
     rmsGcoX=np.sqrt(np.mean(gcoX**2))
     rmsGcoY=np.sqrt(np.mean(gcoY**2))
     rmsGcoZ=np.sqrt(np.mean(gcoZ**2))
+    #积分
     integralAccX=np.sum(accX)*1/frq
     integralAccY=np.sum(accY)*1/frq
     integralAccZ=np.sum(accZ)*1/frq
+    #范围
     rangeAccX=np.max(accX)-np.min(accX)
     rangeAccY=np.max(accY)-np.min(accY)
+    #过零率
+    gcoXZCR=ZCR(gcoX)
+    gcoYZCR=ZCR(gcoY)
+    gcoZZCR=ZCR(gcoZ)
+    #均值
     meanEmg1=np.mean(emg1)
     meanEmg2 = np.mean(emg2)
     meanEmg3 = np.mean(emg3)
@@ -78,6 +101,7 @@ def fetureGet(emgData,imuData):
     feature.append(rangeAccX);feature.append(rangeAccY)
     # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
     # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
+    feature.append(gcoXZCR);feature.append(gcoYZCR);feature.append(gcoZZCR)
     feature.append(meanEmg1)
     feature.append(meanEmg2)
     feature.append(meanEmg3)
