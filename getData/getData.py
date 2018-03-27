@@ -182,7 +182,7 @@ def init():
     # m.add_imu_handler(lambda a, b, c: print(a, b, c))
     # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     # m.add_pose_handler(lambda p: print('pose', p))
-    m.add_emg_raw_handler(proc_emg_raw)
+    # m.add_emg_raw_handler(proc_emg_raw)
     timeBegin = time.time()
     return m
 
@@ -237,9 +237,11 @@ def getGestureData(m):
     active = 1
     quiet = 1
     dataTimes = 1
-    emgData = []
-    imuData = []
-    emg = []  # huancun5ci
+    emgLeftData = []
+    imuLeftData = []
+    emgRightData = []
+    imuRightData = []
+    emg = []  # 缓存5次
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -248,12 +250,14 @@ def getGestureData(m):
                     m.disconnect()
                     break
 
-        emgCache, imuCache = getOnceData(m)
+        emgLeftCache, emgRightCache, imuLeftCache, imuRightCache = getOnceData(m)
         # print(emgCache )
         # print(imuCache)
-        emgData.append(emgCache)
-        imuData.append(imuCache)
-        emg = emg + emgCache
+        emgLeftData.append(emgLeftCache)
+        imuLeftData.append(imuLeftCache)
+        emgRightData.append(emgRightCache)
+        imuRightData.append(imuRightCache)
+        emg = emg + emgRightCache
         # fenge
         if dataTimes < 5:
             dataTimes = dataTimes + 1
@@ -270,14 +274,16 @@ def getGestureData(m):
                 quiet = quiet + 1
             if quiet > 3:
                 if active > 5:
-                    return emgData, imuData
+                    return emgLeftData, imuLeftData, emgRightData, imuRightData
                     print("新手势")
                 else:  # 重置
                     dataTimes = 1
                     active = 1
                     quiet = 1
-                    emgData = []
-                    imuData = []
+                    emgLeftData = []
+                    imuLeftData = []
+                    emgRightData = []
+                    imuRightData = []
 
 # isSave取True时时存储数据，取False时时分析数据
 # if __name__ == '__main__':
