@@ -47,30 +47,34 @@ if __name__ == '__main__':
 
     m = init()
     # whether to save data
-    isSave = False
+    isSave = True
 
     # 导入模型
 
     # 如果是存储数据
     if isSave:
-        emgData = []
-        imuData = []
+        emgLeftData = []
+        imuLeftData = []
+        emgRightData=[]
+        imuRightData=[]
         threshold = []
         try:
             while True:
-                emg, imu, emg_raw = getOnceData(m)
-                emgData.append(emg)
-                imuData.append(imu)
-                E = engery(emg)
+                emgLeft, imuLeft, emgRight, imuRight = getOnceData(m)
+                emgLeftData.append(emgLeft)
+                imuLeftData.append(imuLeft)
+                emgRightData.append(emgRight)
+                imuRightData.append(imuRight)
+                E = engery(emgRight)
                 threshold.append([E])
                 if HAVE_PYGAME:
                     for ev in pygame.event.get():
                         if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                            name='中午'
-                            testXlwt('dataWSC/'+name+'/emgData.xls', emgData)
-                            testXlwt('dataWSC/'+name+'/imuData.xls', imuData)
-                            testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
-                            testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
+                            name='吃'
+                            testXlwt('twoFignerData/'+name+'/emgLeftData.xls', emgLeftData)
+                            testXlwt('twoFignerData/'+name+'/imuLeftData.xls', imuLeftData)
+                            testXlwt('twoFignerData/'+name+'/emgRightData.xls', emgRightData)
+                            testXlwt('twoFignerData/'+name+'/imuRightData.xls', imuRightData)
                             raise KeyboardInterrupt()
                         elif ev.type == KEYDOWN:
                             if K_1 <= ev.key <= K_3:
@@ -108,8 +112,8 @@ if __name__ == '__main__':
         imu=[]
         fetureCache=queue.Queue(10)
         while True:
-             emg,imu = getGestureData(m)
-             if emg==10000:
+             emgLeft, imuLeft, emgRight, imuRight = getGestureData(m)
+             if emgRight==10000:
                  break
              # np.save('emg',emg)
              # np.save('imu',imu)

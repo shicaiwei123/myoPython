@@ -68,9 +68,9 @@ def left_proc_emg(emg, times=[]):
     dataFresh = True
     t = [1.1]
     global emgCount
-    if HAVE_PYGAME:
-        # update pygame display
-        plot(scr, [e / 2000. for e in emg])
+    # if HAVE_PYGAME:
+    #     # update pygame display
+    #     plot(scr, [e / 2000. for e in emg])
 
     # print(emg)
 
@@ -93,9 +93,9 @@ def right_proc_emg(emg, times=[]):
     dataFresh = True
     t = [1.1]
     global emgCount
-    # if HAVE_PYGAME:
-    #     # update pygame display
-    #     plot(scr, [e / 2000. for e in emg])
+    if HAVE_PYGAME:
+        # update pygame display
+        plot(scr, [e / 2000. for e in emg])
 
     # print(emg)
 
@@ -214,7 +214,7 @@ def getOnceData(m):
             emgRightCache = list(np.array(emgRightCache) / 100)
             imuLeftCache = list(np.array(imuLeftCache) / 20)
             imuRightCache = list(np.array(imuRightCache) / 20)
-            return emgLeftCache, emgRightCache, imuLeftCache, imuRightCache
+            return emgLeftCache,imuLeftCache, emgRightCache, imuRightCache
 
 
 # 求emg数据能力用来判断阈值
@@ -250,7 +250,7 @@ def getGestureData(m):
                     m.disconnect()
                     break
 
-        emgLeftCache, emgRightCache, imuLeftCache, imuRightCache = getOnceData(m)
+        emgLeftCache,imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
         # print(emgCache )
         # print(imuCache)
         emgLeftData.append(emgLeftCache)
@@ -270,6 +270,7 @@ def getGestureData(m):
             # print(E)
             if E > Threshold:
                 active = active + 1
+                quiet=1
             else:
                 quiet = quiet + 1
             if quiet > 3:

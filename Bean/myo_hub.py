@@ -111,26 +111,26 @@ class MyoHub:
         myo_left.connect()
         myo_right.connect()
 
-        print("Wait for getting arm type......")
+        # print("Wait for getting arm type......")
 
         # NEED TO DO SYNC GESTURE TO GET ARM TYPE
 
         # TODO: Open two threads to get myo data
 
-        while not(myo1_arm_type != myo.Arm.UNKNOWN and myo2_arm_type != myo.Arm.UNKNOWN):
-            # if wait_time_now < wait_time:
-            #     wait_time_now += 1
-                continue
-            # else:
-            #     break
-
-        print("Get two armbands' arm type")
-
-        if myo1_arm_type == myo.Arm.LEFT and myo2_arm_type == myo.Arm.RIGHT:
-            return myo_left, myo_right
-        elif myo1_arm_type == myo.Arm.RIGHT and myo2_arm_type == myo.Arm.LEFT:
-            return myo_right, myo_left
-
+        # while not(myo1_arm_type != myo.Arm.UNKNOWN and myo2_arm_type != myo.Arm.UNKNOWN):
+        #     # if wait_time_now < wait_time:
+        #     #     wait_time_now += 1
+        #         continue
+        #     # else:
+        #     #     break
+        #
+        # print("Get two armbands' arm type")
+        #
+        # if myo1_arm_type == myo.Arm.LEFT and myo2_arm_type == myo.Arm.RIGHT:
+        #     return myo_left, myo_right
+        # elif myo1_arm_type == myo.Arm.RIGHT and myo2_arm_type == myo.Arm.LEFT:
+        #     return myo_right, myo_left
+        #
         return myo_left, myo_right
 
     def add_left_myo_emg_handler(self, emg_handler):
@@ -183,9 +183,13 @@ class MyoHub:
             return
         self.right_myo.add_arm_handler(arm_handler)
 
-    def run(self):
-        self.left_myo.run()
-        self.right_myo.run()
+    def run(self, timeout=1):
+        self.left_myo.run(timeout)
+        self.right_myo.run(timeout)
+
+    def disconnect(self):
+        self.left_myo.disconnect()
+        self.right_myo.disconnect()
 
 
 if __name__ == '__main__':

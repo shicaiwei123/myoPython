@@ -7,8 +7,8 @@ import re
 
 from serial.tools.list_ports import comports
 
-from Myo.Bean.bt import BT
-from Myo.myo_utils import *
+from Bean.bt import BT
+from Bean.myo_utils import *
 
 
 class MyoHandler(enum.Enum):
