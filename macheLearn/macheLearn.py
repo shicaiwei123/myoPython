@@ -56,7 +56,7 @@ if __name__ == '__main__':
     #xunlieheceshi
     isLearn =False
     modelName = 'KNN30'
-    len = 1310  # 数据总数
+    len = 1295  # 数据总数
     if isLearn:
         #读并且处理换粗特征值和标签，等待一起训练
         features=[]
@@ -70,7 +70,7 @@ if __name__ == '__main__':
                     counter=1
             if counter!=1:
                 a.append(i)
-                file ='/home/shicaiwei/dataOneFiginer/'+str(i)+'.mat'
+                file ='/home/intel/dataOneFiginer/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 feature=mAna.fetureGet(emg,imu)
                 features.append(feature)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                     counter = 1
             if counter == 1:
                 # a.append(i)
-                file ='/home/shicaiwei/dataOneFiginer/'+str(i)+'.mat'
+                file ='/home/intel/dataOneFiginer/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 labels.append(label)
                 feature=mAna.fetureGet(emg,imu)

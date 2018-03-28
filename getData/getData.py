@@ -204,7 +204,7 @@ def gyoEngery(gyoData):
     gyoSum=np.sum(gyoSquare)
     return gyoSum
 
-Threshold=40
+Threshold=30
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
