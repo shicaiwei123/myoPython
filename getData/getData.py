@@ -204,7 +204,7 @@ def gyoEngery(gyoData):
     gyoSum=np.sum(gyoSquare)
     return gyoSum
 
-Threshold=25
+Threshold=40
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
@@ -246,10 +246,15 @@ def getGestureData(m):
              dataTimes=1
              if E>Threshold:
                  active=active+1
+                 quiet=1
              else:
                  quiet=quiet+1
              if quiet>3:
                  if active>5:
+                    #清除安静后的数据。
+                    for i in range(quiet-1):
+                        emgData.pop()
+                        imuData.pop()
                     return emgData,imuData
                     print("新手势")
                  else:          #重置

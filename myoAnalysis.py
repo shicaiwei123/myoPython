@@ -99,6 +99,15 @@ def fetureGet(emgData,imuData):
     meanEmg6 = np.mean(emg6)
     meanEmg7 = np.mean(emg7)
     meanEmg8 = np.mean(emg8)
+    #
+    rmsEmg1=np.mean(emg1)
+    rmsEmg2 = np.sqrt(np.mean(emg2**2))
+    rmsEmg3 = np.sqrt(np.mean(emg3**2))
+    rmsEmg4 = np.sqrt(np.mean(emg4**2))
+    rmsEmg5 = np.sqrt(np.mean(emg5**2))
+    rmsEmg6 = np.sqrt(np.mean(emg6**2))
+    rmsEmg7 = np.sqrt(np.mean(emg7**2))
+    rmsEmg8 = np.sqrt(np.mean(emg8**2))
     feature=[]
     feature.append(meanAccX);feature.append(meanAccY);feature.append(meanAccZ)
     # feature.append(meanGcoX);feature.append(meanGcoY);feature.append(meanGcoZ)
@@ -109,7 +118,7 @@ def fetureGet(emgData,imuData):
     feature.append(rangeGcoX);feature.append(rangeGcoY);feature.append(rangeGcoZ)
     # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
     # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
-    feature.append(gcoXZCR);feature.append(gcoYZCR);feature.append(gcoZZCR)
+    # feature.append(gcoXZCR);feature.append(gcoYZCR);feature.append(gcoZZCR)
     feature.append(meanEmg1)
     feature.append(meanEmg2)
     feature.append(meanEmg3)
@@ -118,6 +127,14 @@ def fetureGet(emgData,imuData):
     feature.append(meanEmg6)
     feature.append(meanEmg7)
     feature.append(meanEmg8)
+    feature.append(rmsEmg1)
+    feature.append(rmsEmg2)
+    feature.append(rmsEmg3)
+    feature.append(rmsEmg4)
+    feature.append(rmsEmg5)
+    feature.append(rmsEmg6)
+    feature.append(rmsEmg7)
+    feature.append(rmsEmg8)
     return feature
 
 

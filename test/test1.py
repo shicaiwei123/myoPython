@@ -164,9 +164,10 @@ import scipy.io as scio
 #                     segTimes+=1
 
 
-
-
-
+a=[]
+a.append(1)
+a.append(2)
+print(a.pop())
 
 
 
