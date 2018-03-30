@@ -128,7 +128,7 @@ def imu_proc(a,b,c):
         a=list(a)
         b=list(b)
         c=list(c)
-        data=c
+        data=b
         if HAVE_PYGAME:
         #     # update pygame display
             plot(scr, [e / 2000. for e in data])
@@ -204,27 +204,19 @@ def gyoEngery(gyoData):
     gyoSum=np.sum(gyoSquare)
     return gyoSum
 
-threshold=300
+Threshold=30
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
 def getGestureData(m):
-    global threshold   #能量阈值，当能量高于阈值是active状态，低于阈值是quiet状态
-                       #阈值在变化，如果是离散分割，那么第一次阈值大，第二次阈值小，连续分割阈值一样。
-                       #根据实际分割的方式要修改代码中修改阈值的代码
-
-    beginSave=5    #当能量大于这个值，开始记录数据，防止记录平衡时的无效数据
-    isSave=False   #是否记录数据
-    gyo=[]         #缓存gyo数据方便求能量，缓存5次
-    dataTimes=1    #记录gyo存储的次数
-    gyoRigthQuiet=0    #记录gyo能量低于阈值的次数
-    gyoRigthActive=0   #记录gyo能量高于阈值的次数
-    activeTimes=0      #记录能量峰的次数
-    ActiveTimes=2      #几次能量峰表示一次手势，2是记录到两次能量峰的时候就表明记录了一次手势数据，修改这个参数可以进行连续和离散的手势分割
-    GyoRigthQuietTimes=1 #几次低于阈值表示一次能量峰的结束
-    emgRigthData=[]    #缓存数据
-    imuRightData=[]
-
+    global Threshold
+    active = 1
+    quiet = 1
+    dataTimes = 1
+    emgData=[]
+    imuData=[]
+    emg=[]  #缓存5次
+    gyo=[]
     while True:
          if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -232,8 +224,13 @@ def getGestureData(m):
                     return 10000,10000
                     m.disconnect()
                     break
-         emgRigthCache ,imuRigthCache,emgRigthRaw= getOnceData(m)
-         gyo=gyo+imuRigthCache[4:6]
+         emgCache ,imuCache,emgRaw= getOnceData(m)
+         # print(emgCache )
+         # print(imuCache)
+         emgData.append(emgCache)
+         imuData.append(imuCache)
+         emg=emg+emgCache
+         gyo=gyo+imuCache[4:6]
 
          #分割
          if dataTimes<5:
@@ -242,45 +239,25 @@ def getGestureData(m):
          else:
              gyoE=gyoEngery(gyo)
              # print(gyoE)
+             E=engery(emg)
+             l=len(emg)
+             emg=[]
              gyo=[]
              dataTimes=1
-             if gyoE>beginSave:
-                 isSave=True
-
-             if isSave:
-                 emgRigthData.append(emgRigthCache)
-                 imuRightData.append(imuRigthCache)
-
-             if gyoE>threshold:
-                 gyoRigthActive=gyoRigthActive+1
-                 gyoRigthQuiet=0
-
+             if E>Threshold:
+                 active=active+1
              else:
-                 gyoRigthQuiet=gyoRigthQuiet+1
-
-             if gyoRigthQuiet>GyoRigthQuietTimes-1:
-
-                 if gyoRigthActive<2:
-
-                     gyoRigthQuiet=0
-                 else:
-
-                     gyoRigthQuiet=0
-                     gyoRigthActive=0
-                     activeTimes=activeTimes+1
-                     threshold=50
-                     if activeTimes==ActiveTimes:
-                        isSave=False
-                        emgRigthData=[]
-                        imuRightData=[]
-                        dataTimes=1
-                        activeTimes=0
-                        threshold=300
-                        # return emgRigthData,imuRightData
-                        print('ok')
-
-
-
+                 quiet=quiet+1
+             if quiet>3:
+                 if active>5:
+                    return emgData,imuData
+                    print("新手势")
+                 else:          #重置
+                    dataTimes=1
+                    active=1
+                    quiet=1
+                    emgData=[]
+                    imuData=[]
 
 
 #isSave取True时时存储数据，取False时时分析数据
