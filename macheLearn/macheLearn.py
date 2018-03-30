@@ -110,8 +110,8 @@ if __name__ == '__main__':
         #chucunjieguo
         labels=np.array(labels)
         result=np.array(result)
-        np.save('labels',labels)
-        np.save('result',result)
+        # np.save('labels',labels)
+        # np.save('result',result)
         print(score)
         # print(a)
 

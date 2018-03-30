@@ -164,6 +164,12 @@ import scipy.io as scio
 #                     segTimes+=1
 
 
+#测试gyo分割的方式
+from getData.getData import *
+m=init()
+getGestureData(m)
+
+
 
 
 
