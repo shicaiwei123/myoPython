@@ -16,7 +16,7 @@ def decode(label):
          #时间
          31:'早上',32:'中午',33:'晚上',34:'年',
          #礼貌用语
-         51:'请',52:'好',53:'对不起',54:'谢谢',55:'不用',56:'再见',
+         51:'请',52:'好',53:'谢谢',54:'谢谢',55:'不',56:'用',57:'早上',
          #地点
          71:'去',72:'在',73:'到',74:'家',75:'火车站',76:'机场',77:'汽车站',
          #交通
@@ -34,7 +34,7 @@ def decode(label):
          #生活
          211:'手机',212:'钱包',213:'没有',214:'看见',
          #情绪
-         231:'爱',232:'我爱你',233:'高兴',234:'危险',235:'误会',236:'想',237:'不要'
+         231:'爱',232:'对不起',233:'高兴',234:'危险',235:'误会',236:'想',237:'不要'
     }
     return dict[label]
 
@@ -81,6 +81,7 @@ if __name__ == '__main__':
     #否则是分析数据
     else:
         from sklearn.externals import joblib
+        from sklearn import  preprocessing
         import threading
         import queue
         import time
@@ -97,7 +98,6 @@ if __name__ == '__main__':
             # speaker.speech_sy(out)
             print(t2-t1)    #测试识别时间
             print(out)   #输出结果
-            # return result
         #导入模型
         threads = []
         model=joblib.load('KNN30')
@@ -105,8 +105,6 @@ if __name__ == '__main__':
         imu=[]
         fetureCache=queue.Queue(10)
         while True:
-             # w, h = 1200, 400
-             # scr = pygame.display.set_mode((w, h))
              emg,imu = getGestureData(m)
              if emg==10000:
                  break

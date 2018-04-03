@@ -9,6 +9,7 @@ import myoAnalysis as mAna
 #nonZeoLabel是非0数组下标，row是非0数据行数
 #读取数据
 def dataRead(file):
+    from sklearn import preprocessing as pre
     data=scio.loadmat(file)
     w = data['data']
     emgData = w['emgData']
@@ -55,12 +56,12 @@ if __name__ == '__main__':
     #xunlieheceshi
     isLearn =False
     modelName = 'KNN30'
+    len = 1295  # 数据总数
     if isLearn:
         #读并且处理换粗特征值和标签，等待一起训练
         features=[]
         labels=[]
         counter=1
-        len=1655  #数据总数
         a=[]
         for i in range(1,len):
             if i%10 ==0:     #jimanshici
@@ -69,7 +70,7 @@ if __name__ == '__main__':
                     counter=1
             if counter!=1:
                 a.append(i)
-                file ='/home/intel/data/'+str(i)+'.mat'
+                file ='/home/intel/dataOneFiginer/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 feature=mAna.fetureGet(emg,imu)
                 features.append(feature)
@@ -85,7 +86,6 @@ if __name__ == '__main__':
         counter = 1
         right=1
         wrong=1
-        len = 1655  # 数据总数
         model=joblib.load(modelName)
         a = []
         for i in range(1, len):
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                     counter = 1
             if counter == 1:
                 # a.append(i)
-                file ='/home/intel/data/'+str(i)+'.mat'
+                file ='/home/intel/dataOneFiginer/'+str(i)+'.mat'
                 emg,imu,label=dataRead(file)
                 labels.append(label)
                 feature=mAna.fetureGet(emg,imu)
@@ -110,8 +110,8 @@ if __name__ == '__main__':
         #chucunjieguo
         labels=np.array(labels)
         result=np.array(result)
-        np.save('labels',labels)
-        np.save('result',result)
+        # np.save('labels',labels)
+        # np.save('result',result)
         print(score)
         # print(a)
 
