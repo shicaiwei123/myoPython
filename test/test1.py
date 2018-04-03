@@ -362,32 +362,64 @@ import scipy.io as scio
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import style
-
-style.use('fivethirtyeight')
-
-fig = plt.figure()
-ax1 = fig.add_subplot(1,1,1)
-
-def animate(i):
-    graph_data = open('example.txt','r').read()
-    lines = graph_data.split('\n')
-    xs = []
-    ys = []
-    for line in lines:
-        if len(line) > 1:
-            x, y = line.split(',')
-            xs.append(x)
-            ys.append(y)
-    ax1.clear()
-    ax1.plot(xs, ys)
-
-
-ani = animation.FuncAnimation(fig, animate, interval=1000)
-plt.show()
-
-
+#
+# style.use('fivethirtyeight')
+#
+# fig = plt.figure()
+# ax1 = fig.add_subplot(1,1,1)
+#
+# def animate(i):
+#     graph_data = open('example.txt','r').read()
+#     lines = graph_data.split('\n')
+#     xs = []
+#     ys = []
+#     for line in lines:
+#         if len(line) > 1:
+#             x, y = line.split(',')
+#             xs.append(x)
+#             ys.append(y)
+#     ax1.clear()
+#     ax1.plot(xs, ys)
+#
+#
+# ani = animation.FuncAnimation(fig, animate, interval=1000)
+# plt.show()
 
 
 
 
+
+
+#测试excle文件生成dict
+# import xlrd
+# import pickle
+# #根据名称获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
+# def excleToDict(excleFile,dictFile,colnameindex=0,by_name=u'Sheet1'):
+#     data = xlrd.open_workbook(excleFile)
+#     table = data.sheet_by_name(by_name)
+#     nrows = table.nrows
+#     colnames = table.row_values(colnameindex)
+#     dict = {}
+#     for rownum in range(0,nrows):
+#         row = table.row_values(rownum)
+#         if rownum==100:
+#             print(rownum)
+#         if row:
+#             keyName = int(row[0])
+#             value = row[1]
+#             if isinstance(value ,float):
+#                 value=int(value)
+#             dict[keyName]=value
+#     return dict
+
+
+
+#测试dit数据储存
+# recodes = excleToDict('1.xlsx')
+# output = open('dataDict.pkl', 'wb')
+# pickle.dump(recodes, output)
+# output.close()
+# pklFile=open('dataDict.pkl','rb')
+# dict=pickle.load(pklFile)
+# print(dict)
 

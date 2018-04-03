@@ -181,6 +181,29 @@ def testXlwt(file='new.xls', dataArray=[]):
 
 
 
+#测试excle文件生成dict且储存
+import xlrd
+import pickle
+#根据名称获取Excel表格中的数据   参数:file：Excel文件路径  colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
+def excelToDict(file,colnameindex=0,by_name=u'Sheet1'):
+    data = xlrd.open_workbook(file)
+    table = data.sheet_by_name(by_name)
+    colnames = table.row_values(colnameindex)
+    nrows = table.nrows
+    dict = {}
+    for rownum in range(0,nrows):
+        row = table.row_values(rownum)
+        if row:
+            keyName = int(row[0])
+            value = row[1]
+            if isinstance(value ,float):
+                value=int(value)
+            dict[keyName]=value
+    return dict
+
+
+
+
 
 
 

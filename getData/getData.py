@@ -269,6 +269,7 @@ def getGestureData(m):
                      gyoRigthActive=0
                      activeTimes=activeTimes+1
                      threshold=50
+                     GyoRigthQuietTimes=2
                      if activeTimes==ActiveTimes:
                         isSave=False
                         emgRigthData=[]
@@ -276,8 +277,9 @@ def getGestureData(m):
                         dataTimes=1
                         activeTimes=0
                         threshold=300
-                        # return emgRigthData,imuRightData
-                        print('ok')
+                        GyoRigthQuietTimes=1
+                        return emgRigthData,imuRightData
+                        # print('ok')
 
 
 #isSave取True时时存储数据，取False时时分析数据

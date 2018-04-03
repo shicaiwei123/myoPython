@@ -3,11 +3,12 @@ from myoAnalysis import *
 from voice.speech import xf_speech
 
 #speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-# speaker = xf_speech('/dev/ttyUSB0')
+speaker = xf_speech('/dev/ttyUSB0')
 
 
 #译码，将识别到的标签翻译成手势含义
 def decode(label):
+
     label=int(label)
     dict=\
         {#称呼
@@ -81,10 +82,12 @@ if __name__ == '__main__':
     #否则是分析数据
     else:
         from sklearn.externals import joblib
-        from sklearn import  preprocessing
         import threading
         import queue
         import time
+
+        #导入字典数据，后期译码使用
+        dataDict=excelToDict('dataSheet.xlsx')
         # 预测函数，用于多线程的回调
         #isFinsh 是线程锁
         isFinish=False
@@ -94,8 +97,8 @@ if __name__ == '__main__':
             result = model.predict(data)
             t2=time.time()
             isFinish=True
-            out=decode(result)
-            # speaker.speech_sy(out)
+            out=dataDict(result)
+            speaker.speech_sy(out)
             print(t2-t1)    #测试识别时间
             print(out)   #输出结果
         #导入模型
@@ -108,8 +111,6 @@ if __name__ == '__main__':
              emg,imu = getGestureData(m)
              if emg==10000:
                  break
-             # np.save('emg',emg)
-             # np.save('imu',imu)
              #归一化
              emgMax = np.max(np.max(emg))
              imuMax = np.max(np.max(imu))
@@ -124,5 +125,3 @@ if __name__ == '__main__':
              t1 = threading.Thread(target=predict, args=(model,fetureCache.get(),))
              t1.start()
 
-             # r=model.predict([feture])
-             # print(r)
