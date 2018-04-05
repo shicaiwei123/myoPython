@@ -205,6 +205,7 @@ def gyoEngery(gyoData):
     return gyoSum
 
 threshold=300
+engeryData = []
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
@@ -224,11 +225,12 @@ def getGestureData(m):
     GyoRigthQuietTimes=1 #几次低于阈值表示一次能量峰的结束
     emgRigthData=[]    #缓存数据
     imuRightData=[]
-
+    global engeryData
     while True:
          if HAVE_PYGAME:
             for ev in pygame.event.get():
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
+                    np.save('test/engery',np.array(engeryData))
                     return 10000,10000
                     m.disconnect()
                     break
@@ -243,6 +245,7 @@ def getGestureData(m):
              gyoE=gyoEngery(gyo)
              # print(gyoE)
              gyo=[]
+             engeryData.append(gyoE)
              dataTimes=1
              if gyoE>beginSave:
                  isSave=True

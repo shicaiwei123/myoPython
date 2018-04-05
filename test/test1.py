@@ -426,3 +426,10 @@ def excleToDict(excleFile,colnameindex=0,by_name=u'Sheet1'):
 # dict=pickle.load(pklFile)
 # print(dict)
 
+
+
+# 能量分析
+engery=np.load('engery.npy')
+plt.plot(engery)
+plt.show()
+
