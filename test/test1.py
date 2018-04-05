@@ -391,31 +391,34 @@ from matplotlib import style
 
 
 #测试excle文件生成dict
-# import xlrd
-# import pickle
-# #根据名称获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
-# def excleToDict(excleFile,dictFile,colnameindex=0,by_name=u'Sheet1'):
-#     data = xlrd.open_workbook(excleFile)
-#     table = data.sheet_by_name(by_name)
-#     nrows = table.nrows
-#     colnames = table.row_values(colnameindex)
-#     dict = {}
-#     for rownum in range(0,nrows):
-#         row = table.row_values(rownum)
-#         if rownum==100:
-#             print(rownum)
-#         if row:
-#             keyName = int(row[0])
-#             value = row[1]
-#             if isinstance(value ,float):
-#                 value=int(value)
-#             dict[keyName]=value
-#     return dict
+import xlrd
+import pickle
+#根据名称获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
+def excleToDict(excleFile,colnameindex=0,by_name=u'Sheet1'):
+    data = xlrd.open_workbook(excleFile)
+    table = data.sheet_by_name(by_name)
+    nrows = table.nrows
+    colnames = table.row_values(colnameindex)
+    dict = {}
+    for rownum in range(0,nrows):
+        row = table.row_values(rownum)
+        if rownum==100:
+            print(rownum)
+        if row:
+            keyName = int(row[0])
+            value = row[1]
+            if isinstance(value ,float):
+                value=int(value)
+            dict[keyName]=value
+    return dict
 
 
 
-#测试dit数据储存
-# recodes = excleToDict('1.xlsx')
+# 测试dit数据储存
+# recodes = excleToDict('dataSheet.xlsx')
+# a=recodes[2]
+# print(a)
+# print(q)
 # output = open('dataDict.pkl', 'wb')
 # pickle.dump(recodes, output)
 # output.close()

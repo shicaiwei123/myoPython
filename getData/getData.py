@@ -128,7 +128,7 @@ def imu_proc(a,b,c):
         a=list(a)
         b=list(b)
         c=list(c)
-        data=b
+        data=c
         if HAVE_PYGAME:
         #     # update pygame display
             plot(scr, [e / 2000. for e in data])
@@ -272,14 +272,20 @@ def getGestureData(m):
                      GyoRigthQuietTimes=2
                      if activeTimes==ActiveTimes:
                         isSave=False
-                        emgRigthData=[]
-                        imuRightData=[]
-                        dataTimes=1
-                        activeTimes=0
-                        threshold=300
-                        GyoRigthQuietTimes=1
-                        return emgRigthData,imuRightData
-                        # print('ok')
+                        print(len(emgRigthData))
+                        if len(emgRigthData)!=len(imuRightData):   #接收到的鞥和imu数据长度不等
+                            print('wrong Data')
+                            #ping一下？？
+                        else:
+                            emgRight=emgRigthData
+                            imuRight=imuRightData
+                            emgRigthData=[]
+                            imuRightData=[]
+                            activeTimes=0
+                            threshold=300
+                            GyoRigthQuietTimes=1
+                            return emgRight,imuRight
+                            # print('ok')
 
 
 #isSave取True时时存储数据，取False时时分析数据
