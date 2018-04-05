@@ -41,7 +41,6 @@ def decode(label):
     return dict[label]
 
 
-
 # isSave取True时时存储数据，取False时时分析数据
 if __name__ == '__main__':
 

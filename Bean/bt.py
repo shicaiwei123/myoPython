@@ -1,10 +1,30 @@
-import time
-
-from .packet import Packet
-import serial
+import enum
 # from serial import serial
 import threading
+import time
+
+import serial
+
 from .myo_utils import *
+from .packet import Packet
+
+
+class BTMessageID(enum.Enum):
+    READ_ATTRIBUTE_BY_HANDLE = 4
+    WRITE_ATTRIBUTE = 5
+
+
+class BTMessageType(enum.Enum):
+    COMMAND_MESSAGE = 0
+
+
+class BTMessageClass(enum.Enum):
+    ATTRIBUTE_CLIENT = 4
+
+
+class BTEventMessageID(enum.Enum):
+    PROCEDURE_COMPLETED = 1
+    ATTRIBUTE_VALUE = 5
 
 
 class BT(object):
@@ -107,18 +127,31 @@ class BT(object):
     def disconnect(self, h):
         return self.send_command(3, 0, pack('B', h))
 
-    def read_attr(self, con, attr):
-        self.send_command(4, 4, pack('BH', con, attr))
-        return self.wait_event(4, 5)
+    def read_attr(self, connection, attr_handle):
+        self.send_command(
+            BTMessageClass.ATTRIBUTE_CLIENT.value,
+            BTMessageID.READ_ATTRIBUTE_BY_HANDLE.value,
+            pack('BH', connection, attr_handle))
+        return self.wait_event(BTMessageClass.ATTRIBUTE_CLIENT.value,
+                               BTEventMessageID.ATTRIBUTE_VALUE.value)
 
-    def write_attr(self, con, attr, val):
+    def write_attr(self, connection, msg_handle, val):
         # B->unsigned char
         # H->unsigned short
-        self.send_command(4, 5, pack('BHB', con, attr, len(val)) + val)
-        return self.wait_event(4, 1)
+        self.send_command(
+            BTMessageClass.ATTRIBUTE_CLIENT.value,
+            BTMessageID.WRITE_ATTRIBUTE.value,
+            pack('BHB', connection, msg_handle, len(val)) + val)
+        return self.wait_event(BTMessageClass.ATTRIBUTE_CLIENT.value,
+                               BTEventMessageID.PROCEDURE_COMPLETED.value
+                               )
 
-    def send_command(self, cls, cmd, payload=b'', wait_resp=True):
-        s = pack('4B', 0, len(payload), cls, cmd) + payload
+    def send_command(self, msg_class, msg_id, payload=b'', wait_resp=True):
+        s = pack('4B',
+                 BTMessageType.COMMAND_MESSAGE.value,
+                 len(payload),
+                 msg_class,
+                 msg_id) + payload
         self.ser.write(s)
 
         while True:

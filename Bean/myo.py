@@ -8,6 +8,7 @@ import re
 from serial.tools.list_ports import comports
 
 from Bean.bt import BT
+from Bean.myo_packet import *
 from Bean.myo_utils import *
 
 
@@ -142,45 +143,9 @@ class MyoRaw(object):
         self.conn = multiord(conn_pkt.payload)[-1]
         self.bt.wait_event(3, 0)
 
-        # v0, v1, v2, v3 = self.get_firmware_version()
-        #
-        # print('firmware version: %d.%d.%d.%d' % (v0, v1, v2, v3))
-        #
-        # is_old = (v0 == 0)
-        #
-        # if is_old:
-        #     # old version
-        #     ## don't know what these do; Myo Connect sends them, though we get data
-        #     ## fine without them
-        #     self.write_attr(0x19, b'\x01\x02\x00\x00')
-        #     self.write_attr(0x2f, b'\x01\x00')
-        #     self.write_attr(0x2c, b'\x01\x00')
-        #     self.write_attr(0x32, b'\x01\x00')
-        #     self.write_attr(0x35, b'\x01\x00')
-        #
-        #     ## enable EMG data
-        #     self.write_attr(0x28, b'\x01\x00')
-        #     ## enable IMU data
-        #     self.write_attr(0x1d, b'\x01\x00')
-        #
-        #     ## Sampling rate of the underlying EMG sensor, capped to 1000. If it's
-        #     ## less than 1000, emg_hz is correct. If it is greater, the actual
-        #     ## framerate starts dropping inversely. Also, if this is much less than
-        #     ## 1000, EMG data becomes slower to respond to changes. In conclusion,
-        #     ## 1000 is probably a good value.
-        #     C = 1000
-        #     emg_hz = 50
-        #     ## strength of low-pass filtering of EMG data
-        #     emg_smooth = 100
-        #
-        #     imu_hz = 50
-        #
-        #     ## send sensor parameters, or we don't get any data
-        #     self.write_attr(0x19, pack('BBBBHBBBBB', 2, 9, 2, 1, C, emg_smooth, C // emg_hz, imu_hz, 0, 0))
-        # else:
-
         print('device name: %s' % self.get_name(self.conn))
-        # self.sleep(self.conn)
+        # 禁止休眠
+        self.never_sleep(self.conn)
         self.config_myo(self.config)
 
         def data_handler(p):
@@ -228,6 +193,8 @@ class MyoRaw(object):
 
     def disconnect(self):
         if self.conn is not None:
+            # normal sleep
+            self.normal_sleep(self.conn)
             self.bt.disconnect(self.conn)
 
     def config_myo(self, myo_config):
@@ -264,14 +231,67 @@ class MyoRaw(object):
 
     def vibrate(self, conn, length):
         if length in range(1, 4):
-            # first byte tells it to vibrate; purpose of second byte is unknown
-            self.write_attr(conn, 0x19, pack('3B', 3, 1, length))
+            command = MyoVibrateCommandPacket(
+                header=MyoCommandHeader(
+                    command=MyoCommand.VIBRATE.value,
+                    payload_size=1
+                ),
+                vibrate_type=length
+            )
+            self.write_attr(conn,
+                            MyoHandler.COMMAND_INPUT_HANDLE.value,
+                            command.get_bytes()
+                            )
 
-    def unsleep(self, conn):
-        self.write_attr(conn, 0x19, b'\x09\x01\x01\x00\x00')
+    def normal_sleep(self, conn):
+        command = MyoSetSleepCommandPacket(
+            header=MyoCommandHeader(
+                command=MyoCommand.SET_SLEEP_MODE.value,
+                payload_size=1
+            ),
+            sleep_mode=MyoSleepMode.NORMAL.value
+        )
+        self.write_attr(conn,
+                        MyoHandler.COMMAND_INPUT_HANDLE.value,
+                        command.get_bytes())
 
-    def sleep(self, conn):
-        self.write_attr(conn, 0x19, b'\x09\x01\x00\x00\x00')
+    def never_sleep(self, conn):
+        command = MyoSetSleepCommandPacket(
+            header=MyoCommandHeader(
+                command=MyoCommand.SET_SLEEP_MODE.value,
+                payload_size=1
+            ),
+            sleep_mode=MyoSleepMode.NEVER_SLEEP.value
+        )
+        self.write_attr(conn,
+                        MyoHandler.COMMAND_INPUT_HANDLE.value,
+                        command.get_bytes()
+                        )
+
+    def set_lock(self, conn, lock_type):
+        """
+        configure lock status
+        :param conn: connection
+        :param lock_type: lock type in MyoUnlockMode
+        :return:
+        """
+        if lock_type in [x.value for x in MyoUnlockMode]:
+            command = MyoUnlockCommandPacket(
+                header=MyoCommandHeader(
+                    command=MyoCommand.UNLOCK.value,
+                    payload_size=1
+                ),
+                unlock_type=lock_type
+            )
+            self.write_attr(conn,
+                            MyoHandler.COMMAND_INPUT_HANDLE.value,
+                            command.get_bytes()
+                            )
+
+    def get_battery_level(self, conn):
+        level = self.read_attr(conn, MyoHandler.BATTERY_LEVEL_HANDLE.value)
+        # TODO: 验证Packet的内容
+        return
 
     def get_firmware_version(self, conn):
         fw = self.read_attr(conn, 0x17)

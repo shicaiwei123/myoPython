@@ -1,3 +1,4 @@
+serial
 scipy==0.19.0
 numpy==1.12.1
 xlwt==1.2.0
