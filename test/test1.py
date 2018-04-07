@@ -429,7 +429,7 @@ def excleToDict(excleFile,colnameindex=0,by_name=u'Sheet1'):
 
 
 # 能量分析
-engery=np.load('engery.npy')
-plt.plot(engery)
+engery=np.load('engeryData.npy')
+plt.stem(engery[1:100])
 plt.show()
 

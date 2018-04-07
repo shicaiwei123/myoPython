@@ -204,8 +204,9 @@ def gyoEngery(gyoData):
     gyoSum=np.sum(gyoSquare)
     return gyoSum
 
-threshold=300
+threshold=500
 engeryData = []
+engerySeg = []
 #在原始数据基础上获取一次手势的数据
 #实现分段
 #
@@ -213,7 +214,7 @@ def getGestureData(m):
     global threshold   #能量阈值，当能量高于阈值是active状态，低于阈值是quiet状态
                        #阈值在变化，如果是离散分割，那么第一次阈值大，第二次阈值小，连续分割阈值一样。
                        #根据实际分割的方式要修改代码中修改阈值的代码
-
+                       #初始高阈值的作用有两个一个是将一些抖动噪声去掉，虽然开始激活存储数据，但是若是第一次
     beginSave=5    #当能量大于这个值，开始记录数据，防止记录平衡时的无效数据
     isSave=False   #是否记录数据
     gyo=[]         #缓存gyo数据方便求能量，缓存5次
@@ -226,11 +227,13 @@ def getGestureData(m):
     emgRigthData=[]    #缓存数据
     imuRightData=[]
     global engeryData
+    global engerySeg
     while True:
          if HAVE_PYGAME:
             for ev in pygame.event.get():
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                    np.save('test/engery',np.array(engeryData))
+                    np.save('test/engeryData',np.array(engeryData))
+                    np.save('test/engerySeg', np.array(engerySeg))
                     return 10000,10000
                     m.disconnect()
                     break
@@ -253,6 +256,7 @@ def getGestureData(m):
              if isSave:
                  emgRigthData.append(emgRigthCache)
                  imuRightData.append(imuRigthCache)
+                 engerySeg.append(gyoE)
 
              if gyoE>threshold:
                  gyoRigthActive=gyoRigthActive+1
@@ -271,7 +275,7 @@ def getGestureData(m):
                      gyoRigthQuiet=0
                      gyoRigthActive=0
                      activeTimes=activeTimes+1
-                     threshold=50
+                     threshold=20
                      GyoRigthQuietTimes=2
                      if activeTimes==ActiveTimes:
                         isSave=False
@@ -280,12 +284,13 @@ def getGestureData(m):
                             print('wrong Data')
                             #ping一下？？
                         else:
+                            print(gyoE)
                             emgRight=emgRigthData
                             imuRight=imuRightData
                             emgRigthData=[]
                             imuRightData=[]
                             activeTimes=0
-                            threshold=300
+                            threshold=500
                             GyoRigthQuietTimes=1
                             return emgRight,imuRight
                             # print('ok')
