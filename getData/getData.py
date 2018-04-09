@@ -224,8 +224,10 @@ def getGestureData(m):
     activeTimes=0      #记录能量峰的次数
     ActiveTimes=2      #几次能量峰表示一次手势，2是记录到两次能量峰的时候就表明记录了一次手势数据，修改这个参数可以进行连续和离散的手势分割
     GyoRigthQuietTimes=1 #几次低于阈值表示一次能量峰的结束
-    emgRigthData=[]    #缓存数据
+    emgRigthData=[]    #缓存手势数据
     imuRightData=[]
+    emgRigthDataAll=[]    #缓存全部数据
+    imuRightDataAll=[]
     global engeryData
     global engerySeg
     while True:
@@ -239,7 +241,11 @@ def getGestureData(m):
                     break
          emgRigthCache ,imuRigthCache,emgRigthRaw= getOnceData(m)
          gyo=gyo+imuRigthCache[4:6]
-
+         emgRigthDataAll.append(emgRigthCache)
+         imuRightDataAll.append(imuRigthCache)
+         if isSave:                   #之前位置也放错了
+             emgRigthData.append(emgRigthCache)
+             imuRightData.append(imuRigthCache)
          #分割
          if dataTimes<5:
              dataTimes=dataTimes+1
@@ -250,24 +256,22 @@ def getGestureData(m):
              gyo=[]
              engeryData.append(gyoE)
              dataTimes=1
-             if gyoE>beginSave:
+             if gyoE>beginSave:      #开始存储数据
                  isSave=True
-
-             if isSave:
-                 emgRigthData.append(emgRigthCache)
-                 imuRightData.append(imuRigthCache)
+             engeryData.append(gyoE) #存储所有的能量
+             if isSave:             # 存储手势能量
                  engerySeg.append(gyoE)
 
-             if gyoE>threshold:
+             if gyoE>threshold:     #如果大于阈值就算是活动状态，并且将安静状态清零
                  gyoRigthActive=gyoRigthActive+1
                  gyoRigthQuiet=0
-
+            #需不需要也为0
              else:
                  gyoRigthQuiet=gyoRigthQuiet+1
-
+            #判断是否满足一次手势要求
              if gyoRigthQuiet>GyoRigthQuietTimes-1:
 
-                 if gyoRigthActive<2:
+                 if gyoRigthActive<2:      #滤波
 
                      gyoRigthQuiet=0
                  else:
@@ -292,7 +296,7 @@ def getGestureData(m):
                             activeTimes=0
                             threshold=500
                             GyoRigthQuietTimes=1
-                            return emgRight,imuRight
+                            return emgRight,imuRight,emgRigthDataAll,imuRightDataAll, engeryData, engerySeg
                             # print('ok')
 
 

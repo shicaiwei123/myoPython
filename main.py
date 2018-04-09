@@ -51,14 +51,23 @@ if __name__ == '__main__':
 
     #如果是存储数据
     if isSave:
-        emgData=[]
-        imuData=[]
+        emgData=[]#一次手势数据
+        imuData=[]#一次手势数据
+        emgDataAll=[]#所有数据
+        imuDataAll=[]
+        engeryDataAll=[] #所有数据
+        engeryDataSeg=[] #一次手势数据
         threshold=[]
         try:
             while True:
-                emg, imu, emg_raw = getOnceData(m)
+                # emg, imu, emg_raw = getOnceData(m)
+                emg,imu, emgAll, imuAll, engeryAll, engerySeg = getGestureData(m)
                 emgData.append(emg)
                 imuData.append(imu)
+                emgDataAll.append(emgAll)
+                imuData.append(imuAll)
+                engeryDataAll.append(engeryAll)
+                engeryDataSeg.append(engerySeg)
                 E=engery(emg)
                 threshold.append([E])
                 if HAVE_PYGAME:
@@ -67,8 +76,12 @@ if __name__ == '__main__':
                             name='中午'
                             testXlwt('dataWSC/'+name+'/emgData.xls', emgData)
                             testXlwt('dataWSC/'+name+'/imuData.xls', imuData)
-                            testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
-                            testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
+                            testXlwt('dataWSC/'+name+'/emgDataAll.xls', emgDataAll)
+                            testXlwt('dataWSC/'+name+'/imuDataAll.xls', imuDataAll)
+                            testXlwt('dataWSC/' + name + '/engeryDataAll.xls', engeryDataAll)
+                            testXlwt('dataWSC/' + name + '/engeryDataSeg.xls', engeryDataSeg)
+                            # testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
+                            # testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
                             raise KeyboardInterrupt()
                         elif ev.type == KEYDOWN:
                             if K_1 <= ev.key <= K_3:

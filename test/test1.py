@@ -9,7 +9,7 @@
 # a=eng.sqrt(4.0)
 # print(a)
 # eng.quit()
-import numpy as np
+# import numpy as np
 #测试图像----完成
 # import  matplotlib.pyplot as plt
 # import matplotlib.image as mimg
@@ -394,23 +394,23 @@ from matplotlib import style
 import xlrd
 import pickle
 #根据名称获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
-def excleToDict(excleFile,colnameindex=0,by_name=u'Sheet1'):
-    data = xlrd.open_workbook(excleFile)
-    table = data.sheet_by_name(by_name)
-    nrows = table.nrows
-    colnames = table.row_values(colnameindex)
-    dict = {}
-    for rownum in range(0,nrows):
-        row = table.row_values(rownum)
-        if rownum==100:
-            print(rownum)
-        if row:
-            keyName = int(row[0])
-            value = row[1]
-            if isinstance(value ,float):
-                value=int(value)
-            dict[keyName]=value
-    return dict
+# def excleToDict(excleFile,colnameindex=0,by_name=u'Sheet1'):
+#     data = xlrd.open_workbook(excleFile)
+#     table = data.sheet_by_name(by_name)
+#     nrows = table.nrows
+#     colnames = table.row_values(colnameindex)
+#     dict = {}
+#     for rownum in range(0,nrows):
+#         row = table.row_values(rownum)
+#         if rownum==100:
+#             print(rownum)
+#         if row:
+#             keyName = int(row[0])
+#             value = row[1]
+#             if isinstance(value ,float):
+#                 value=int(value)
+#             dict[keyName]=value
+#     return dict
 
 
 
@@ -429,7 +429,32 @@ def excleToDict(excleFile,colnameindex=0,by_name=u'Sheet1'):
 
 
 # 能量分析
-engery=np.load('engeryData.npy')
-plt.stem(engery[1:100])
-plt.show()
+# engery=np.load('engeryData.npy')
+# plt.stem(engery[1:100])
+# plt.show()
+
+
+
+# import numpy as np
+# import mayavi.mlab as mlab
+# import  moviepy.editor as mpy
+#
+# duration= 2 # duration of the animation in seconds (it will loop)
+#
+# # MAKE A FIGURE WITH MAYAVI
+#
+# fig_myv = mlab.figure(size=(220,220), bgcolor=(1,1,1))
+# X, Y = np.linspace(-2,2,200), np.linspace(-2,2,200)
+# XX, YY = np.meshgrid(X,Y)
+# ZZ = lambda d: np.sinc(XX**2+YY**2)+np.sin(XX+d)
+#
+# # ANIMATE THE FIGURE WITH MOVIEPY, WRITE AN ANIMATED GIF
+#
+# def make_frame(t):
+#     mlab.clf() # clear the figure (to reset the colors)
+#     mlab.mesh(YY,XX,ZZ(2*np.pi*t/duration), figure=fig_myv)
+#     return mlab.screenshot(antialiased=True)
+#
+# animation = mpy.VideoClip(make_frame, duration=duration)
+# animation.write_gif("sinc.gif", fps=20)
 
