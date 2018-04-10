@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/myoMatlab.iml" filepath="$PROJECT_DIR$/.idea/myoMatlab.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/myoPython.iml" filepath="$PROJECT_DIR$/.idea/myoPython.iml" />
+      <module fileurl="file://$PROJECT_DIR$/myoPython.iml" filepath="$PROJECT_DIR$/myoPython.iml" />
     </modules>
   </component>
 </project>

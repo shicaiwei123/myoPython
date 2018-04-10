@@ -4,6 +4,7 @@ Myo相关定义类
 """
 import enum
 import re
+import time
 
 from serial.tools.list_ports import comports
 
@@ -35,6 +36,14 @@ class MyoHandler(enum.Enum):
     EMG_RAW_DATA_3_CCC_HANDLE = 0x32
     EMG_RAW_DATA_4_HANDLE = 0x34
     EMG_RAW_DATA_4_CCC_HANDLE = 0x35
+
+
+class MyoStatus(enum.Enum):
+    PENDING = 0
+    SCANNING = 1
+    CONNECTING = 2
+    CONNECTED = 3
+    DISCONNECTED = 4
 
 
 class Arm(enum.Enum):
@@ -82,6 +91,7 @@ class MyoRaw(object):
         self.pose_handlers = []
         self.emg_raw_handlers = []
         self.mac_address = mac_address
+        self.status = None
 
     def detect_tty(self):
         """
@@ -106,7 +116,7 @@ class MyoRaw(object):
             return None
         return self.bt.read_attr(conn, attr)
 
-    def connect(self):
+    def connect(self, timeout=None):
         """
         连接two myos
         :return:
@@ -117,11 +127,17 @@ class MyoRaw(object):
         self.bt.disconnect(1)
         self.bt.disconnect(2)
 
+        time_now = time.time()
+
         # 开始扫描
         print('scanning...')
         self.bt.discover()
 
+        address = None
+
         while True:
+            if timeout is not None and time.time() - time_now > timeout:
+                break
             p = self.bt.recv_packet()
             print('scan response:', p)
 
@@ -136,6 +152,9 @@ class MyoRaw(object):
                 # mac_address_judge = ":".join(map(lambda x: "%x" % x, reversed(list(multiord(p.payload[2:8])))))
                 # if mac_address_judge == "cc:25:15:ee:2e:12":
         self.bt.end_scan()
+        if address is None:
+            # time out
+            return MyoStatus.PENDING
 
         # make address:conn dict
         # use bt manager to connect
@@ -146,6 +165,8 @@ class MyoRaw(object):
         print('device name: %s' % self.get_name(self.conn))
         # 禁止休眠
         self.never_sleep(self.conn)
+        self.set_lock(self.conn, MyoUnlockMode.HOLD)
+        self.vibrate(self.conn, MyoVibrationMode.LONG)
         self.config_myo(self.config)
 
         def data_handler(p):
@@ -189,7 +210,8 @@ class MyoRaw(object):
                 print('data with unknown attr: %02X %s' % (attr, p))
 
         self.bt.add_handler(data_handler)
-        # self.start_collection()
+
+        return MyoStatus.CONNECTED
 
     def disconnect(self):
         if self.conn is not None:
@@ -204,8 +226,6 @@ class MyoRaw(object):
         :return:
         """
         if myo_config is None:
-            self.is_broadcast_data(self.conn, MyoHandler.EMG_CCC_HANDLE.value, True)
-            self.is_enable_data(self.conn, emg_enable=True)
             return
 
         if myo_config.emg_enable:
@@ -268,20 +288,20 @@ class MyoRaw(object):
                         command.get_bytes()
                         )
 
-    def set_lock(self, conn, lock_type):
+    def set_lock(self, conn, lock_type: MyoUnlockMode):
         """
         configure lock status
         :param conn: connection
         :param lock_type: lock type in MyoUnlockMode
         :return:
         """
-        if lock_type in [x.value for x in MyoUnlockMode]:
+        if lock_type in MyoUnlockMode:
             command = MyoUnlockCommandPacket(
                 header=MyoCommandHeader(
                     command=MyoCommand.UNLOCK.value,
                     payload_size=1
                 ),
-                unlock_type=lock_type
+                unlock_type=lock_type.value
             )
             self.write_attr(conn,
                             MyoHandler.COMMAND_INPUT_HANDLE.value,
@@ -366,6 +386,9 @@ class MyoRaw(object):
     def add_arm_handler(self, h):
         self.arm_handlers.append(h)
 
+    def remove_arm_handler(self, h):
+        self.arm_handlers.remove(h)
+
     def add_emg_raw_handler(self, h):
         self.emg_raw_handlers.append(h)
 
@@ -403,3 +426,8 @@ class MyoRaw(object):
         """
         mac_address = ":".join(map(lambda x: "%x" % x, reversed(addr)))
         return mac_address
+
+    # TODO: need to test
+    def get_dongle_supported_connections_num(self):
+        p = self.bt.get_connections_num()
+        return unpack("B", p.payload)

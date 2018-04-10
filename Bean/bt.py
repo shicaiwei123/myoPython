@@ -115,7 +115,7 @@ class BT(object):
     def connect(self, addr):
         return self.send_command(6, 3, pack('6sBHHHH', multichr(addr), 0, 6, 6, 64, 0))
 
-    def get_connections(self):
+    def get_connections_num(self):
         return self.send_command(0, 6)
 
     def discover(self):
