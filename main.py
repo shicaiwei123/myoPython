@@ -61,22 +61,10 @@ if __name__ == '__main__':
 
         try:
             while True:
-                emg, imu, emg_raw = getOnceData(m)
-                # emg,imu, emgAll, imuAll, engeryAll, qqengerySeg = getGestureData(m)
-                emgData.append(emg)
-                imuData.append(imu)
-                # emgDataAll.append(emgAll)
-                # imuData.append(imuAll)
-                # engeryDataAll.append(engeryAll)
-                # engeryDataSeg.append(engerySeg)
-                E=engery(emg)
-                threshold.append([E])
+                # emg, imu, emg_raw = getOnceData(m)
+                emg,imu, emgAll, imuAll, engeryAll, qqengerySeg = getGestureData(m)
                 if HAVE_PYGAME:
-                   a=pygame.event.get()
-                   print(a)
-                   if len(a):
-                            print(len(a))
-                            print('fulll')
+                    if emg==10000:
                             name='大家'
                             testXlwt('dataGyo/'+name+'/emgData.xls', emgData)
                             testXlwt('dataGyo/'+name+'/imuData.xls', imuData)
@@ -87,6 +75,16 @@ if __name__ == '__main__':
                             # testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
                             # testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
                             raise KeyboardInterrupt()
+                emgData.append(emg)
+                print(emg)
+                imuData.append(imu)
+                emgDataAll.append(emgAll)
+                imuData.append(imuAll)
+                engeryDataAll.append(engeryAll)
+                engeryDataSeg.append(engerySeg)
+                E=engery(emg)
+                threshold.append([E])
+
         except KeyboardInterrupt:
             pass
         finally:
