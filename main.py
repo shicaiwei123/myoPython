@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     m = init()
     #shifoubaocunshuju
-    isSave = False
+    isSave = True
     #导入模型
 
     #如果是存储数据
@@ -58,36 +58,35 @@ if __name__ == '__main__':
         engeryDataAll=[] #所有数据
         engeryDataSeg=[] #一次手势数据
         threshold=[]
+
         try:
             while True:
-                # emg, imu, emg_raw = getOnceData(m)
-                emg,imu, emgAll, imuAll, engeryAll, engerySeg = getGestureData(m)
+                emg, imu, emg_raw = getOnceData(m)
+                # emg,imu, emgAll, imuAll, engeryAll, qqengerySeg = getGestureData(m)
                 emgData.append(emg)
                 imuData.append(imu)
-                emgDataAll.append(emgAll)
-                imuData.append(imuAll)
-                engeryDataAll.append(engeryAll)
-                engeryDataSeg.append(engerySeg)
+                # emgDataAll.append(emgAll)
+                # imuData.append(imuAll)
+                # engeryDataAll.append(engeryAll)
+                # engeryDataSeg.append(engerySeg)
                 E=engery(emg)
                 threshold.append([E])
                 if HAVE_PYGAME:
-                   for ev in pygame.event.get():
-                        if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                            name='中午'
-                            testXlwt('dataWSC/'+name+'/emgData.xls', emgData)
-                            testXlwt('dataWSC/'+name+'/imuData.xls', imuData)
-                            testXlwt('dataWSC/'+name+'/emgDataAll.xls', emgDataAll)
-                            testXlwt('dataWSC/'+name+'/imuDataAll.xls', imuDataAll)
-                            testXlwt('dataWSC/' + name + '/engeryDataAll.xls', engeryDataAll)
-                            testXlwt('dataWSC/' + name + '/engeryDataSeg.xls', engeryDataSeg)
+                   a=pygame.event.get()
+                   print(a)
+                   if len(a):
+                            print(len(a))
+                            print('fulll')
+                            name='大家'
+                            testXlwt('dataGyo/'+name+'/emgData.xls', emgData)
+                            testXlwt('dataGyo/'+name+'/imuData.xls', imuData)
+                            testXlwt('dataGyo/'+name+'/emgDataAll.xls', emgDataAll)
+                            testXlwt('dataGyo/'+name+'/imuDataAll.xls', imuDataAll)
+                            testXlwt('dataGyo/' + name + '/engeryDataAll.xls', engeryDataAll)
+                            testXlwt('dataGyo/' + name + '/engeryDataSeg.xls', engeryDataSeg)
                             # testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
                             # testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
                             raise KeyboardInterrupt()
-                        elif ev.type == KEYDOWN:
-                            if K_1 <= ev.key <= K_3:
-                                m.vibrate(ev.key - K_0)
-                            if K_KP1 <= ev.key <= K_KP3:
-                                m.vibrate(ev.key - K_KP0)
         except KeyboardInterrupt:
             pass
         finally:
