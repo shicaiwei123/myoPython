@@ -252,13 +252,13 @@ def getGestureData(m):
              gyoE=gyoEngery(gyo)
              # print(gyoE)
              gyo=[]
-             engeryData.append(gyoE)
+             engeryData.append([gyoE])
              dataTimes=1
              if gyoE>beginSave:      #开始存储数据
                  isSave=True
-             engeryData.append(gyoE) #存储所有的能量
+             engeryData.append([gyoE]) #存储所有的能量
              if isSave:             # 存储手势能量
-                 engerySeg.append(gyoE)
+                 engerySeg.append([gyoE])
 
              if gyoE>threshold:     #如果大于阈值就算是活动状态，并且将安静状态清零
                  gyoRigthActive=gyoRigthActive+1
