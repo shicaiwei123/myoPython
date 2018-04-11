@@ -18,7 +18,7 @@ global arr1, arr2 ,arr1Temp ,arr2Temp   #缓存初始数据
 dataCache=list(range(1,105))    #缓存5个
 #存储一个手势的数据
 dataCounter=0
-dataFresh =False
+emgDataFresh = False
 isFull = False
 
 #初始化
@@ -63,9 +63,8 @@ def plot(scr, vals):
 
 
 def proc_emg_raw(emg_raw, times=[]):
-    global dataFresh
+    global emgDataFresh
     global emg_raw_list
-    dataFresh = True
     t = [1.1]
     global emgCount
     # if HAVE_PYGAME:
@@ -89,9 +88,9 @@ def proc_emg_raw(emg_raw, times=[]):
 
 def proc_emg(emg, times=[]):
         global scr2
-        global dataFresh
+        global emgDataFresh
         global arr1
-        dataFresh=True
+        emgDataFresh=True
         t=[1.1]
         global emgCount
         # if HAVE_PYGAME:
@@ -114,7 +113,6 @@ def proc_emg(emg, times=[]):
 
 
 def imu_proc(a,b,c):
-        global scr1
         global imuCount
         global arr2
         # imuCount = imuCount + 1
@@ -167,16 +165,16 @@ def getOnceData(m):
     global arr1
     global arr2
     global dataCounter
-    global dataFresh
+    global emgDataFresh
     global emg_raw_list
     while  True:
         m.run(1)
-        if dataFresh:
+        if emgDataFresh:
+            # print(arr1+arr2)
             emgCache=arr1[1:9]
             imuCache=arr2[5:11]
-            data=arr1[1:9]+arr2[5:11]
             emg_raw = emg_raw_list[1:9]
-            dataFresh =False
+            emgDataFresh =False
             emgCache=list(np.array(emgCache)/100)
             emgRawCache = list(np.array(emg_raw)/100)
             imuCache=list(np.array(imuCache)/20)
@@ -236,7 +234,7 @@ def getGestureData(m):
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
                     np.save('test/engeryData',np.array(engeryData))
                     np.save('test/engerySeg', np.array(engerySeg))
-                    return 10000,10000
+                    return 10000,10000,10000,10000,10000,10000
                     m.disconnect()
                     break
          emgRigthCache ,imuRigthCache,emgRigthRaw= getOnceData(m)
