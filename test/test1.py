@@ -458,3 +458,16 @@ import pickle
 # animation = mpy.VideoClip(make_frame, duration=duration)
 # animation.write_gif("sinc.gif", fps=20)
 
+
+#测试列表
+a=[[[1,2,3],[2,3,4]]]
+b=a[0]
+c=[]
+c=c+a
+c[0].append([111,111111])
+b.append([66,64,1])
+a[0].append([11,11,1111])
+print(a)
+print(c)
+print(b)
+

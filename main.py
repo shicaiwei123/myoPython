@@ -2,11 +2,11 @@ from getData.getData import *
 from myoAnalysis import *
 from voice.speech import xf_speech
 
-#speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
+# speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
 # speaker = xf_speech('/dev/ttyUSB0')
 
 
-#译码，将识别到的标签翻译成手势含义
+# 译码，将识别到的标签翻译成手势含义
 # def decode(label):
 #
 #     label=int(label)
@@ -40,102 +40,97 @@ from voice.speech import xf_speech
 #     return dict[label]
 
 
-#isSave取True时时存储数据，取False时时分析数据
+# isSave取True时时存储数据，取False时时分析数据
 if __name__ == '__main__':
 
-
     m = init()
-    #shifoubaocunshuju
+    # shifoubaocunshuju
     isSave = True
-    #导入模型
+    # 导入模型
 
-    #如果是存储数据
+    # 如果是存储数据
     if isSave:
-        emgData=[]#一次手势数据
-        imuData=[]#一次手势数据
-        emgDataAll=[]#所有数据
-        imuDataAll=[]
-        engeryDataAll=[] #所有数据
-        engeryDataSeg=[] #一次手势数据
-        threshold=[]
+        emgData = []  # 一次手势数据
+        imuData = []  # 一次手势数据
+        emgDataAll = []  # 所有数据
+        imuDataAll = []
+        engeryDataAll = []  # 所有数据
+        engeryDataSeg = []  # 一次手势数据
 
         try:
             while True:
                 # emg, imu, emg_raw = getOnceData(m)
-                emg,imu, emgAll, imuAll, engeryAll, qqengerySeg = getGestureData(m)
+                emg, imu, emgAll, imuAll, engeryAll, qqengerySeg = getGestureData(m)
                 if HAVE_PYGAME:
-                    if emg==10000:
-                            name='大家'
-                            testXlwt('dataGyo/'+name+'/emgData.xls', emgData)
-                            testXlwt('dataGyo/'+name+'/imuData.xls', imuData)
-                            testXlwt('dataGyo/'+name+'/emgDataAll.xls', emgDataAll)
-                            testXlwt('dataGyo/'+name+'/imuDataAll.xls', imuDataAll)
-                            testXlwt('dataGyo/' + name + '/engeryDataAll.xls', engeryDataAll)
-                            testXlwt('dataGyo/' + name + '/engeryDataSeg.xls', engeryDataSeg)
-                            # testXlwt('dataWSC/'+name+'/emgRawData.xls', emg_raw)
-                            # testXlwt('dataWSC/'+name+'/thresholdData.xls', threshold)
-                            raise KeyboardInterrupt()
-                emgData.append(emg[0])
-                emgData.append([0])
-                print(emg)
-                imuData.append(imu[0])
-                emgData.append([0])
-                emgDataAll.append(emgAll[0])
-                imuData.append(imuAll[0])
-                engeryDataAll.append(engeryAll[0])
-                engeryDataSeg.append(engerySeg[0])
-                E=engery(emg)
-                threshold.append([E])
+                    if emg == 10000:
+                        name = '早上'
+                        saveExcle('dataGyo/' + name + '/emgData.xls', emgData)
+                        saveExcle('dataGyo/' + name + '/imuData.xls', imuData)
+                        saveExcle('dataGyo/' + name + '/emgDataAll.xls', emgDataAll)
+                        saveExcle('dataGyo/' + name + '/imuDataAll.xls', imuDataAll)
+                        saveExcle('dataGyo/' + name + '/engeryDataAll.xls', engeryDataAll)
+                        saveExcle('dataGyo/' + name + '/engeryDataSeg.xls', engeryDataSeg)
+                        # saveExcle('dataWSC/'+name+'/emgRawData.xls', emg_raw)
+                        # saveExcle('dataWSC/'+name+'/thresholdData.xls', threshold)
+                        raise KeyboardInterrupt()
+                emgData = emgData + emg + [[0]]
+                # print(emg)
+                imuData = imuData + imu + [[0]]
+
+                emgDataAll = emgDataAll + emgAll
+                imuDataAll = imuDataAll + imuAll
+                engeryDataAll = engeryDataAll + engeryData
+                engeryDataSeg = engeryDataSeg + engerySeg + [[0]]
 
         except KeyboardInterrupt:
             pass
         finally:
             m.disconnect()
-    #否则是分析数据
+    # 否则是分析数据
     else:
         from sklearn.externals import joblib
         import threading
         import queue
         import time
 
-        #导入字典数据，后期译码使用
-        dataDict=excelToDict('dataSheet.xlsx')
+        # 导入字典数据，后期译码使用
+        dataDict = excelToDict('dataSheet.xlsx')
         # 预测函数，用于多线程的回调
-        #isFinsh 是线程锁
-        isFinish=False
+        # isFinsh 是线程锁
+        isFinish = False
+
         def predict(model, data):
-            t1=time.time()
+            t1 = time.time()
             global isFinish
             global dataDict
             result = model.predict(data)
             result = int(result)
-            t2=time.time()
-            isFinish=True
+            t2 = time.time()
+            isFinish = True
             out = dataDict[result]
             # speaker.speech_sy(out)
-            print(t2-t1)    #测试识别时间
-            print(out)   #输出结果
-        #导入模型
+            print(t2 - t1)  # 测试识别时间
+            print(out)  # 输出结果
+        # 导入模型
         threads = []
-        model=joblib.load('KNN30')
-        emg=[]
-        imu=[]
-        fetureCache=queue.Queue(10)
+        model = joblib.load('KNN30')
+        emg = []
+        imu = []
+        fetureCache = queue.Queue(10)
         while True:
-             emg,imu = getGestureData(m)
-             if emg==10000:
-                 break
-             #归一化
-             emgMax = np.max(np.max(emg))
-             imuMax = np.max(np.max(imu))
-             imuMin = np.min(np.min(imu))
-             emg = (emg) / emgMax
-             imu = (imu - imuMin) / (imuMax - imuMin)
-             #特征提取
-             feture=fetureGet(emg,imu)
-             #数据缓存
-             fetureCache.put([feture])
-             #识别
-             t1 = threading.Thread(target=predict, args=(model,fetureCache.get(),))
-             t1.start()
-
+            emg, imu = getGestureData(m)
+            if emg == 10000:
+                break
+            # 归一化
+            emgMax = np.max(np.max(emg))
+            imuMax = np.max(np.max(imu))
+            imuMin = np.min(np.min(imu))
+            emg = (emg) / emgMax
+            imu = (imu - imuMin) / (imuMax - imuMin)
+            # 特征提取
+            feture = fetureGet(emg, imu)
+            # 数据缓存
+            fetureCache.put([feture])
+            # 识别
+            t1 = threading.Thread(target=predict, args=(model, fetureCache.get(),))
+            t1.start()
