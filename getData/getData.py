@@ -209,8 +209,6 @@ def gyoEngery(gyoData):
 
 
 threshold = 500
-engeryData = []
-engerySeg = []
 # 在原始数据基础上获取一次手势的数据
 # 实现分段
 #
@@ -236,8 +234,8 @@ def getGestureData(m):
     imuRightDataAll = []
     clearThreshold = 10
     clearCounter = 1
-    global engeryData
-    global engerySeg
+    engeryData = []
+    engerySeg = []
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -266,21 +264,26 @@ def getGestureData(m):
             dataTimes = 1
             if gyoE > beginSave:  # 开始存储数据
                 isSave = True
+                clearCounter=1
             if isSave:             # 存储手势能量
                 engerySeg.append([gyoE])
-            #滤除噪声和误触发带来的数据存储，避免数据的存储错误
-            #这个要和数据分割割裂开来，依据就在于clearCounter的上限的设计
-            #要比手势分割结束的记录次数高，不然会误清除
-            #本身设计的clear的阈值还低了，这样双重保险避免误清除
+            # 滤除噪声和误触发带来的数据存储，避免数据的存储错误
+            # 这个要和数据分割割裂开来，依据就在于clearCounter的上限的设计
+            # 要比手势分割结束的记录次数高，不然会误清除
+            # 本身设计的clear的阈值还低了，这样双重保险避免误清除
             if gyoE < clearThreshold:
                 clearCounter = clearCounter + 1
             if clearCounter > 3:
                 engerySeg = []
+                emgRigthData=[]
+                imuRightData=[]
                 clearCounter = 1
+                isSave=False
 
             if gyoE > threshold:  # 如果大于阈值就算是活动状态，并且将安静状态清零
                 gyoRigthActive = gyoRigthActive + 1
                 gyoRigthQuiet = 0
+                clearCounter=1
             # 需不需要也为0
             else:
                 gyoRigthQuiet = gyoRigthQuiet + 1

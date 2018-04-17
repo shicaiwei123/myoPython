@@ -60,7 +60,7 @@ if __name__ == '__main__':
         try:
             while True:
                 # emg, imu, emg_raw = getOnceData(m)
-                emg, imu, emgAll, imuAll, engeryAll, qqengerySeg = getGestureData(m)
+                emg, imu, emgAll, imuAll, engeryAll, engerySeg = getGestureData(m)
                 if HAVE_PYGAME:
                     if emg == 10000:
                         name = '早上'
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
                 emgDataAll = emgDataAll + emgAll
                 imuDataAll = imuDataAll + imuAll
-                engeryDataAll = engeryDataAll + engeryData
+                engeryDataAll = engeryDataAll + engeryAll
                 engeryDataSeg = engeryDataSeg + engerySeg + [[0]]
 
         except KeyboardInterrupt:
