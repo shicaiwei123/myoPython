@@ -221,7 +221,7 @@ def getGestureData(m):
     # 阈值在变化，如果是离散分割，那么第一次阈值大，第二次阈值小，连续分割阈值一样。
     # 根据实际分割的方式要修改代码中修改阈值的代码
     # 初始高阈值的作用有两个一个是将一些抖动噪声去掉，虽然开始激活存储数据，但是若是第一次
-    beginSave = 5  # 当能量大于这个值，开始记录数据，防止记录平衡时的无效数据
+    beginSave = 10  # 当能量大于这个值，开始记录数据，防止记录平衡时的无效数据
     isSave = False  # 是否记录数据
     gyo = []  # 缓存gyo数据方便求能量，缓存5次
     dataTimes = 1  # 记录gyo存储的次数
@@ -234,6 +234,8 @@ def getGestureData(m):
     imuRightData = []
     emgRigthDataAll = []  # 缓存全部数据
     imuRightDataAll = []
+    clearThreshold = 10
+    clearCounter = 1
     global engeryData
     global engerySeg
     while True:
@@ -266,6 +268,15 @@ def getGestureData(m):
                 isSave = True
             if isSave:             # 存储手势能量
                 engerySeg.append([gyoE])
+            #滤除噪声和误触发带来的数据存储，避免数据的存储错误
+            #这个要和数据分割割裂开来，依据就在于clearCounter的上限的设计
+            #要比手势分割结束的记录次数高，不然会误清除
+            #本身设计的clear的阈值还低了，这样双重保险避免误清除
+            if gyoE < clearThreshold:
+                clearCounter = clearCounter + 1
+            if clearCounter > 3:
+                engerySeg = []
+                clearCounter = 1
 
             if gyoE > threshold:  # 如果大于阈值就算是活动状态，并且将安静状态清零
                 gyoRigthActive = gyoRigthActive + 1
