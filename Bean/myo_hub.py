@@ -11,7 +11,6 @@ import signal
 import sys
 import time
 
-from Bean.myo_handler import MyoDefaultHandler
 from Bean.myo_info import MyoHandler, MyoClassifierEventType
 
 sys.path.append(os.path.abspath(os.path.pardir))
@@ -45,15 +44,21 @@ class MyoDataDelegate(DefaultDelegate):
                 self.arm_handler(Arm(val), XDirection(xdir))
 
         if cHandle == MyoHandler.EMG_DATA_HANDLE.value:
-            self.emg_queue.put()
+            # self.emg_queue.put()
+            emg_val = unpack('8HB', data)
+            emg = emg_val[:8]
+            self.emg_queue.put(emg)
 
         if cHandle == MyoHandler.IMU_DATA_HANDLE.value:
-            self.imu_queue.put()
+            imu_val = unpack('10h', data)
+            quat = imu_val[:4]
+            acc = imu_val[4:7]
+            gyro = imu_val[7:10]
+            self.imu_queue.put((quat, acc, gyro))
 
     def arm_handler(self, arm, xdir):
         self.arm_type = arm
         print(self.arm_type)
-        self.thread.arm_type = self.arm_type
 
 
 class MyoDataProcess(multiprocessing.Process):
@@ -124,6 +129,7 @@ class MyoDataProcess(multiprocessing.Process):
         if self.myo is None:
             return
         self.get_arm_type()
+        self.config_myo(emg_enable=True, imu_enable=True, emg_raw_enable=False)
 
     def get_arm_type(self):
 
@@ -244,6 +250,14 @@ class MyoHub:
                         continue
             return data_list
 
+    def get_ready(self):
+        if len(self.myo_delegate_pool) == 0:
+            return False
+        for delegate in self.myo_delegate_pool:
+            if delegate.arm_type == Arm.UNKNOWN:
+                return False
+        return True
+
 
 class MyoScanDelegate(DefaultDelegate):
     def __init__(self):
@@ -259,3 +273,7 @@ class MyoScanDelegate(DefaultDelegate):
 if __name__ == '__main__':
     hub = MyoHub(myo_count=1)
     hub.run()
+    while not hub.get_ready():
+        continue
+    while True:
+        print(hub.get_data())
