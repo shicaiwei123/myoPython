@@ -59,35 +59,34 @@ class MyoRaw(object):
         self.emg_raw_handlers = []
         self.mac_addr = mac_addr
         self.status = None
-        self.device = None
         self.arm_type = None
 
     def connect(self, init_delegate, iface=0):
 
-        def data_handle(handle, data):
-            if handle == MyoHandler.EMG_DATA_HANDLE.value:
-                vals = unpack('8HB', data)
-                emg = vals[:8]
-                self.on_emg(emg, self.arm_type)
-
-            if handle == MyoHandler.IMU_DATA_HANDLE.value:
-                vals = unpack('10h', data)
-                quat = vals[:4]
-                acc = vals[4:7]
-                gyro = vals[7:10]
-                self.on_imu(quat, acc, gyro, self.arm_type)
-
-            if handle == MyoHandler.ARM_DATA_HANDLE.value:
-                typ, val, xdir, pose, sync_result = unpack('3BHB', data)
-
-                if typ == MyoClassifierEventType.ARM_SYNCED.value:
-                    self.on_arm(Arm(val), XDirection(xdir))
-                elif typ == MyoClassifierEventType.ARM_UNSYNCED.value:  # removed from arm
-                    self.on_arm(Arm.UNKNOWN, XDirection.UNKNOWN)
-                elif typ == MyoClassifierEventType.POSE.value:  # pose
-                    self.on_pose(Pose(val))
-
-            print(handle, data)
+        # def data_handle(handle, data):
+        #     if handle == MyoHandler.EMG_DATA_HANDLE.value:
+        #         vals = unpack('8HB', data)
+        #         emg = vals[:8]
+        #         self.on_emg(emg, self.arm_type)
+        #
+        #     if handle == MyoHandler.IMU_DATA_HANDLE.value:
+        #         vals = unpack('10h', data)
+        #         quat = vals[:4]
+        #         acc = vals[4:7]
+        #         gyro = vals[7:10]
+        #         self.on_imu(quat, acc, gyro, self.arm_type)
+        #
+        #     if handle == MyoHandler.ARM_DATA_HANDLE.value:
+        #         typ, val, xdir, pose, sync_result = unpack('3BHB', data)
+        #
+        #         if typ == MyoClassifierEventType.ARM_SYNCED.value:
+        #             self.on_arm(Arm(val), XDirection(xdir))
+        #         elif typ == MyoClassifierEventType.ARM_UNSYNCED.value:  # removed from arm
+        #             self.on_arm(Arm.UNKNOWN, XDirection.UNKNOWN)
+        #         elif typ == MyoClassifierEventType.POSE.value:  # pose
+        #             self.on_pose(Pose(val))
+        #
+        #     print(handle, data)
 
         if not isinstance(iface, int):
             return
