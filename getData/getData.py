@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import time
 
 import pygame
 from pygame.locals import *
 
-from Bean.myo import MyoRaw
-from Bean.myo_config import MyoConfig
-from Bean.myo_hub import MyoHub
+from Bean.myo_handler import MyoDefaultHandler
+from Bean.myo_monitor_process import MyoMonitorProcess
 from myoAnalysis import *
 
 HAVE_PYGAME = True
@@ -87,7 +85,7 @@ def left_proc_emg(emg, times=[]):
         left_emg_list = data
 
 
-def right_proc_emg(emg, times=[]):
+def emg_proc(emg, times=[]):
     global dataFresh
     global right_emg_list
     dataFresh = True
@@ -135,7 +133,7 @@ def left_imu_proc(a, b, c):
     left_imu_list = c
 
 
-def right_imu_proc(a, b, c):
+def imu_proc(a, b, c):
     global imuCount
     global right_imu_list
     # imuCount = imuCount + 1
@@ -160,30 +158,23 @@ def right_imu_proc(a, b, c):
 def init():
     # 初始化配置，并打开emg数据开关
     global timeBegin
-    config = MyoConfig()
-    config.emg_enable = True
-    config.imu_enable = True
-    config.arm_enable = False
-    config.emg_raw_enable = True
+    m = MyoMonitorProcess(myo_count=2)
 
-    # 初始化myo实体
-    # m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
-    #            config=config)
-    m = MyoHub()
+    class MyoDataHandler(MyoDefaultHandler):
 
-    # 连接
-    m.add_left_myo_imu_handler(left_imu_proc)
-    m.add_left_myo_emg_handler(left_proc_emg)
+        def __init__(self):
+            super().__init__()
 
-    # 添加各种数据的回调
-    m.add_right_myo_imu_handler(right_imu_proc)
-    m.add_right_myo_emg_handler(right_proc_emg)
-    # m.add_emg_handler(lambda emg: print(emg))
-    # m.add_imu_handler(lambda a, b, c: print(a, b, c))
-    # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
-    # m.add_pose_handler(lambda p: print('pose', p))
-    # m.add_emg_raw_handler(proc_emg_raw)
+        def imu_handler(self, quat, acc, gyro):
+            imu_proc(quat, acc, gyro)
+
+        def emg_handler(self, emg):
+            emg_proc(emg)
+
+    m.myo_hub.add_data_handlers(MyoDataHandler())
+    m.start()
     timeBegin = time.time()
+
     return m
 
 
@@ -203,7 +194,7 @@ def getOnceData(m):
     emgRightCache = []
     imuRightCache = []
     while True:
-        m.run(1)
+
         if dataFresh:
             emgLeftCache = left_emg_list[1:9]
             imuLeftCache = left_imu_list[5:11]
@@ -214,7 +205,7 @@ def getOnceData(m):
             emgRightCache = list(np.array(emgRightCache) / 100)
             imuLeftCache = list(np.array(imuLeftCache) / 20)
             imuRightCache = list(np.array(imuRightCache) / 20)
-            return emgLeftCache,imuLeftCache, emgRightCache, imuRightCache
+            return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
 
 
 # 求emg数据能力用来判断阈值
@@ -225,6 +216,7 @@ def engery(emgData):
     emgSum = np.sum(emgSquare)
     emgMean = emgSum / 5  # 在过去的0.1s内
     return emgMean
+
 
 Threshold = 15
 
@@ -250,7 +242,7 @@ def getGestureData(m):
                     m.disconnect()
                     break
 
-        emgLeftCache,imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
+        emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
         # print(emgCache )
         # print(imuCache)
         emgLeftData.append(emgLeftCache)
@@ -270,7 +262,7 @@ def getGestureData(m):
             # print(E)
             if E > Threshold:
                 active = active + 1
-                quiet=1
+                quiet = 1
             else:
                 quiet = quiet + 1
             if quiet > 3:

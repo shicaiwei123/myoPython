@@ -1,81 +1,42 @@
 """
 Myo各种功能的Packet类
 """
-import enum
-
-
-class MyoPose(enum.Enum):
-    POSE_REST = 0
-    POSE_FIST = 1
-    POSE_WAVE_IN = 2
-    POSE_WAVE_OUT = 3
-    POSE_FINGERS_SPREAD = 4
-    POSE_DOUBLE_TAP = 5
-
-
-class MyoMKU(enum.Enum):
-    BLACK_MYO = 1
-    WHITE_MYO = 2
-
-
-class MyoCommand(enum.Enum):
-    SET_MODE = 1
-    VIBRATE = 2
-    DEEP_SLEEP = 3
-    VIBRATE2 = 4
-    SET_SLEEP_MODE = 9
-    UNLOCK = 10
-    USER_ACTION = 11
-
-
-class MyoVibrationMode(enum.Enum):
-    NONE = 0
-    SHORT = 1
-    MEDIUM = 2
-    LONG = 3
-
-
-class MyoSleepMode(enum.Enum):
-    NORMAL = 0
-    NEVER_SLEEP = 1
-
-
-class MyoUnlockMode(enum.Enum):
-    LOCK = 0
-    LOCK_TIMED = 1
-    HOLD = 2
+from Bean.myo_info import *
 
 
 class MyoCommandHeader:
-    def __init__(self, command, payload_size):
-        self.command = command
+    def __init__(self, command: MyoCommand, payload_size):
+        self.command = command.value
         self.len = payload_size
 
 
-class MyoWriteAttrCommandPacket:
-    def __init__(self, header: MyoCommandHeader, attr_handle: int, len: int, payload):
-        self.header = header
-        self.attr_handle = attr_handle
-        self.len = len
-        self.payload = payload
-
-
-class MyoReadAttrCommandPacket:
-    def __init__(self, header: MyoCommandHeader, attr_handle: int):
-        self.header = header
-        self.attr_handle = attr_handle
-
-
 class MyoVibrateCommandPacket:
-    def __init__(self, header: MyoCommandHeader, vibrate_type):
+    def __init__(self, header: MyoCommandHeader, vibrate_type: MyoVibrationMode):
         self.header = header
-        self.vibrate_type = vibrate_type
+        self.vibrate_type = vibrate_type.value
 
     def get_bytes(self):
         return bytes.fromhex(("{:02X}" * (self.header.len + 2)).format(
             self.header.command,
             self.header.len,
             self.vibrate_type))
+
+
+class MyoDataEnableCommandPacket:
+    def __init__(self, header: MyoCommandHeader, emg_mode:MyoEmgMode, imu_mode:MyoImuMode, classifier_mode:MyoClassifierMode):
+        self.header = header
+        self.emg_mode = emg_mode.value
+        self.imu_mode = imu_mode.value
+        self.classifier_mode = classifier_mode.value
+
+    def get_bytes(self):
+        return bytes.fromhex(("{:02X}" * (self.header.len + 2)).format(
+            self.header.command,
+            self.header.len,
+            self.emg_mode,
+            self.imu_mode,
+            self.classifier_mode
+        ))
 
 
 class MyoDeepSleepCommandPacket:
@@ -100,9 +61,9 @@ class MyoSetSleepCommandPacket:
     Normal Sleep or UnSleep
     """
 
-    def __init__(self, header: MyoCommandHeader, sleep_mode):
+    def __init__(self, header: MyoCommandHeader, sleep_mode: MyoSleepMode):
         self.header = header
-        self.sleep_mode = sleep_mode
+        self.sleep_mode = sleep_mode.value
 
     def get_bytes(self):
         return bytes.fromhex(
@@ -115,9 +76,9 @@ class MyoSetSleepCommandPacket:
 
 
 class MyoUnlockCommandPacket:
-    def __init__(self, header: MyoCommandHeader, unlock_type):
+    def __init__(self, header: MyoCommandHeader, unlock_type: MyoUnlockMode):
         self.header = header
-        self.type = unlock_type
+        self.type = unlock_type.value
 
     def get_bytes(self):
         return bytes.fromhex(

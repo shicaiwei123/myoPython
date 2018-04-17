@@ -25,7 +25,7 @@ class DataPool:
         config.emg_raw_enable = True
         config.imu_enable = True
         config.emg_enable = True
-        config.arm_enable = True
+        config.classifier_enable = True
 
         self.myo = MyoRaw(config=config)
         # 连接Myo
