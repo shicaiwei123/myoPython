@@ -246,7 +246,7 @@ def getGestureData(m):
                     m.disconnect()
                     break
         emgRigthCache, imuRigthCache, emgRigthRaw = getOnceData(m)
-        gyo = gyo + imuRigthCache[4:6]
+        gyo = gyo + imuRigthCache[3:6]
         emgRigthDataAll.append(emgRigthCache)
         imuRightDataAll.append(imuRigthCache)
         if isSave:  # 之前位置也放错了
