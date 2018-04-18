@@ -112,7 +112,6 @@ class MyoDataProcess(multiprocessing.Process):
                 # TODO: Change Type of Exception to BLE Exception
                 self.status = MyoStatus.DISCONNECTED
                 self.logger.info("%s: Myo is disconnected" % self.thread_name)
-                self.myo = None
 
         # if self.myo is not None:
         #     self.myo.disconnect()
