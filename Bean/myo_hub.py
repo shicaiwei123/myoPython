@@ -11,10 +11,10 @@ import signal
 import sys
 import time
 
+sys.path.append(os.path.abspath(os.path.pardir))
+
 from Bean.myo_info import MyoHandler, MyoClassifierEventType
 from Bean.myo_packet import MyoDataPacket, MyoDataType
-
-sys.path.append(os.path.abspath(os.path.pardir))
 
 from Bean.myo import MyoRaw, Arm, unpack, XDirection
 from Bean.myo_config import MyoConfig
