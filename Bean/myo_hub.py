@@ -232,7 +232,7 @@ class MyoHub:
                 myo_lists.append(dev)
                 self.logger.info("Discovered myo: %s, name: %s" % (dev.addr, dev.getValueText(9)))
                 continue
-        if len(myo_lists) != myo_count:
+        if len(myo_lists) < myo_count:
             self.logger.warning(
                 "Cannot found enough myos, find count: %s, need count: %s" % (len(myo_lists), myo_count)
             )
