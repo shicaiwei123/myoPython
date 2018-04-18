@@ -257,12 +257,24 @@ class MyoHub:
                 continue
 
     def get_ready(self):
-        try:
-            if self.data_queue.get().arm_type == Arm.UNKNOWN:
+        arm_type_count = 0
+        arm_type_list = []
+        while True:
+            arm_type = self.data_queue.get().arm_type
+            try:
+                if arm_type == Arm.UNKNOWN:
+                    return False
+                elif arm_type == Arm.LEFT or arm_type == Arm.RIGHT:
+                    if arm_type_count == 0 and self.myo_count == 1:
+                        return True
+                    if arm_type_count == 0 and self.myo_count != 1:
+                        arm_type_count += 1
+                        arm_type_list.append(arm_type)
+                        continue
+                    if arm_type_count == 1 and arm_type not in arm_type_list:
+                        return True
+            except queue.Empty:
                 return False
-        except queue.Empty:
-            return False
-        return True
 
 
 class MyoScanDelegate(DefaultDelegate):
