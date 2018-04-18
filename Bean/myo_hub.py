@@ -168,6 +168,7 @@ class MyoHub:
         self.init_myos(self.myo_list)
 
         self.running = False
+        self.data_queue_pool = []
 
         self.emg_left_queue = queue.Queue()
         self.emg_right_queue = queue.Queue()
@@ -181,10 +182,11 @@ class MyoHub:
         :return:
         """
         for idx, dev in enumerate(myo_list):
+            data_queue = multiprocessing.Queue()
             myo_thread = MyoDataProcess("myo-" + str(idx), dev.addr,
                                         iface=idx,
-                                        data_queue=self.data_queue)
-
+                                        data_queue=data_queue)
+            self.data_queue_pool.append(data_queue)
             self.myo_thread_pool.append(myo_thread)
 
     def run(self):
@@ -242,41 +244,43 @@ class MyoHub:
     def get_data(self):
         start_time = time.time()
         while self.running:
-            try:
-                data_packet = self.data_queue.get_nowait()
-                print(data_packet.arm_type, data_packet.data_type, data_packet.data, time.time() - start_time)
-                if data_packet.arm_type == Arm.LEFT:
-                    if data_packet.data_type == MyoDataType.EMG_DATA:
-                        self.emg_left_queue.put(data_packet.data)
-                    elif data_packet.data_type == MyoDataType.IMU_DATA:
-                        self.imu_left_queue.put(data_packet.data)
-                elif data_packet.arm_type == Arm.RIGHT:
-                    if data_packet.data_type == MyoDataType.EMG_DATA:
-                        self.emg_right_queue.put(data_packet.data)
-                    elif data_packet.data_type == MyoDataType.IMU_DATA:
-                        self.imu_right_queue.put(data_packet.data)
-            except queue.Empty:
-                continue
+            for data_queue in self.data_queue_pool:
+                try:
+                    data_packet = data_queue.get_nowait()
+                    print(data_packet.arm_type, data_packet.data_type, data_packet.data, time.time() - start_time)
+                    if data_packet.arm_type == Arm.LEFT:
+                        if data_packet.data_type == MyoDataType.EMG_DATA:
+                            self.emg_left_queue.put(data_packet.data)
+                        elif data_packet.data_type == MyoDataType.IMU_DATA:
+                            self.imu_left_queue.put(data_packet.data)
+                    elif data_packet.arm_type == Arm.RIGHT:
+                        if data_packet.data_type == MyoDataType.EMG_DATA:
+                            self.emg_right_queue.put(data_packet.data)
+                        elif data_packet.data_type == MyoDataType.IMU_DATA:
+                            self.imu_right_queue.put(data_packet.data)
+                except queue.Empty:
+                    continue
 
     def get_ready(self):
         arm_type_count = 0
         arm_type_list = []
         while True:
-            arm_type = self.data_queue.get().arm_type
-            try:
-                if arm_type == Arm.UNKNOWN:
+            for data_queue in self.data_queue_pool:
+                arm_type = data_queue.get().arm_type
+                try:
+                    if arm_type == Arm.UNKNOWN:
+                        return False
+                    elif arm_type == Arm.LEFT or arm_type == Arm.RIGHT:
+                        if arm_type_count == 0 and self.myo_count == 1:
+                            return True
+                        if arm_type_count == 0 and self.myo_count != 1:
+                            arm_type_count += 1
+                            arm_type_list.append(arm_type)
+                            continue
+                        if arm_type_count == 1 and arm_type not in arm_type_list:
+                            return True
+                except queue.Empty:
                     return False
-                elif arm_type == Arm.LEFT or arm_type == Arm.RIGHT:
-                    if arm_type_count == 0 and self.myo_count == 1:
-                        return True
-                    if arm_type_count == 0 and self.myo_count != 1:
-                        arm_type_count += 1
-                        arm_type_list.append(arm_type)
-                        continue
-                    if arm_type_count == 1 and arm_type not in arm_type_list:
-                        return True
-            except queue.Empty:
-                return False
 
 
 class MyoScanDelegate(DefaultDelegate):
