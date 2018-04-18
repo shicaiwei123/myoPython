@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="19850f1a-6105-42b0-bccd-3bb12b9e4e81" name="Default" comment="Add Two Thread" />
+    <list default="true" id="19850f1a-6105-42b0-bccd-3bb12b9e4e81" name="Default" comment="Add Two Thread">
+      <change beforePath="$PROJECT_DIR$/Bean/myo_hub.py" beforeDir="false" afterPath="$PROJECT_DIR$/Bean/myo_hub.py" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -47,8 +49,8 @@
           <file leaf-file-name="myo_hub.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/Bean/myo_hub.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="295">
-                  <caret line="38" column="33" selection-start-line="38" selection-start-column="33" selection-end-line="38" selection-end-column="33" />
+                <state relative-caret-position="154">
+                  <caret line="170" lean-forward="true" selection-start-line="170" selection-end-line="170" />
                   <folding>
                     <element signature="e#140#151#0" expanded="true" />
                   </folding>
@@ -688,7 +690,7 @@
       <workItem from="1524020312867" duration="6460000" />
       <workItem from="1524031311782" duration="943000" />
       <workItem from="1524042078293" duration="5502000" />
-      <workItem from="1524055768867" duration="4923000" />
+      <workItem from="1524055768867" duration="5332000" />
     </task>
     <task id="LOCAL-00001" summary="Update Format">
       <created>1520848013621</created>
@@ -778,7 +780,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="119026000" />
+    <option name="totallyTimeSpent" value="119435000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1284,8 +1286,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Bean/myo_hub.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="38" column="33" selection-start-line="38" selection-start-column="33" selection-end-line="38" selection-end-column="33" />
+        <state relative-caret-position="154">
+          <caret line="170" lean-forward="true" selection-start-line="170" selection-end-line="170" />
           <folding>
             <element signature="e#140#151#0" expanded="true" />
           </folding>

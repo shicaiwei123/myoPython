@@ -162,13 +162,12 @@ class MyoHub:
 
         self.myo_count = myo_count
         self.myo_thread_pool = []
-        self.data_queue = multiprocessing.Queue()
+        self.data_queue_pool = []
 
         self.myo_list = self.scan_myos(myo_count=myo_count, scan_time=5.0, iface=1)
         self.init_myos(self.myo_list)
 
         self.running = False
-        self.data_queue_pool = []
 
         self.emg_left_queue = queue.Queue()
         self.emg_right_queue = queue.Queue()
