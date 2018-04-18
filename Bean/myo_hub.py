@@ -239,10 +239,11 @@ class MyoHub:
         return myo_lists
 
     def get_data(self):
+        start_time = time.time()
         while self.running:
             try:
                 data_packet = self.data_queue.get_nowait()
-                print(data_packet.arm_type, data_packet.data_type, data_packet.data)
+                print(data_packet.arm_type, data_packet.data_type, data_packet.data, time.time() - start_time)
                 if data_packet.arm_type == Arm.LEFT:
                     if data_packet.data_type == MyoDataType.EMG_DATA:
                         self.emg_left_queue.put(data_packet.data)
