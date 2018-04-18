@@ -12,6 +12,7 @@ import sys
 import time
 
 from Bean.myo_info import MyoHandler, MyoClassifierEventType
+from Bean.myo_packet import MyoDataPacket, MyoDataType
 
 sys.path.append(os.path.abspath(os.path.pardir))
 
@@ -30,11 +31,10 @@ class MyoStatus(enum.Enum):
 
 class MyoDataDelegate(DefaultDelegate):
 
-    def __init__(self):
+    def __init__(self, data_queue):
         DefaultDelegate.__init__(self)
         self.arm_type = Arm.UNKNOWN
-        self.emg_queue = queue.Queue()
-        self.imu_queue = queue.Queue()
+        self.data_queue = data_queue
 
     def handleNotification(self, cHandle, data):
         if cHandle == MyoHandler.ARM_DATA_HANDLE.value:
@@ -46,23 +46,31 @@ class MyoDataDelegate(DefaultDelegate):
             # self.emg_queue.put()
             emg_val = unpack('8HB', data)
             emg = emg_val[:8]
-            self.emg_queue.put(emg)
+            self.send_data(MyoDataType.EMG_DATA, emg)
 
         if cHandle == MyoHandler.IMU_DATA_HANDLE.value:
             imu_val = unpack('10h', data)
             quat = imu_val[:4]
             acc = imu_val[4:7]
             gyro = imu_val[7:10]
-            self.imu_queue.put((quat, acc, gyro))
+
+            self.send_data(MyoDataType.IMU_DATA, (quat, acc, gyro))
+
+    def send_data(self, data_type: MyoDataType, data):
+        data_packet = MyoDataPacket()
+        data_packet.arm_type = self.arm_type
+        data_packet.data_type = data_type
+        data_packet.data = data
+        self.data_queue.put(data_packet)
 
     def arm_handler(self, arm, xdir):
         self.arm_type = arm
-        print(self.arm_type)
+        self.send_data(MyoDataType.ARM_DATA, arm)
 
 
 class MyoDataProcess(multiprocessing.Process):
 
-    def __init__(self, thread_name, mac_addr, iface, data_delegate: MyoDataDelegate, pipe, timeout=30, sleep_interval=1):
+    def __init__(self, thread_name, mac_addr, iface, data_queue, timeout=30, sleep_interval=1):
         multiprocessing.Process.__init__(self)
         # initial status
         self.status = MyoStatus.PENDING
@@ -71,7 +79,7 @@ class MyoDataProcess(multiprocessing.Process):
         self.mac_addr = mac_addr
         self.myo = None
 
-        self.data_delegate = data_delegate
+        self.data_delegate = MyoDataDelegate(data_queue)
 
         self.logger = logging.getLogger("myo")
         self.logger.setLevel(logging.INFO)
@@ -81,7 +89,7 @@ class MyoDataProcess(multiprocessing.Process):
         self.sleep_interval = sleep_interval
         self.iface = iface
 
-        self.pipe = pipe
+        self.queue = queue
 
     def run(self):
         """
@@ -135,10 +143,7 @@ class MyoDataProcess(multiprocessing.Process):
     def get_arm_type(self):
 
         while not self.kill_received and self.data_delegate.arm_type == Arm.UNKNOWN:
-            self.pipe.send(Arm.UNKNOWN)
             self.myo.run(1)
-
-        self.pipe.send(self.data_delegate.arm_type)
         self.logger.error("%s: Get myo arm type: %s", self.thread_name, self.data_delegate.arm_type)
 
     def config_myo(self, emg_enable=True, imu_enable=True, emg_raw_enable=True):
@@ -158,8 +163,7 @@ class MyoHub:
 
         self.myo_count = myo_count
         self.myo_thread_pool = []
-        self.myo_delegate_pool = []
-        self.pipe_pool = []
+        self.queue_pool = []
 
         self.myo_list = self.scan_myos(myo_count=myo_count, scan_time=5.0, iface=1)
         self.init_myos(self.myo_list)
@@ -173,16 +177,13 @@ class MyoHub:
         :return:
         """
         for idx, dev in enumerate(myo_list):
-            myo_delegate = MyoDataDelegate()
-            myo_pipe_parent, myo_pipe_child = multiprocessing.Pipe(duplex=False)
+            myo_queue = multiprocessing.Queue()
             myo_thread = MyoDataProcess("myo-" + str(idx), dev.addr,
                                         iface=idx,
-                                        data_delegate=myo_delegate,
-                                        pipe=myo_pipe_child)
+                                        data_queue=myo_queue)
 
             self.myo_thread_pool.append(myo_thread)
-            self.myo_delegate_pool.append(myo_delegate)
-            self.pipe_pool.append(myo_pipe_parent)
+            self.queue_pool.append(myo_queue)
 
     def run(self):
         """

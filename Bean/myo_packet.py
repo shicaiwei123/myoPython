@@ -88,3 +88,19 @@ class MyoUnlockCommandPacket:
                 self.type
             )
         )
+
+
+class MyoDataPacket:
+    def __init__(self):
+        self.arm_type = None
+        self.data_type = None
+        self.data = None
+
+
+class MyoDataType(enum.Enum):
+    EMG_DATA = 1
+    IMU_DATA = 2
+    ARM_DATA = 3
+
+
+
