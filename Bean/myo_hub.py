@@ -170,6 +170,11 @@ class MyoHub:
 
         self.running = False
 
+        self.emg_left_queue = queue.Queue()
+        self.emg_right_queue = queue.Queue()
+        self.imu_left_queue = queue.Queue()
+        self.imu_right_queue = queue.Queue()
+
     def init_myos(self, myo_list):
         """
         初始化Myo,创建多个线程，传入指定的Delegate
@@ -236,36 +241,32 @@ class MyoHub:
         return myo_lists
 
     def get_data(self):
-        if self.myo_count == 1:
-            try:
-                emg_data = self.myo_delegate_pool[0].emg_queue.get()
-                imu_data = self.myo_delegate_pool[0].imu_queue.get()
-                return emg_data, imu_data
-            except queue.Empty:
-                return None, None
-        else:
-            # 两个myo
-            data_list = []
-            for delegate in self.myo_delegate_pool:
-                if len(data_list) == 0 and delegate.arm_type == Arm.LEFT:
-                    try:
-                        data_list.append((delegate.emg_queue.get(), delegate.imu_queue.get()))
-                    except queue.Empty:
-                        data_list.append((None, None))
-                        continue
-                elif len(data_list) != 0 and delegate.arm_type == Arm.RIGHT:
-                    try:
-                        data_list.append((delegate.emg_queue.get(), delegate.imu_queue.get()))
-                    except queue.Empty:
-                        data_list.append((None, None))
-                        continue
-            return data_list
+        while self.running:
+            for data_queue in self.queue_pool:
+                try:
+                    data_packet = data_queue.get_nowait()
+                    print(data_packet.arm_type, data_packet.data_type, data_packet.data)
+                    if data_packet.arm_type == Arm.LEFT:
+                        if data_packet.data_type == MyoDataType.EMG_DATA:
+                            self.emg_left_queue.put(data_packet.data)
+                        elif data_packet.data_type == MyoDataType.IMU_DATA:
+                            self.imu_left_queue.put(data_packet.data)
+                    elif data_packet.arm_type == Arm.RIGHT:
+                        if data_packet.data_type == MyoDataType.EMG_DATA:
+                            self.emg_right_queue.put(data_packet.data)
+                        elif data_packet.data_type == MyoDataType.IMU_DATA:
+                            self.imu_right_queue.put(data_packet.data)
+                except queue.Empty:
+                    continue
 
     def get_ready(self):
-        if len(self.myo_delegate_pool) == 0:
+        if len(self.queue_pool) == 0:
             return False
-        for pipe in self.pipe_pool:
-            if pipe.recv() == Arm.UNKNOWN:
+        for queue in self.queue_pool:
+            try:
+                if queue.get().arm_type == Arm.UNKNOWN:
+                    return False
+            except queue.Empty:
                 return False
         return True
 
@@ -284,10 +285,6 @@ class MyoScanDelegate(DefaultDelegate):
 if __name__ == '__main__':
     hub = MyoHub(myo_count=1)
     hub.run()
-    while True:
-        status = hub.get_ready()
-        print(status)
-        if status:
-            break
-    while True:
-        print(hub.get_data())
+    while not hub.get_ready():
+        pass
+    hub.get_data()
