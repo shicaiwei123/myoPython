@@ -116,3 +116,4 @@ class MyoClassifierEventType(enum.Enum):
     UNLOCKED = 4
     LOCKED = 5
     SYNC_FAILED = 6
+

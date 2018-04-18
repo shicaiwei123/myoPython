@@ -37,7 +37,6 @@ class MyoDataDelegate(DefaultDelegate):
         self.imu_queue = queue.Queue()
 
     def handleNotification(self, cHandle, data):
-        print(cHandle, data)
         if cHandle == MyoHandler.ARM_DATA_HANDLE.value:
             typ, val, xdir, pose, sync_result = unpack('3BHB', data)
             if typ == MyoClassifierEventType.ARM_SYNCED.value:
@@ -63,7 +62,7 @@ class MyoDataDelegate(DefaultDelegate):
 
 class MyoDataProcess(multiprocessing.Process):
 
-    def __init__(self, thread_name, mac_addr, iface, data_delegate: MyoDataDelegate, timeout=30, sleep_interval=1):
+    def __init__(self, thread_name, mac_addr, iface, data_delegate: MyoDataDelegate, pipe, timeout=30, sleep_interval=1):
         multiprocessing.Process.__init__(self)
         # initial status
         self.status = MyoStatus.PENDING
@@ -81,6 +80,8 @@ class MyoDataProcess(multiprocessing.Process):
         self.timeout = timeout
         self.sleep_interval = sleep_interval
         self.iface = iface
+
+        self.pipe = pipe
 
     def run(self):
         """
@@ -105,8 +106,8 @@ class MyoDataProcess(multiprocessing.Process):
                 self.logger.info("%s: Myo is disconnected" % self.thread_name)
                 self.myo = None
 
-        if self.myo is not None:
-            self.myo.disconnect()
+        # if self.myo is not None:
+        #     self.myo.disconnect()
         self.logger.info("%s: thread exit" % self.thread_name)
 
     def connect_myo(self):
@@ -134,8 +135,10 @@ class MyoDataProcess(multiprocessing.Process):
     def get_arm_type(self):
 
         while not self.kill_received and self.data_delegate.arm_type == Arm.UNKNOWN:
+            self.pipe.send(Arm.UNKNOWN)
             self.myo.run(1)
 
+        self.pipe.send(self.data_delegate.arm_type)
         self.logger.error("%s: Get myo arm type: %s", self.thread_name, self.data_delegate.arm_type)
 
     def config_myo(self, emg_enable=True, imu_enable=True, emg_raw_enable=True):
@@ -156,6 +159,7 @@ class MyoHub:
         self.myo_count = myo_count
         self.myo_thread_pool = []
         self.myo_delegate_pool = []
+        self.pipe_pool = []
 
         self.myo_list = self.scan_myos(myo_count=myo_count, scan_time=5.0, iface=1)
         self.init_myos(self.myo_list)
@@ -170,9 +174,15 @@ class MyoHub:
         """
         for idx, dev in enumerate(myo_list):
             myo_delegate = MyoDataDelegate()
-            myo_thread = MyoDataProcess("myo-" + str(idx), dev.addr, iface=idx, data_delegate=myo_delegate)
+            myo_pipe_parent, myo_pipe_child = multiprocessing.Pipe(duplex=False)
+            myo_thread = MyoDataProcess("myo-" + str(idx), dev.addr,
+                                        iface=idx,
+                                        data_delegate=myo_delegate,
+                                        pipe=myo_pipe_child)
+
             self.myo_thread_pool.append(myo_thread)
             self.myo_delegate_pool.append(myo_delegate)
+            self.pipe_pool.append(myo_pipe_parent)
 
     def run(self):
         """
@@ -253,8 +263,8 @@ class MyoHub:
     def get_ready(self):
         if len(self.myo_delegate_pool) == 0:
             return False
-        for delegate in self.myo_delegate_pool:
-            if delegate.arm_type == Arm.UNKNOWN:
+        for pipe in self.pipe_pool:
+            if pipe.recv() == Arm.UNKNOWN:
                 return False
         return True
 
@@ -273,7 +283,10 @@ class MyoScanDelegate(DefaultDelegate):
 if __name__ == '__main__':
     hub = MyoHub(myo_count=1)
     hub.run()
-    while not hub.get_ready():
-        continue
+    while True:
+        status = hub.get_ready()
+        print(status)
+        if status:
+            break
     while True:
         print(hub.get_data())
