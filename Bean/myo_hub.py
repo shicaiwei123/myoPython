@@ -31,10 +31,12 @@ class MyoStatus(enum.Enum):
 
 class MyoDataDelegate(DefaultDelegate):
 
-    def __init__(self, data_queue):
+    def __init__(self, arm_data_queue, emg_data_queue, imu_data_queue):
         DefaultDelegate.__init__(self)
         self.arm_type = Arm.UNKNOWN
-        self.data_queue = data_queue
+        self.arm_data_queue = arm_data_queue
+        self.emg_data_queue = emg_data_queue
+        self.imu_data_queue = imu_data_queue
 
     def handleNotification(self, cHandle, data):
         if cHandle == MyoHandler.ARM_DATA_HANDLE.value:
@@ -229,6 +231,8 @@ class MyoHub:
             if dev.getValueText(6) == "4248124a7f2c4847b9de04a9010006d5":
                 # find myo
                 myo_lists.append(dev)
+                if len(myo_lists) == myo_count:
+                    break
                 self.logger.info("Discovered myo: %s, name: %s" % (dev.addr, dev.getValueText(9)))
                 continue
         if len(myo_lists) < myo_count:
