@@ -31,12 +31,10 @@ class MyoStatus(enum.Enum):
 
 class MyoDataDelegate(DefaultDelegate):
 
-    def __init__(self, arm_data_queue, emg_data_queue, imu_data_queue):
+    def __init__(self, data_queue):
         DefaultDelegate.__init__(self)
         self.arm_type = Arm.UNKNOWN
-        self.arm_data_queue = arm_data_queue
-        self.emg_data_queue = emg_data_queue
-        self.imu_data_queue = imu_data_queue
+        self.data_queue = data_queue
 
     def handleNotification(self, cHandle, data):
         if cHandle == MyoHandler.ARM_DATA_HANDLE.value:
