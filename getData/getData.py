@@ -208,7 +208,7 @@ def gyoEngery(gyoData):
     return gyoSum
 
 
-threshold = 500
+threshold = 700
 # 在原始数据基础上获取一次手势的数据
 # 实现分段
 #
@@ -314,7 +314,7 @@ def getGestureData(m):
                             emgRigthData = []
                             imuRightData = []
                             activeTimes = 0
-                            threshold = 500
+                            threshold = 700
                             GyoRigthQuietTimes = 1
                             return emgRight, imuRight, emgRigthDataAll, imuRightDataAll, engeryData, engerySeg
                             # print('ok')
