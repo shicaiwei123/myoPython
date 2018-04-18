@@ -163,7 +163,7 @@ class MyoHub:
 
         self.myo_count = myo_count
         self.myo_thread_pool = []
-        self.queue_pool = []
+        self.data_queue = multiprocessing.Queue()
 
         self.myo_list = self.scan_myos(myo_count=myo_count, scan_time=5.0, iface=1)
         self.init_myos(self.myo_list)
@@ -182,13 +182,11 @@ class MyoHub:
         :return:
         """
         for idx, dev in enumerate(myo_list):
-            myo_queue = multiprocessing.Queue()
             myo_thread = MyoDataProcess("myo-" + str(idx), dev.addr,
                                         iface=idx,
-                                        data_queue=myo_queue)
+                                        data_queue=self.data_queue)
 
             self.myo_thread_pool.append(myo_thread)
-            self.queue_pool.append(myo_queue)
 
     def run(self):
         """
@@ -242,32 +240,28 @@ class MyoHub:
 
     def get_data(self):
         while self.running:
-            for data_queue in self.queue_pool:
-                try:
-                    data_packet = data_queue.get_nowait()
-                    print(data_packet.arm_type, data_packet.data_type, data_packet.data)
-                    if data_packet.arm_type == Arm.LEFT:
-                        if data_packet.data_type == MyoDataType.EMG_DATA:
-                            self.emg_left_queue.put(data_packet.data)
-                        elif data_packet.data_type == MyoDataType.IMU_DATA:
-                            self.imu_left_queue.put(data_packet.data)
-                    elif data_packet.arm_type == Arm.RIGHT:
-                        if data_packet.data_type == MyoDataType.EMG_DATA:
-                            self.emg_right_queue.put(data_packet.data)
-                        elif data_packet.data_type == MyoDataType.IMU_DATA:
-                            self.imu_right_queue.put(data_packet.data)
-                except queue.Empty:
-                    continue
+            try:
+                data_packet = self.data_queue.get_nowait()
+                print(data_packet.arm_type, data_packet.data_type, data_packet.data)
+                if data_packet.arm_type == Arm.LEFT:
+                    if data_packet.data_type == MyoDataType.EMG_DATA:
+                        self.emg_left_queue.put(data_packet.data)
+                    elif data_packet.data_type == MyoDataType.IMU_DATA:
+                        self.imu_left_queue.put(data_packet.data)
+                elif data_packet.arm_type == Arm.RIGHT:
+                    if data_packet.data_type == MyoDataType.EMG_DATA:
+                        self.emg_right_queue.put(data_packet.data)
+                    elif data_packet.data_type == MyoDataType.IMU_DATA:
+                        self.imu_right_queue.put(data_packet.data)
+            except queue.Empty:
+                continue
 
     def get_ready(self):
-        if len(self.queue_pool) == 0:
-            return False
-        for queue in self.queue_pool:
-            try:
-                if queue.get().arm_type == Arm.UNKNOWN:
-                    return False
-            except queue.Empty:
+        try:
+            if self.data_queue.get().arm_type == Arm.UNKNOWN:
                 return False
+        except queue.Empty:
+            return False
         return True
 
 
@@ -286,5 +280,5 @@ if __name__ == '__main__':
     hub = MyoHub(myo_count=1)
     hub.run()
     while not hub.get_ready():
-        pass
+        time.sleep(0.1)
     hub.get_data()
