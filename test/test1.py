@@ -10,7 +10,7 @@
 # print(a)
 # eng.quit()
 # import numpy as np
-#测试图像----完成
+# 测试图像----完成
 # import  matplotlib.pyplot as plt
 # import matplotlib.image as mimg
 # a=[1,2,3,4,5]
@@ -31,7 +31,6 @@
 # plt.title('Interesting Graph\nCheck it out')
 # plt.legend()
 # plt.show()
-
 
 
 # 读取mat数据测试
@@ -65,7 +64,7 @@ import scipy.io as scio
 # print(b)
 
 
-#数字字符串转测试
+# 数字字符串转测试
 # a=1
 # b=str(a)
 # print(b)
@@ -73,7 +72,7 @@ import scipy.io as scio
 # print(c)
 
 
-#测试双线程
+# 测试双线程
 # import threading
 # from time import ctime,sleep
 #
@@ -118,7 +117,7 @@ import scipy.io as scio
 #     print(q.get())
 
 
-#字典测试
+# 字典测试
 # dict=\
 #     {1:'大家'\
 #     ,2:'你'}
@@ -177,7 +176,7 @@ import scipy.io as scio
 #                     print(segTimes)
 #                     segTimes+=1
 
-#matplotlib绘图
+# matplotlib绘图
 
 # import numpy as np
 # from matplotlib import pyplot as plt
@@ -211,7 +210,6 @@ import scipy.io as scio
 #
 # anim1 = animation.FuncAnimation(fig, animate, init_func=init, frames=50, interval=10)
 # plt.show()
-
 
 
 #
@@ -274,7 +272,6 @@ import scipy.io as scio
 # anim = animation.FuncAnimation(fig, update, interval=10, blit=True, frames=200)
 # plt.show()
 #
-
 
 
 # from matplotlib import pyplot as plt
@@ -355,10 +352,6 @@ import scipy.io as scio
 # plt.show()
 
 
-
-
-
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import style
@@ -386,14 +379,10 @@ from matplotlib import style
 # plt.show()
 
 
-
-
-
-
-#测试excle文件生成dict
+# 测试excle文件生成dict
 import xlrd
 import pickle
-#根据名称获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
+# 根据名称获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
 # def excleToDict(excleFile,colnameindex=0,by_name=u'Sheet1'):
 #     data = xlrd.open_workbook(excleFile)
 #     table = data.sheet_by_name(by_name)
@@ -413,7 +402,6 @@ import pickle
 #     return dict
 
 
-
 # 测试dit数据储存
 # recodes = excleToDict('dataSheet.xlsx')
 # a=recodes[2]
@@ -427,12 +415,10 @@ import pickle
 # print(dict)
 
 
-
 # 能量分析
 # engery=np.load('engeryData.npy')
 # plt.stem(engery[1:100])
 # plt.show()
-
 
 
 # import numpy as np
@@ -459,15 +445,34 @@ import pickle
 # animation.write_gif("sinc.gif", fps=20)
 
 
-#测试列表
-a=[[[1,2,3],[2,3,4]]]
-b=a[0]
-c=[]
-c=c+a
-c[0].append([111,111111])
-b.append([66,64,1])
-a[0].append([11,11,1111])
-print(a)
+# #测试列表
+# a=[[[1,2,3],[2,3,4]]]
+# b=a[0]
+# c=[]
+# c=c+a
+# c[0].append([111,111111])
+# b.append([66,64,1])
+# a[0].append([11,11,1111])
+# print(a)
+# print(c)
+# print(b)
+
+# 测试python程序
+import numpy as np
+from getData.getData import *
+a = list([[ 0, 0.7],
+          [ -0.55, 0.75],
+          [ -1, 1.55],
+          [ -1.55, 1.2],
+          [-0.95,0.4]
+          ])
+b=np.array(a)
+c=gyoEngery(a)
 print(c)
-print(b)
+
+
+#测试list[]截取数据的结果
+# a=np.array([1,2,3,4])
+# b=a[1:3]
+# print(b)
 

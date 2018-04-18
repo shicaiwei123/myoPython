@@ -296,9 +296,9 @@ def getGestureData(m):
                 else:
 
                     gyoRigthQuiet = 0
-                    gyoRigthActive = 0
+
                     activeTimes = activeTimes + 1
-                    threshold = 20
+                    threshold = 30
                     GyoRigthQuietTimes = 2
                     if activeTimes == ActiveTimes:
                         isSave = False
@@ -307,6 +307,7 @@ def getGestureData(m):
                             print('wrong Data')
                             # ping一下？？
                         else:
+                            gyoRigthActive = 0
                             print(gyoE)
                             emgRight = emgRigthData
                             imuRight = imuRightData
