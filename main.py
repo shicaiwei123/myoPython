@@ -56,22 +56,26 @@ if __name__ == '__main__':
         imuDataAll = []
         engeryDataAll = []  # 所有数据
         engeryDataSeg = []  # 一次手势数据
-
+        emgRawRightAll = []
+        gestureCounter = 0
         try:
             while True:
                 # emg, imu, emg_raw = getOnceData(m)
-                emg, imu, emgAll, imuAll, engeryAll, engerySeg = getGestureData(m)
+                emg, imu, emgAll, imuAll, engeryAll, engerySeg, emgRawAll = getGestureData(m)
+                gestureCounter = gestureCounter + 1
+                print(gestureCounter)
                 if HAVE_PYGAME:
                     if emg == 10000:
-                        name = '早上'
-                        saveExcle('dataGyo/' + name + '/emgData.xls', emgData)
-                        saveExcle('dataGyo/' + name + '/imuData.xls', imuData)
-                        saveExcle('dataGyo/' + name + '/emgDataAll.xls', emgDataAll)
-                        saveExcle('dataGyo/' + name + '/imuDataAll.xls', imuDataAll)
-                        saveExcle('dataGyo/' + name + '/engeryDataAll.xls', engeryDataAll)
-                        saveExcle('dataGyo/' + name + '/engeryDataSeg.xls', engeryDataSeg)
-                        # saveExcle('dataWSC/'+name+'/emgRawData.xls', emg_raw)
-                        # saveExcle('dataWSC/'+name+'/thresholdData.xls', threshold)
+                        name = '天'
+                        engeryDataSeg = engeryDataSeg + [[gestureCounter-1]]
+                        saveExcle('wscData/oneFinger/' + name + '/emgData.xls', emgData)
+                        saveExcle('wscData/oneFinger/' + name + '/imuData.xls', imuData)
+                        saveExcle('wscData/oneFinger/' + name + '/emgDataAll.xls', emgDataAll)
+                        saveExcle('wscData/oneFinger/' + name + '/imuDataAll.xls', imuDataAll)
+                        saveExcle('wscData/oneFinger/' + name + '/engeryDataAll.xls', engeryDataAll)
+                        saveExcle('wscData/oneFinger/' + name + '/engeryDataSeg.xls', engeryDataSeg)
+                        saveExcle('wscData/oneFinger/' + name + '/emgRawRightAll.xls', emgRawRightAll)
+                        # saveExcle('wscData/oneFinger/'+name+'/thresholdData.xls', threshold)
                         raise KeyboardInterrupt()
                 emgData = emgData + emg + [[0]]
                 # print(emg)
@@ -81,6 +85,7 @@ if __name__ == '__main__':
                 imuDataAll = imuDataAll + imuAll
                 engeryDataAll = engeryDataAll + engeryAll
                 engeryDataSeg = engeryDataSeg + engerySeg + [[0]]
+                emgRawRightAll = emgRawRightAll + emgRawAll
 
         except KeyboardInterrupt:
             pass

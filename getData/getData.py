@@ -232,6 +232,7 @@ def getGestureData(m):
     imuRightData = []
     emgRigthDataAll = []  # 缓存全部数据
     imuRightDataAll = []
+    emgRawRightAll = []
     clearThreshold = 10
     clearCounter = 1
     engeryData = []
@@ -242,13 +243,14 @@ def getGestureData(m):
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
                     np.save('test/engeryData', np.array(engeryData))
                     np.save('test/engerySeg', np.array(engerySeg))
-                    return 10000, 10000, 10000, 10000, 10000, 10000
+                    return 10000, 10000, 10000, 10000, 10000, 10000,10000
                     m.disconnect()
                     break
         emgRigthCache, imuRigthCache, emgRigthRaw = getOnceData(m)
         gyo = gyo + imuRigthCache[3:6]
         emgRigthDataAll.append(emgRigthCache)
         imuRightDataAll.append(imuRigthCache)
+        emgRawRightAll.append(emgRigthRaw)
         if isSave:  # 之前位置也放错了
             emgRigthData.append(emgRigthCache)
             imuRightData.append(imuRigthCache)
@@ -264,7 +266,7 @@ def getGestureData(m):
             dataTimes = 1
             if gyoE > beginSave:  # 开始存储数据
                 isSave = True
-                clearCounter=1
+                clearCounter = 1
             if isSave:             # 存储手势能量
                 engerySeg.append([gyoE])
             # 滤除噪声和误触发带来的数据存储，避免数据的存储错误
@@ -275,15 +277,15 @@ def getGestureData(m):
                 clearCounter = clearCounter + 1
             if clearCounter > 3:
                 engerySeg = []
-                emgRigthData=[]
-                imuRightData=[]
+                emgRigthData = []
+                imuRightData = []
                 clearCounter = 1
-                isSave=False
+                isSave = False
 
             if gyoE > threshold:  # 如果大于阈值就算是活动状态，并且将安静状态清零
                 gyoRigthActive = gyoRigthActive + 1
                 gyoRigthQuiet = 0
-                clearCounter=1
+                clearCounter = 1
             # 需不需要也为0
             else:
                 gyoRigthQuiet = gyoRigthQuiet + 1
@@ -316,7 +318,8 @@ def getGestureData(m):
                             activeTimes = 0
                             threshold = 700
                             GyoRigthQuietTimes = 1
-                            return emgRight, imuRight, emgRigthDataAll, imuRightDataAll, engeryData, engerySeg
+                            return emgRight, imuRight, emgRigthDataAll, \
+                                imuRightDataAll, engeryData, engerySeg, emgRawRightAll
                             # print('ok')
 
 
