@@ -457,18 +457,18 @@ import pickle
 # print(c)
 # print(b)
 
-# 测试python程序
-import numpy as np
-from getData.getData import *
-a = list([[ 0, 0.7],
-          [ -0.55, 0.75],
-          [ -1, 1.55],
-          [ -1.55, 1.2],
-          [-0.95,0.4]
-          ])
-b=np.array(a)
-c=gyoEngery(a)
-print(c)
+# # 测试python程序
+# import numpy as np
+# from getData.getData import *
+# a = list([[ 0, 0.7],
+#           [ -0.55, 0.75],
+#           [ -1, 1.55],
+#           [ -1.55, 1.2],
+#           [-0.95,0.4]
+#           ])
+# b=np.array(a)
+# c=gyoEngery(a)
+# print(c)
 
 
 #测试list[]截取数据的结果
@@ -476,3 +476,17 @@ print(c)
 # b=a[1:3]
 # print(b)
 
+
+#测试python结构体和mat存储
+import  numpy as np
+class Employee:
+    pass
+
+a=[[1,2,3,4],[5,6,7,8]]
+emg=np.array(a)
+data = Employee() # Create an empty employee record
+data.len=10
+data.dataType=1
+data.Lables=1
+data.emgData=emg
+print(data.len)
