@@ -60,7 +60,9 @@ def getSVM(trainX, trainY):
 if __name__ == '__main__':
     from sklearn.externals import joblib
     import os
-    path = 'E:/intel杯/MYO/MyoData/wscData/oneFinger/matData/'
+    # path = 'E:/intel杯/MYO/MyoData/wscData/oneFinger/matData/'
+    parentPath=os.path.abspath(os.path.dirname(os.getcwd()))
+    path=parentPath+'/matData/'
     # 训练和测试
     isLearn = False
     modelName = 'KNN30'

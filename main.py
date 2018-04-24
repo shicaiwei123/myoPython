@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = True
+    isSave = False
     # 导入模型
 
     # 如果是存储数据
@@ -66,7 +66,7 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if HAVE_PYGAME:
                     if emg == 10000:
-                        name = '天'
+                        name = '你是哪里人'
                         engeryDataSeg = engeryDataSeg + [[gestureCounter-1]]
                         saveExcle('wscData/oneFinger/' + name + '/emgData.xls', emgData)
                         saveExcle('wscData/oneFinger/' + name + '/imuData.xls', imuData)
@@ -123,7 +123,7 @@ if __name__ == '__main__':
         imu = []
         fetureCache = queue.Queue(10)
         while True:
-            emg, imu = getGestureData(m)
+            emg, imu,a,b,c,d,e = getGestureData(m)
             if emg == 10000:
                 break
             # 归一化
