@@ -19,221 +19,230 @@ def ZCR(data):
     return zcrSum
 
 
-def fetureGet(emgData, imuData):
+def fetureGet(emgDataAll, imuDataAll):
     # 初始参数
+    emgDataAll = np.array(emgDataAll)
+    imuDataAll = np.array(imuDataAll)
     frq = 50  # 频率50Hz
-    # 数据预处理，归一化，无量纲化
-    # 转成数组
-    emgData = np.array(emgData)
-    imuData = np.array(imuData)
-    # emgRow=emgData.size/8
-    # imuRow=imuData.size/6
-    accX = imuData[:, 0]
-    accY = imuData[:, 1]
-    accZ = imuData[:, 2]
-    gcoX = imuData[:, 3]
-    gcoY = imuData[:, 4]
-    gcoZ = imuData[:, 5]
-    emg1 = emgData[:, 0]
-    emg2 = emgData[:, 1]
-    emg3 = emgData[:, 2]
-    emg4 = emgData[:, 3]
-    emg5 = emgData[:, 4]
-    emg6 = emgData[:, 5]
-    emg7 = emgData[:, 6]
-    emg8 = emgData[:, 7]
-    acc = np.sqrt(accX**2 + accY**2 + accZ**2)
-
-    # 特征提取
-    # 了解一下各个参数的物理意义呢？这样就可以转换
-    # 是不是某一类的特征多，他就会占据主要地位，就算其他变量很有用，影响也会被消除
-    # 差分
-    diffAccX = np.diff(accX)
-    diffAccY = np.diff(accY)
-    diffAccZ = np.diff(accZ)
-    gco = np.sqrt(gcoX**2 + gcoY**2 + gcoZ**2)
-    diffGcoX = np.diff(gcoX)
-    diffGcoY = np.diff(gcoY)
-    diffGcoZ = np.diff(gcoZ)
-    # 均值
-    meanAccX = np.mean(accX)
-    meanAccY = np.mean(accY)
-    meanAccZ = np.mean(accZ)
-    meanGcoX = np.mean(np.abs(gcoX))
-    meanGcoY = np.mean(np.abs(gcoY))
-    meanGcoZ = np.mean(np.abs(gcoZ))
-    meanDiffAccX = np.mean(np.abs(diffAccX))
-    meanDiffAccY = np.mean(np.abs(diffAccY))
-    meanDiffAccZ = np.mean(np.abs(diffAccZ))
-    meanDiffGcoX = np.mean(np.abs(diffGcoX))
-    meanDiffGcoY = np.mean(np.abs(diffGcoY))
-    meanDiffGcoZ = np.mean(np.abs(diffGcoZ))
-    # 均方值
-    rmsAccX = np.sqrt(np.mean(accX**2))
-    rmsAccY = np.sqrt(np.mean(accY**2))
-    rmsAccZ = np.sqrt(np.mean(accZ**2))
-    rmsAcc = np.sqrt(np.mean(acc**2))
-    rmsGcoX = np.sqrt(np.mean(gcoX**2))
-    rmsGcoY = np.sqrt(np.mean(gcoY**2))
-    rmsGcoZ = np.sqrt(np.mean(gcoZ**2))
-    # 积分
-    integralAccX = np.sum(accX) * 1 / frq
-    integralAccY = np.sum(accY) * 1 / frq
-    integralAccZ = np.sum(accZ) * 1 / frq
-    # 范围
-    rangeAccX = np.max(accX) - np.min(accX)
-    rangeAccY = np.max(accY) - np.min(accY)
-    rangeGcoX = np.max(gcoX) - np.min(gcoX)
-    rangeGcoY = np.max(gcoX) - np.min(gcoY)
-    rangeGcoZ = np.max(gcoX) - np.min(gcoZ)
-    # 过零率
-    gcoXZCR = ZCR(gcoX)
-    gcoYZCR = ZCR(gcoY)
-    gcoZZCR = ZCR(gcoZ)
-    # 均值
-    meanEmg1 = np.mean(emg1)
-    meanEmg2 = np.mean(emg2)
-    meanEmg3 = np.mean(emg3)
-    meanEmg4 = np.mean(emg4)
-    meanEmg5 = np.mean(emg5)
-    meanEmg6 = np.mean(emg6)
-    meanEmg7 = np.mean(emg7)
-    meanEmg8 = np.mean(emg8)
-    #
-    rmsEmg1 = np.mean(emg1)
-    rmsEmg2 = np.sqrt(np.mean(emg2**2))
-    rmsEmg3 = np.sqrt(np.mean(emg3**2))
-    rmsEmg4 = np.sqrt(np.mean(emg4**2))
-    rmsEmg5 = np.sqrt(np.mean(emg5**2))
-    rmsEmg6 = np.sqrt(np.mean(emg6**2))
-    rmsEmg7 = np.sqrt(np.mean(emg7**2))
-    rmsEmg8 = np.sqrt(np.mean(emg8**2))
-    #第一次测试，效果还可以
-    # feature = []
-    # feature.append(meanAccX)
-    # feature.append(meanAccY)
-    # feature.append(meanAccZ)
-    # # feature.append(meanGcoX);feature.append(meanGcoY);feature.append(meanGcoZ)
-    # feature.append(rmsAccX)
-    # feature.append(rmsAccY)
-    # feature.append(rmsAccZ)
-    # feature.append(rmsGcoX)
-    # feature.append(rmsGcoY)
-    # feature.append(rmsGcoZ)
-    # feature.append(integralAccX)
-    # feature.append(integralAccY)
-    # feature.append(integralAccZ)
-    # feature.append(rangeAccX)
-    # feature.append(rangeAccY)
-    # feature.append(rangeGcoX)
-    # feature.append(rangeGcoY)
-    # feature.append(rangeGcoZ)
-    # # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
-    # # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
-    # feature.append(gcoXZCR)
-    # feature.append(gcoYZCR)
-    # feature.append(gcoZZCR)
-    # feature.append(meanEmg1)
-    # feature.append(meanEmg2)
-    # feature.append(meanEmg3)
-    # feature.append(meanEmg4)
-    # feature.append(meanEmg5)
-    # feature.append(meanEmg6)
-    # feature.append(meanEmg7)
-    # feature.append(meanEmg8)
-    # # feature.append(rmsEmg1)
-    # # feature.append(rmsEmg2)
-    # # feature.append(rmsEmg3)
-    # # feature.append(rmsEmg4)
-    # # feature.append(rmsEmg5)
-    # # feature.append(rmsEmg6)
-    # # feature.append(rmsEmg7)
-    # # feature.append(rmsEmg8)
-
-
-
-    test=2  #第二类特征，效果又再好了一些
-    # feature = []
-    # feature.append(meanAccX)
-    # feature.append(meanAccY)
-    # feature.append(meanAccZ)
-    # # feature.append(meanGcoX);feature.append(meanGcoY);feature.append(meanGcoZ)
-    # feature.append(rmsAccX)
-    # feature.append(rmsAccY)
-    # feature.append(rmsAccZ)
-    # feature.append(rmsGcoX)
-    # feature.append(rmsGcoY)
-    # feature.append(rmsGcoZ)
-    # feature.append(integralAccX)
-    # feature.append(integralAccY)
-    # feature.append(integralAccZ)
-    # feature.append(rangeAccX)
-    # feature.append(rangeAccY)
-    # feature.append(rangeGcoX)
-    # feature.append(rangeGcoY)
-    # feature.append(rangeGcoZ)
-    # # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
-    # # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
-    # feature.append(gcoXZCR)
-    # feature.append(gcoYZCR)
-    # feature.append(gcoZZCR)
-    # feature.append(meanEmg1)
-    # feature.append(meanEmg2)
-    # feature.append(meanEmg3)
-    # feature.append(meanEmg4)
-    # feature.append(meanEmg5)
-    # feature.append(meanEmg6)
-    # feature.append(meanEmg7)
-    # feature.append(meanEmg8)
-    # feature.append(rmsEmg1)
-    # feature.append(rmsEmg2)
-    # feature.append(rmsEmg3)
-    # feature.append(rmsEmg4)
-    # feature.append(rmsEmg5)
-    # feature.append(rmsEmg6)
-    # feature.append(rmsEmg7)
-    # feature.append(rmsEmg8)
-    test=3 #第三次测试,效果比第二次又好了那么一点点。
+    lenData = len(emgDataAll[:, 1])
+    divisor = 3
+    reminder = np.mod(lenData, divisor)
+    lenData = lenData - reminder
+    windows = int(lenData / divisor)
     feature = []
-    feature.append(meanAccX)
-    feature.append(meanAccY)
-    feature.append(meanAccZ)
-    feature.append(meanGcoX);feature.append(meanGcoY);feature.append(meanGcoZ)
-    feature.append(rmsAccX)
-    feature.append(rmsAccY)
-    feature.append(rmsAccZ)
-    feature.append(rmsGcoX)
-    feature.append(rmsGcoY)
-    feature.append(rmsGcoZ)
-    feature.append(integralAccX)
-    feature.append(integralAccY)
-    feature.append(integralAccZ)
-    feature.append(rangeAccX)
-    feature.append(rangeAccY)
-    feature.append(rangeGcoX)
-    feature.append(rangeGcoY)
-    feature.append(rangeGcoZ)
-    # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
-    # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
-    feature.append(gcoXZCR)
-    feature.append(gcoYZCR)
-    feature.append(gcoZZCR)
-    feature.append(meanEmg1)
-    feature.append(meanEmg2)
-    feature.append(meanEmg3)
-    feature.append(meanEmg4)
-    feature.append(meanEmg5)
-    feature.append(meanEmg6)
-    feature.append(meanEmg7)
-    feature.append(meanEmg8)
-    feature.append(rmsEmg1)
-    feature.append(rmsEmg2)
-    feature.append(rmsEmg3)
-    feature.append(rmsEmg4)
-    feature.append(rmsEmg5)
-    feature.append(rmsEmg6)
-    feature.append(rmsEmg7)
-    feature.append(rmsEmg8)
+    for j in range(divisor):
+        # 数据预处理，归一化，无量纲化
+        # 转成数组
+        if j==2:
+            a=1
+
+        emgData = emgDataAll[0 + j * windows:windows + j * windows, :]
+        imuData = imuDataAll[0 + j * windows:windows + j * windows, :]
+        accX = imuData[:, 0]
+        accY = imuData[:, 1]
+        accZ = imuData[:, 2]
+        gcoX = imuData[:, 3]
+        gcoY = imuData[:, 4]
+        gcoZ = imuData[:, 5]
+        emg1 = emgData[:, 0]
+        emg2 = emgData[:, 1]
+        emg3 = emgData[:, 2]
+        emg4 = emgData[:, 3]
+        emg5 = emgData[:, 4]
+        emg6 = emgData[:, 5]
+        emg7 = emgData[:, 6]
+        emg8 = emgData[:, 7]
+        acc = np.sqrt(accX**2 + accY**2 + accZ**2)
+
+        # 特征提取
+        # 了解一下各个参数的物理意义呢？这样就可以转换
+        # 是不是某一类的特征多，他就会占据主要地位，就算其他变量很有用，影响也会被消除
+        # 差分
+        diffAccX = np.diff(accX)
+        diffAccY = np.diff(accY)
+        diffAccZ = np.diff(accZ)
+        gco = np.sqrt(gcoX**2 + gcoY**2 + gcoZ**2)
+        diffGcoX = np.diff(gcoX)
+        diffGcoY = np.diff(gcoY)
+        diffGcoZ = np.diff(gcoZ)
+        # 均值
+        meanAccX = np.mean(accX)
+        meanAccY = np.mean(accY)
+        meanAccZ = np.mean(accZ)
+        meanGcoX = np.mean(np.abs(gcoX))
+        meanGcoY = np.mean(np.abs(gcoY))
+        meanGcoZ = np.mean(np.abs(gcoZ))
+        meanDiffAccX = np.mean(np.abs(diffAccX))
+        meanDiffAccY = np.mean(np.abs(diffAccY))
+        meanDiffAccZ = np.mean(np.abs(diffAccZ))
+        meanDiffGcoX = np.mean(np.abs(diffGcoX))
+        meanDiffGcoY = np.mean(np.abs(diffGcoY))
+        meanDiffGcoZ = np.mean(np.abs(diffGcoZ))
+        # 均方值
+        rmsAccX = np.sqrt(np.mean(accX**2))
+        rmsAccY = np.sqrt(np.mean(accY**2))
+        rmsAccZ = np.sqrt(np.mean(accZ**2))
+        rmsAcc = np.sqrt(np.mean(acc**2))
+        rmsGcoX = np.sqrt(np.mean(gcoX**2))
+        rmsGcoY = np.sqrt(np.mean(gcoY**2))
+        rmsGcoZ = np.sqrt(np.mean(gcoZ**2))
+        # 积分
+        integralAccX = np.sum(accX) * 1 / frq
+        integralAccY = np.sum(accY) * 1 / frq
+        integralAccZ = np.sum(accZ) * 1 / frq
+        # 范围
+        rangeAccX = np.max(accX) - np.min(accX)
+        rangeAccY = np.max(accY) - np.min(accY)
+        rangeGcoX = np.max(gcoX) - np.min(gcoX)
+        rangeGcoY = np.max(gcoX) - np.min(gcoY)
+        rangeGcoZ = np.max(gcoX) - np.min(gcoZ)
+        # 过零率
+        gcoXZCR = ZCR(gcoX)
+        gcoYZCR = ZCR(gcoY)
+        gcoZZCR = ZCR(gcoZ)
+        # 均值
+        meanEmg1 = np.mean(emg1)
+        meanEmg2 = np.mean(emg2)
+        meanEmg3 = np.mean(emg3)
+        meanEmg4 = np.mean(emg4)
+        meanEmg5 = np.mean(emg5)
+        meanEmg6 = np.mean(emg6)
+        meanEmg7 = np.mean(emg7)
+        meanEmg8 = np.mean(emg8)
+        #
+        rmsEmg1 = np.mean(emg1)
+        rmsEmg2 = np.sqrt(np.mean(emg2**2))
+        rmsEmg3 = np.sqrt(np.mean(emg3**2))
+        rmsEmg4 = np.sqrt(np.mean(emg4**2))
+        rmsEmg5 = np.sqrt(np.mean(emg5**2))
+        rmsEmg6 = np.sqrt(np.mean(emg6**2))
+        rmsEmg7 = np.sqrt(np.mean(emg7**2))
+        rmsEmg8 = np.sqrt(np.mean(emg8**2))
+        # 第一次测试，效果还可以
+        # feature = []
+        # feature.append(meanAccX)
+        # feature.append(meanAccY)
+        # feature.append(meanAccZ)
+        # # feature.append(meanGcoX);feature.append(meanGcoY);feature.append(meanGcoZ)
+        # feature.append(rmsAccX)
+        # feature.append(rmsAccY)
+        # feature.append(rmsAccZ)
+        # feature.append(rmsGcoX)
+        # feature.append(rmsGcoY)
+        # feature.append(rmsGcoZ)
+        # feature.append(integralAccX)
+        # feature.append(integralAccY)
+        # feature.append(integralAccZ)
+        # feature.append(rangeAccX)
+        # feature.append(rangeAccY)
+        # feature.append(rangeGcoX)
+        # feature.append(rangeGcoY)
+        # feature.append(rangeGcoZ)
+        # # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
+        # # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
+        # feature.append(gcoXZCR)
+        # feature.append(gcoYZCR)
+        # feature.append(gcoZZCR)
+        # feature.append(meanEmg1)
+        # feature.append(meanEmg2)
+        # feature.append(meanEmg3)
+        # feature.append(meanEmg4)
+        # feature.append(meanEmg5)
+        # feature.append(meanEmg6)
+        # feature.append(meanEmg7)
+        # feature.append(meanEmg8)
+        # # feature.append(rmsEmg1)
+        # # feature.append(rmsEmg2)
+        # # feature.append(rmsEmg3)
+        # # feature.append(rmsEmg4)
+        # # feature.append(rmsEmg5)
+        # # feature.append(rmsEmg6)
+        # # feature.append(rmsEmg7)
+        # # feature.append(rmsEmg8)
+
+        test = 2  # 第二类特征，效果又再好了一些
+        # feature = []
+        # feature.append(meanAccX)
+        # feature.append(meanAccY)
+        # feature.append(meanAccZ)
+        # # feature.append(meanGcoX);feature.append(meanGcoY);feature.append(meanGcoZ)
+        # feature.append(rmsAccX)
+        # feature.append(rmsAccY)
+        # feature.append(rmsAccZ)
+        # feature.append(rmsGcoX)
+        # feature.append(rmsGcoY)
+        # feature.append(rmsGcoZ)
+        # feature.append(integralAccX)
+        # feature.append(integralAccY)
+        # feature.append(integralAccZ)
+        # feature.append(rangeAccX)
+        # feature.append(rangeAccY)
+        # feature.append(rangeGcoX)
+        # feature.append(rangeGcoY)
+        # feature.append(rangeGcoZ)
+        # # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
+        # # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
+        # feature.append(gcoXZCR)
+        # feature.append(gcoYZCR)
+        # feature.append(gcoZZCR)
+        # feature.append(meanEmg1)
+        # feature.append(meanEmg2)
+        # feature.append(meanEmg3)
+        # feature.append(meanEmg4)
+        # feature.append(meanEmg5)
+        # feature.append(meanEmg6)
+        # feature.append(meanEmg7)
+        # feature.append(meanEmg8)
+        # feature.append(rmsEmg1)
+        # feature.append(rmsEmg2)
+        # feature.append(rmsEmg3)
+        # feature.append(rmsEmg4)
+        # feature.append(rmsEmg5)
+        # feature.append(rmsEmg6)
+        # feature.append(rmsEmg7)
+        # feature.append(rmsEmg8)
+        test = 3  # 第三次测试,效果比第二次又好了那么一点点。
+        feature.append(meanAccX)
+        feature.append(meanAccY)
+        feature.append(meanAccZ)
+        feature.append(meanGcoX)
+        feature.append(meanGcoY)
+        feature.append(meanGcoZ)
+        feature.append(rmsAccX)
+        feature.append(rmsAccY)
+        feature.append(rmsAccZ)
+        feature.append(rmsGcoX)
+        feature.append(rmsGcoY)
+        feature.append(rmsGcoZ)
+        feature.append(integralAccX)
+        feature.append(integralAccY)
+        feature.append(integralAccZ)
+        feature.append(rangeAccX)
+        feature.append(rangeAccY)
+        feature.append(rangeGcoX)
+        feature.append(rangeGcoY)
+        feature.append(rangeGcoZ)
+        # feature.append(meanDiffAccX);feature.append(meanDiffAccY);feature.append(meanDiffAccZ)
+        # feature.append(meanDiffGcoX);feature.append(meanDiffGcoY);feature.append(meanDiffGcoZ)
+        feature.append(gcoXZCR)
+        feature.append(gcoYZCR)
+        feature.append(gcoZZCR)
+        feature.append(meanEmg1)
+        feature.append(meanEmg2)
+        feature.append(meanEmg3)
+        feature.append(meanEmg4)
+        feature.append(meanEmg5)
+        feature.append(meanEmg6)
+        feature.append(meanEmg7)
+        feature.append(meanEmg8)
+        feature.append(rmsEmg1)
+        feature.append(rmsEmg2)
+        feature.append(rmsEmg3)
+        feature.append(rmsEmg4)
+        feature.append(rmsEmg5)
+        feature.append(rmsEmg6)
+        feature.append(rmsEmg7)
+        feature.append(rmsEmg8)
     return feature
 
 

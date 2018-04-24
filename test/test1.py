@@ -477,16 +477,25 @@ import pickle
 # print(b)
 
 
-#测试python结构体和mat存储
-import  numpy as np
-class Employee:
-    pass
+# #测试python结构体和mat存储
+# import  numpy as np
+# class Employee:
+#     pass
+#
+# a=[[1,2,3,4],[5,6,7,8]]
+# emg=np.array(a)
+# data = Employee() # Create an empty employee record
+# data.len=10
+# data.dataType=1
+# data.Lables=1
+# data.emgData=emg
+# print(data.len)
 
-a=[[1,2,3,4],[5,6,7,8]]
-emg=np.array(a)
-data = Employee() # Create an empty employee record
-data.len=10
-data.dataType=1
-data.Lables=1
-data.emgData=emg
-print(data.len)
+
+
+#测试数组截取
+import  numpy as np
+a=[1,2,3,4,5]
+b=np.array(a)
+c=b[0:3]
+print(c)
