@@ -66,15 +66,15 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if HAVE_PYGAME:
                     if emg == 10000:
-                        name = '你是哪里人'
+                        name = '认识'
                         engeryDataSeg = engeryDataSeg + [[gestureCounter-1]]
-                        saveExcle('wscData/oneFinger/' + name + '/emgData.xls', emgData)
-                        saveExcle('wscData/oneFinger/' + name + '/imuData.xls', imuData)
-                        saveExcle('wscData/oneFinger/' + name + '/emgDataAll.xls', emgDataAll)
-                        saveExcle('wscData/oneFinger/' + name + '/imuDataAll.xls', imuDataAll)
-                        saveExcle('wscData/oneFinger/' + name + '/engeryDataAll.xls', engeryDataAll)
-                        saveExcle('wscData/oneFinger/' + name + '/engeryDataSeg.xls', engeryDataSeg)
-                        saveExcle('wscData/oneFinger/' + name + '/emgRawRightAll.xls', emgRawRightAll)
+                        saveExcle('wscData2/oneFinger/' + name + '/emgData.xls', emgData)
+                        saveExcle('wscData2/oneFinger/' + name + '/imuData.xls', imuData)
+                        saveExcle('wscData2/oneFinger/' + name + '/emgDataAll.xls', emgDataAll)
+                        saveExcle('wscData2/oneFinger/' + name + '/imuDataAll.xls', imuDataAll)
+                        saveExcle('wscData2/oneFinger/' + name + '/engeryDataAll.xls', engeryDataAll)
+                        saveExcle('wscData2/oneFinger/' + name + '/engeryDataSeg.xls', engeryDataSeg)
+                        saveExcle('wscData2/oneFinger/' + name + '/emgRawRightAll.xls', emgRawRightAll)
                         # saveExcle('wscData/oneFinger/'+name+'/thresholdData.xls', threshold)
                         raise KeyboardInterrupt()
                 emgData = emgData + emg + [[0]]

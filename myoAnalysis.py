@@ -25,7 +25,7 @@ def fetureGet(emgDataAll, imuDataAll):
     imuDataAll = np.array(imuDataAll)
     frq = 50  # 频率50Hz
     lenData = len(emgDataAll[:, 1])
-    divisor = 3
+    divisor = 4
     reminder = np.mod(lenData, divisor)
     lenData = lenData - reminder
     windows = int(lenData / divisor)

@@ -62,9 +62,9 @@ if __name__ == '__main__':
     import os
     # path = 'E:/intel杯/MYO/MyoData/wscData/oneFinger/matData/'
     parentPath=os.path.abspath(os.path.dirname(os.getcwd()))
-    path=parentPath+'/matData/'
+    path=parentPath+'/matData3/'
     # 训练和测试
-    isLearn = False
+    isLearn = True
     modelName = 'KNN30'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数
