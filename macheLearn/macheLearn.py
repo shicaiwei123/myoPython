@@ -43,7 +43,7 @@ def getKNN(trainX, trainY):
     from sklearn.neighbors import KNeighborsClassifier as knn
     trainX = np.array(trainX)
     trainY = np.array(trainY)
-    model = knn(n_neighbors=30, weights='distance')
+    model = knn(n_neighbors=20, weights='distance')
     model.fit(trainX, trainY.ravel())
     return model
 
@@ -64,8 +64,8 @@ if __name__ == '__main__':
     parentPath=os.path.abspath(os.path.dirname(os.getcwd()))
     path=parentPath+'/matData3/'
     # 训练和测试
-    isLearn = True
-    modelName = 'KNN30'
+    isLearn = False
+    modelName = 'KNN20'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数
     if isLearn:

@@ -66,7 +66,7 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if HAVE_PYGAME:
                     if emg == 10000:
-                        name = '认识'
+                        name = '2'
                         engeryDataSeg = engeryDataSeg + [[gestureCounter-1]]
                         saveExcle('wscData2/oneFinger/' + name + '/emgData.xls', emgData)
                         saveExcle('wscData2/oneFinger/' + name + '/imuData.xls', imuData)
@@ -118,7 +118,7 @@ if __name__ == '__main__':
             print(out)  # 输出结果
         # 导入模型
         threads = []
-        model = joblib.load('KNN30')
+        model = joblib.load('KNN20')
         emg = []
         imu = []
         fetureCache = queue.Queue(10)
