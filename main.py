@@ -1,6 +1,13 @@
+import signal
+
 from getData.getData import *
 from myoAnalysis import *
+import threading
+import queue
+import time
 from voice.speech import xf_speech
+
+global monitor_process
 
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
 # speaker = xf_speech('/dev/ttyUSB0')
@@ -39,12 +46,31 @@ from voice.speech import xf_speech
 #     }
 #     return dict[label]
 
+def predict(model, data):
+    t1 = time.time()
+    global isFinish
+    global dataDict
+    result = model.predict(data)
+    result = int(result)
+    t2 = time.time()
+    isFinish = True
+    out = dataDict[result]
+    # speaker.speech_sy(out)
+    print(t2 - t1)  # 测试识别时间
+    print(out)  # 输出结果
+
+
+def stop_monitor(signal_num, frame):
+    monitor_process.disconnect()
+    sys.exit(signal_num)
+
 
 # isSave取True时时存储数据，取False时时分析数据
 if __name__ == '__main__':
 
-    m = init()
-    # shifoubaocunshuju
+    monitor_process = init()
+
+# shifoubaocunshuju
     isSave = False
     # 导入模型
 
@@ -61,7 +87,7 @@ if __name__ == '__main__':
         try:
             while True:
                 # emg, imu, emg_raw = getOnceData(m)
-                emg, imu, emgAll, imuAll, engeryAll, engerySeg, emgRawAll = getGestureData(m)
+                emg, imu, emgAll, imuAll, engeryAll, engerySeg, emgRawAll = getGestureData(monitor_process)
                 gestureCounter = gestureCounter + 1
                 print(gestureCounter)
                 if HAVE_PYGAME:
@@ -90,40 +116,26 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             pass
         finally:
-            m.disconnect()
+            monitor_process.disconnect()
     # 否则是分析数据
     else:
         from sklearn.externals import joblib
-        import threading
-        import queue
-        import time
-
         # 导入字典数据，后期译码使用
         dataDict = excelToDict('dataSheet.xlsx')
         # 预测函数，用于多线程的回调
         # isFinsh 是线程锁
         isFinish = False
-
-        def predict(model, data):
-            t1 = time.time()
-            global isFinish
-            global dataDict
-            result = model.predict(data)
-            result = int(result)
-            t2 = time.time()
-            isFinish = True
-            out = dataDict[result]
-            # speaker.speech_sy(out)
-            print(t2 - t1)  # 测试识别时间
-            print(out)  # 输出结果
         # 导入模型
         threads = []
-        model = joblib.load('KNN20')
+        model = joblib.load('KNN30')
         emg = []
         imu = []
-        fetureCache = queue.Queue(10)
+        featureCache = queue.Queue(10)
+
+        signal.signal(signal.SIGINT, stop_monitor)
+        print("Start Getting Gesture Data")
         while True:
-            emg, imu,a,b,c,d,e = getGestureData(m)
+            emg, imu,a,b,c,d,e = getGestureData(monitor_process)
             if emg == 10000:
                 break
             # 归一化
@@ -133,9 +145,10 @@ if __name__ == '__main__':
             emg = (emg) / emgMax
             imu = (imu - imuMin) / (imuMax - imuMin)
             # 特征提取
-            feture = fetureGet(emg, imu)
+            feature = featureGet(emg, imu)
             # 数据缓存
-            fetureCache.put([feture])
+            featureCache.put([feature])
             # 识别
-            t1 = threading.Thread(target=predict, args=(model, fetureCache.get(),))
-            t1.start()
+            predict_thread = threading.Thread(target=predict, args=(model, featureCache.get()))
+            predict_thread.setDaemon(True)
+            predict_thread.start()

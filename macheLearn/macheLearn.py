@@ -83,7 +83,7 @@ if __name__ == '__main__':
                 a.append(i)
                 file = path + str(i) + '.mat'
                 emg, imu, label = dataRead(file)
-                feature = mAna.fetureGet(emg, imu)
+                feature = mAna.featureGet(emg, imu)
                 features.append(feature)
                 labels.append([label])
 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
                 file = path + str(i) + '.mat'
                 emg, imu, label = dataRead(file)
                 labels.append(label)
-                feature = mAna.fetureGet(emg, imu)
+                feature = mAna.featureGet(emg, imu)
                 r = model.predict([feature])
                 result.append(r)
                 # jielunjieguo

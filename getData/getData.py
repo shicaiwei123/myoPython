@@ -3,14 +3,13 @@ import xlwt
 
 import sys
 import time
-import pygame
-from pygame.locals import *
+from Bean.myo_monitor_process import MyoMonitorProcess
 import numpy as np
 from myoAnalysis import *
 from Bean.myo import MyoRaw
 from Bean.myo_config import MyoConfig
 
-HAVE_PYGAME = True
+HAVE_PYGAME = False
 
 global timeBegin
 
@@ -18,7 +17,7 @@ global arr1, arr2, arr1Temp, arr2Temp  # 缓存初始数据
 dataCache = list(range(1, 105))  # 缓存5个
 # 存储一个手势的数据
 dataCounter = 0
-emgDataFresh = False
+emgDataFresh = True
 isFull = False
 
 # 初始化
@@ -28,141 +27,123 @@ emg_raw_list = []
 
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
-w, h = 1200, 500
-scr = pygame.display.set_mode((w, h))
-# scr1 = pygame.display.set_mode((w, h))
-last_vals = None
+# w, h = 1200, 500
+# scr = pygame.display.set_mode((w, h))
+# # scr1 = pygame.display.set_mode((w, h))
+# last_vals = None
 # 绘图函数，使用pygame绘制emg数据
 
 
-def plot(scr, vals):
-    global w, h
-    DRAW_LINES = True
-
-    global last_vals
-    if last_vals is None:
-        last_vals = vals
-        return
-
-    D = 5
-    scr.scroll(-D)
-    scr.fill((0, 0, 0), (w - D, 0, w, h))
-    for i, (u, v) in enumerate(zip(last_vals, vals)):
-        if DRAW_LINES:
-            pygame.draw.line(scr, (0, 255, 0),
-                             (w - D, int(h / 8 * (i + 1 - u))),
-                             (w, int(h / 8 * (i + 1 - v))))
-            pygame.draw.line(scr, (255, 255, 255),
-                             (w - D, int(h / 8 * (i + 1))),
-                             (w, int(h / 8 * (i + 1))))
-        else:
-            c = int(255 * max(0, min(1, v)))
-            scr.fill((c, c, c), (w - D, i * h / 8, D, (i + 1) * h / 8 - i * h / 8))
-
-    pygame.display.flip()
-    last_vals = vals
-
-
-def proc_emg_raw(emg_raw, times=[]):
-    global emgDataFresh
-    global emg_raw_list
-    t = [1.1]
-    global emgCount
-    # if HAVE_PYGAME:
-    #     # update pygame display
-    #     plot(scr, [e / 2000. for e in emg])
-
-    # print(emg)
-
-    # print frame rate of received data
-    times.append(time.time())
-    if len(times) > 20:
-        # print((len(times) - 1) / (times[-1] - times[0]))
-        times.pop(0)
-    if emg_raw_list[0] > 0:
-        t1 = (time.time() - timeBegin)
-        emg_raw_list = list(emg_raw_list)
-        t[0] = t1
-        data = t + emg_raw
-        emg_raw_list = data
-
-
-def proc_emg(emg, times=[]):
-    global scr2
-    global emgDataFresh
-    global arr1
-    emgDataFresh = True
-    t = [1.1]
-    global emgCount
-    # if HAVE_PYGAME:
-    #     # update pygame display
-    #     plot(scr, [e / 2000. for e in emg])
-
-    # print(emg)
-
-    # print frame rate of received data
-    times.append(time.time())
-    if len(times) > 20:
-        # print((len(times) - 1) / (times[-1] - times[0]))
-        times.pop(0)
-    if emg[0] > 0:
-        t1 = (time.time() - timeBegin)
-        emg = list(emg)
-        t[0] = t1
-        data = t + emg
-        arr1 = data
-
-
-def imu_proc(a, b, c):
-    global imuCount
-    global arr2
-    # imuCount = imuCount + 1
-    t = [1.1]
-    # print(a,b,c)
-    global timeBegin
-    t1 = (time.time() - timeBegin)
-    # print(t1)
-    t[0] = t1
-    # t[0] = int(t1*10000)
-    a = list(a)
-    b = list(b)
-    c = list(c)
-    data = c
-    if HAVE_PYGAME:
-        #     # update pygame display
-        plot(scr, [e / 2000. for e in data])
-    c = t + a + b + c
-    arr2 = c
+# def plot(scr, vals):
+#     global w, h
+#     DRAW_LINES = True
+#
+#     global last_vals
+#     if last_vals is None:
+#         last_vals = vals
+#         return
+#
+#     D = 5
+#     scr.scroll(-D)
+#     scr.fill((0, 0, 0), (w - D, 0, w, h))
+#     for i, (u, v) in enumerate(zip(last_vals, vals)):
+#         if DRAW_LINES:
+#             pygame.draw.line(scr, (0, 255, 0),
+#                              (w - D, int(h / 8 * (i + 1 - u))),
+#                              (w, int(h / 8 * (i + 1 - v))))
+#             pygame.draw.line(scr, (255, 255, 255),
+#                              (w - D, int(h / 8 * (i + 1))),
+#                              (w, int(h / 8 * (i + 1))))
+#         else:
+#             c = int(255 * max(0, min(1, v)))
+#             scr.fill((c, c, c), (w - D, i * h / 8, D, (i + 1) * h / 8 - i * h / 8))
+#
+#     pygame.display.flip()
+#     last_vals = vals
+#
+#
+# def proc_emg_raw(emg_raw, times=[]):
+#     global emgDataFresh
+#     global emg_raw_list
+#     t = [1.1]
+#     global emgCount
+#     # if HAVE_PYGAME:
+#     #     # update pygame display
+#     #     plot(scr, [e / 2000. for e in emg])
+#
+#     # print(emg)
+#
+#     # print frame rate of received data
+#     times.append(time.time())
+#     if len(times) > 20:
+#         # print((len(times) - 1) / (times[-1] - times[0]))
+#         times.pop(0)
+#     if emg_raw_list[0] > 0:
+#         t1 = (time.time() - timeBegin)
+#         emg_raw_list = list(emg_raw_list)
+#         t[0] = t1
+#         data = t + emg_raw
+#         emg_raw_list = data
+#
+#
+# def proc_emg(emg, times=[]):
+#     global scr2
+#     global emgDataFresh
+#     global arr1
+#     emgDataFresh = True
+#     t = [1.1]
+#     global emgCount
+#     # if HAVE_PYGAME:
+#     #     # update pygame display
+#     #     plot(scr, [e / 2000. for e in emg])
+#
+#     # print(emg)
+#
+#     # print frame rate of received data
+#     times.append(time.time())
+#     if len(times) > 20:
+#         # print((len(times) - 1) / (times[-1] - times[0]))
+#         times.pop(0)
+#     if emg[0] > 0:
+#         t1 = (time.time() - timeBegin)
+#         emg = list(emg)
+#         t[0] = t1
+#         data = t + emg
+#         arr1 = data
+#
+#
+# def imu_proc(a, b, c):
+#     global imuCount
+#     global arr2
+#     # imuCount = imuCount + 1
+#     t = [1.1]
+#     # print(a,b,c)
+#     global timeBegin
+#     t1 = (time.time() - timeBegin)
+#     # print(t1)
+#     t[0] = t1
+#     # t[0] = int(t1*10000)
+#     a = list(a)
+#     b = list(b)
+#     c = list(c)
+#     data = c
+#     if HAVE_PYGAME:
+#         #     # update pygame display
+#         plot(scr, [e / 2000. for e in data])
+#     c = t + a + b + c
+#     arr2 = c
 
 
 def init():
     # 初始化配置，并打开emg数据开关
     global timeBegin
-    config = MyoConfig()
-    config.emg_enable = True
-    config.imu_enable = True
-    config.arm_enable = False
-    config.emg_raw_enable = True
 
     # 初始化myo实体
-    m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
-               config=config)
+    m = MyoMonitorProcess(1)
+    m.run()
 
-    # 连接
-    m.connect()
-
-    # 添加各种数据的回调
-    m.add_emg_handler(proc_emg)
-    m.add_imu_handler(imu_proc)
-    # m.add_emg_handler(lambda emg: print(emg))
-    # m.add_imu_handler(lambda a, b, c: print(a, b, c))
-    # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
-    # m.add_pose_handler(lambda p: print('pose', p))
-    m.add_emg_raw_handler(proc_emg_raw)
     timeBegin = time.time()
     return m
-
-# yicishuju
 
 
 def getOnceData(m):
@@ -171,22 +152,19 @@ def getOnceData(m):
     global dataCounter
     global emgDataFresh
     global emg_raw_list
-    while True:
-        m.run(1)
-        if emgDataFresh:
-            # print(arr1+arr2)
-            emgCache = arr1[1:9]
-            imuCache = arr2[5:11]
-            emg_raw = emg_raw_list[1:9]
-            emgDataFresh = False
-            emgCache = list(np.array(emgCache) / 100)
-            emgRawCache = list(np.array(emg_raw) / 100)
-            imuCache = list(np.array(imuCache) / 20)
+    emg_data, imu_data = m.get_data()
 
-            # if HAVE_PYGAME:
-            #     # update pygame display
-            #     plot(scr, [e / 2000. for e in data])
-            return emgCache, imuCache, emgRawCache
+        # print(arr1+arr2)
+    emgCache = emg_data[0:8]
+    imuCache = imu_data[1] + imu_data[2]
+    emgDataFresh = False
+    emgCache = list(np.array(emgCache) / 100)
+    imuCache = list(np.array(imuCache) / 20)
+
+    # if HAVE_PYGAME:
+    #     # update pygame display
+    #     plot(scr, [e / 2000. for e in data])
+    return emgCache, imuCache, 0
 
 
 # 求emg数据能力用来判断阈值
@@ -244,8 +222,6 @@ def getGestureData(m):
                     np.save('test/engeryData', np.array(engeryData))
                     np.save('test/engerySeg', np.array(engerySeg))
                     return 10000, 10000, 10000, 10000, 10000, 10000,10000
-                    m.disconnect()
-                    break
         emgRigthCache, imuRigthCache, emgRigthRaw = getOnceData(m)
         gyo = gyo + imuRigthCache[3:6]
         emgRigthDataAll.append(emgRigthCache)

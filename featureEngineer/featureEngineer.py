@@ -37,7 +37,7 @@ len = 1296  # 数据总数
 for i in range(1, len):
     file = '/home/intel/dataOneFiginer/' + str(i) + '.mat'
     emg, imu, label = dataRead(file)
-    feature = mAna.fetureGet(emg, imu)
+    feature = mAna.featureGet(emg, imu)
     features.append(feature)
     labels.append([label])
 
