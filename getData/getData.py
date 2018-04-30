@@ -11,7 +11,7 @@ from Bean.myo_config import MyoConfig
 from Bean.myo_hub import MyoHub
 from myoAnalysis import *
 
-HAVE_PYGAME = False
+HAVE_PYGAME = True
 
 global timeBegin
 
@@ -65,7 +65,8 @@ def plot(scr, vals):
 
 def left_proc_emg(emg, times=[]):
     global left_emg_list
-
+    global dataFresh
+    dataFresh = True
     t = [1.1]
     global emgCount
     # if HAVE_PYGAME:
@@ -88,14 +89,12 @@ def left_proc_emg(emg, times=[]):
 
 
 def right_proc_emg(emg, times=[]):
-    global dataFresh
-    dataFresh = True
     global right_emg_list
     t = [1.1]
     global emgCount
-    if HAVE_PYGAME:
-        # update pygame display
-        plot(scr, [e / 2000. for e in emg])
+    # if HAVE_PYGAME:
+    #     # update pygame display
+    #     plot(scr, [e / 2000. for e in emg])
 
     # print frame rate of received data
     times.append(time.time())
@@ -214,9 +213,10 @@ def getOnceData(m):
             imuLeftCache = list(np.array(imuLeftCache) / 20)
             imuRightCache = list(np.array(imuRightCache) / 20)
             timeNow = time.time() - timeBegin
-            print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
-            # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
-            return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
+            # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
+            print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
+            # return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
+            return right_emg_list, right_imu_list, left_emg_list, left_imu_list
 
 # 求emg数据能力用来判断阈值
 
@@ -254,16 +254,21 @@ def getGestureData(m):
     isSave = False  # 是否记录数据
     gyo = []  # 缓存gyo数据方便求能量，缓存5次
     dataTimes = 1  # 记录gyo存储的次数
-    gyoRigthQuiet = 0  # 记录gyo能量低于阈值的次数
-    gyoRigthActive = 0  # 记录gyo能量高于阈值的次数
+    gyoRightQuiet = 0  # 记录gyo能量低于阈值的次数
+    gyoRightActive = 0  # 记录gyo能量高于阈值的次数
     activeTimes = 0  # 记录能量峰的次数
     ActiveTimes = 2  # 几次能量峰表示一次手势，2是记录到两次能量峰的时候就表明记录了一次手势数据，修改这个参数可以进行连续和离散的手势分割
-    GyoRigthQuietTimes = 1  # 几次低于阈值表示一次能量峰的结束
-    emgRigthData = []  # 缓存手势数据
+    GyoRightQuietTimes = 1  # 几次低于阈值表示一次能量峰的结束
+    #右手
+    emgRightData = []  # 缓存手势数据
     imuRightData = []
-    emgRigthDataAll = []  # 缓存全部数据
+    emgRightDataAll = []  # 缓存全部数据
     imuRightDataAll = []
-    emgRawRightAll = []
+    #左手
+    emgLeftData = []  # 缓存手势数据
+    imuLeftData = []
+    emgLeftDataAll = []  # 缓存全部数据
+    imuLeftDataAll = []
     clearThreshold = 10
     clearCounter = 1
     engeryData = []
@@ -278,7 +283,10 @@ def getGestureData(m):
                     m.disconnect()
                     break
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
-        gyo = gyo + imuRightCache[3:6]
+        # gyo = gyo + imuRightCache[3:6]
+        #采集带有时间的原始做判断
+        e=imuRightCache[8:11]
+        gyo = gyo + list(np.array(e)/20)
         emgRightDataAll.append(emgRightCache)
         imuRightDataAll.append(imuRightCache)
         emgLeftDataAll.append(emgLeftCache)
