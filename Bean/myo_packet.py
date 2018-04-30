@@ -23,9 +23,9 @@ class MyoCommand(enum.Enum):
     VIBRATE = 2
     DEEP_SLEEP = 3
     VIBRATE2 = 4
-    SET_SLEEP_MODE = 5
-    UNLOCK = 6
-    USER_ACTION = 7
+    SET_SLEEP_MODE = 9
+    UNLOCK = 10
+    USER_ACTION = 11
 
 
 class MyoVibrationMode(enum.Enum):

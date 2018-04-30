@@ -11,7 +11,7 @@ from Bean.myo_config import MyoConfig
 from Bean.myo_hub import MyoHub
 from myoAnalysis import *
 
-HAVE_PYGAME = True
+HAVE_PYGAME = False
 
 global timeBegin
 
@@ -64,16 +64,14 @@ def plot(scr, vals):
 
 
 def left_proc_emg(emg, times=[]):
-    global dataFresh
     global left_emg_list
-    dataFresh = True
+
     t = [1.1]
     global emgCount
     # if HAVE_PYGAME:
     #     # update pygame display
     #     plot(scr, [e / 2000. for e in emg])
 
-    # print(emg)
 
     # print frame rate of received data
     times.append(time.time())
@@ -82,6 +80,8 @@ def left_proc_emg(emg, times=[]):
         times.pop(0)
     if emg[0] > 0:
         t1 = (time.time() - timeBegin)
+        # print(t1)
+        # print(emg)
         emg = list(emg)
         t[0] = t1
         data = t + emg
@@ -90,15 +90,14 @@ def left_proc_emg(emg, times=[]):
 
 def right_proc_emg(emg, times=[]):
     global dataFresh
-    global right_emg_list
     dataFresh = True
+    global right_emg_list
     t = [1.1]
     global emgCount
     if HAVE_PYGAME:
         # update pygame display
         plot(scr, [e / 2000. for e in emg])
 
-    # print(emg)
 
     # print frame rate of received data
     times.append(time.time())
@@ -108,6 +107,8 @@ def right_proc_emg(emg, times=[]):
 
     if emg[0] > 0:
         t1 = (time.time() - timeBegin)
+        # print(t1)
+        # print(emg)
         emg = list(emg)
         t[0] = t1
         data = t + emg
@@ -119,12 +120,6 @@ def left_imu_proc(a, b, c):
     global left_imu_list
     # imuCount = imuCount + 1
     t = [1.1]
-    # print(a,b,c)
-    global timeBegin
-    t1 = (time.time() - timeBegin)
-    # print(t1)
-    t[0] = t1
-    # t[0] = int(t1*10000)
     a = list(a)
     b = list(b)
     c = list(c)
@@ -132,6 +127,11 @@ def left_imu_proc(a, b, c):
     # if HAVE_PYGAME:
     #     # update pygame display
     #     plot(scr, [e / 2000. for e in data])
+    global timeBegin
+    t1 = (time.time() - timeBegin)
+    # print(t1)
+    # print(a, b, c)
+    t[0] = t1
     c = t + a + b + c
     left_imu_list = c
 
@@ -142,11 +142,6 @@ def right_imu_proc(a, b, c):
     global right_imu_list
     # imuCount = imuCount + 1
     t = [1.1]
-    # print(a,b,c)
-    global timeBegin
-    t1 = (time.time() - timeBegin)
-    # print(t1)
-    t[0] = t1
     # t[0] = int(t1*10000)
     a = list(a)
     b = list(b)
@@ -155,6 +150,11 @@ def right_imu_proc(a, b, c):
     # if HAVE_PYGAME:
     #     # update pygame display
     #     plot(scr, [e / 2000. for e in data])
+    global timeBegin
+    t1 = (time.time() - timeBegin)
+    t[0] = t1
+    # print(t1)
+    # print(a, b, c)
     c = t + a + b + c
     right_imu_list = c
 
@@ -216,7 +216,9 @@ def getOnceData(m):
             emgRightCache = list(np.array(emgRightCache) / 100)
             imuLeftCache = list(np.array(imuLeftCache) / 20)
             imuRightCache = list(np.array(imuRightCache) / 20)
-            print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache, time.time())
+            timeNow=time.time()-timeBegin
+            print(right_emg_list,right_imu_list,left_emg_list,left_imu_list)
+            # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
             return emgLeftCache,imuLeftCache, emgRightCache, imuRightCache
 
 
