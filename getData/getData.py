@@ -57,7 +57,7 @@ def plot(scr, vals):
                              (w, int(h / 8 * (i + 1))))
         else:
             c = int(255 * max(0, min(1, v)))
-            scr.fill((c, c, c), (w - D, i * h / 8, D, (i + 1) * h / 8 - i * h / 8));
+            scr.fill((c, c, c), (w - D, i * h / 8, D, (i + 1) * h / 8 - i * h / 8))
 
     pygame.display.flip()
     last_vals = vals
@@ -71,7 +71,6 @@ def left_proc_emg(emg, times=[]):
     # if HAVE_PYGAME:
     #     # update pygame display
     #     plot(scr, [e / 2000. for e in emg])
-
 
     # print frame rate of received data
     times.append(time.time())
@@ -97,7 +96,6 @@ def right_proc_emg(emg, times=[]):
     if HAVE_PYGAME:
         # update pygame display
         plot(scr, [e / 2000. for e in emg])
-
 
     # print frame rate of received data
     times.append(time.time())
@@ -134,7 +132,6 @@ def left_imu_proc(a, b, c):
     t[0] = t1
     c = t + a + b + c
     left_imu_list = c
-
 
 
 def right_imu_proc(a, b, c):
@@ -216,13 +213,14 @@ def getOnceData(m):
             emgRightCache = list(np.array(emgRightCache) / 100)
             imuLeftCache = list(np.array(imuLeftCache) / 20)
             imuRightCache = list(np.array(imuRightCache) / 20)
-            timeNow=time.time()-timeBegin
-            print(right_emg_list,right_imu_list,left_emg_list,left_imu_list)
+            timeNow = time.time() - timeBegin
+            print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
             # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
-            return emgLeftCache,imuLeftCache, emgRightCache, imuRightCache
-
+            return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
 
 # 求emg数据能力用来判断阈值
+
+
 def engery(emgData):
     emgArray = np.array(emgData)
     emgArray = emgArray
@@ -231,62 +229,136 @@ def engery(emgData):
     emgMean = emgSum / 5  # 在过去的0.1s内
     return emgMean
 
-Threshold = 15
+
+def gyoEngery(gyoData):
+    gyoData = np.array(gyoData)
+    gyoData = gyoData * 10
+    gyoData = gyoData / 100
+    gyoSquare = np.square(gyoData)
+    gyoSum = np.sum(gyoSquare)
+    return gyoSum
 
 
+threshold = 700
 # 在原始数据基础上获取一次手势的数据
 # 实现分段
 #
+
+
 def getGestureData(m):
-    global Threshold
-    active = 1
-    quiet = 1
-    dataTimes = 1
-    emgLeftData = []
-    imuLeftData = []
-    emgRightData = []
+    global threshold  # 能量阈值，当能量高于阈值是active状态，低于阈值是quiet状态
+    # 阈值在变化，如果是离散分割，那么第一次阈值大，第二次阈值小，连续分割阈值一样。
+    # 根据实际分割的方式要修改代码中修改阈值的代码
+    # 初始高阈值的作用有两个一个是将一些抖动噪声去掉，虽然开始激活存储数据，但是若是第一次
+    beginSave = 10  # 当能量大于这个值，开始记录数据，防止记录平衡时的无效数据
+    isSave = False  # 是否记录数据
+    gyo = []  # 缓存gyo数据方便求能量，缓存5次
+    dataTimes = 1  # 记录gyo存储的次数
+    gyoRigthQuiet = 0  # 记录gyo能量低于阈值的次数
+    gyoRigthActive = 0  # 记录gyo能量高于阈值的次数
+    activeTimes = 0  # 记录能量峰的次数
+    ActiveTimes = 2  # 几次能量峰表示一次手势，2是记录到两次能量峰的时候就表明记录了一次手势数据，修改这个参数可以进行连续和离散的手势分割
+    GyoRigthQuietTimes = 1  # 几次低于阈值表示一次能量峰的结束
+    emgRigthData = []  # 缓存手势数据
     imuRightData = []
-    emg = []  # 缓存5次
+    emgRigthDataAll = []  # 缓存全部数据
+    imuRightDataAll = []
+    emgRawRightAll = []
+    clearThreshold = 10
+    clearCounter = 1
+    engeryData = []
+    engerySeg = []
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                    return 10000, 10000
+                    np.save('test/engeryData', np.array(engeryData))
+                    np.save('test/engerySeg', np.array(engerySeg))
+                    return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
                     m.disconnect()
                     break
-
-        emgLeftCache,imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
-        # print(emgCache )
-        # print(imuCache)
-        emgLeftData.append(emgLeftCache)
-        imuLeftData.append(imuLeftCache)
-        emgRightData.append(emgRightCache)
-        imuRightData.append(imuRightCache)
-        emg = emg + emgRightCache
-        # fenge
+        emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
+        gyo = gyo + imuRightCache[3:6]
+        emgRightDataAll.append(emgRightCache)
+        imuRightDataAll.append(imuRightCache)
+        emgLeftDataAll.append(emgLeftCache)
+        imuLeftDataAll.append(imuLeftCache)
+        # emgRawRightAll.append(emgRightRaw)
+        if isSave:  # 之前位置也放错了
+            emgRightData.append(emgRightCache)
+            imuRightData.append(imuRightCache)
+            emgLeftData.append(emgLeftCache)
+            imuLeftData.append(imuLeftCache)
+        # 分割
         if dataTimes < 5:
             dataTimes = dataTimes + 1
 
         else:
-            E = engery(emg)
-            l = len(emg)
-            emg = []
+            gyoE = gyoEngery(gyo)
+            # print(gyoE)
+            gyo = []
+            engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
-            # print(E)
-            if E > Threshold:
-                active = active + 1
-                quiet=1
+            if gyoE > beginSave:  # 开始存储数据
+                isSave = True
+                clearCounter = 1
+            if isSave:             # 存储手势能量
+                engerySeg.append([gyoE])
+            # 滤除噪声和误触发带来的数据存储，避免数据的存储错误
+            # 这个要和数据分割割裂开来，依据就在于clearCounter的上限的设计
+            # 要比手势分割结束的记录次数高，不然会误清除
+            # 本身设计的clear的阈值还低了，这样双重保险避免误清除
+            if gyoE < clearThreshold:
+                clearCounter = clearCounter + 1
+            if clearCounter > 3:
+                engerySeg = []
+                emgRightData = []
+                imuRightData = []
+                emgLeftData = []
+                imuLeftData = []
+                clearCounter = 1
+                isSave = False
+
+            if gyoE > threshold:  # 如果大于阈值就算是活动状态，并且将安静状态清零
+                gyoRightActive = gyoRightActive + 1
+                gyoRightQuiet = 0
+                clearCounter = 1
+            # 需不需要也为0
             else:
-                quiet = quiet + 1
-            if quiet > 3:
-                if active > 5:
-                    return emgLeftData, imuLeftData, emgRightData, imuRightData
-                    print("新手势")
-                else:  # 重置
-                    dataTimes = 1
-                    active = 1
-                    quiet = 1
-                    emgLeftData = []
-                    imuLeftData = []
-                    emgRightData = []
-                    imuRightData = []
+                gyoRightQuiet = gyoRightQuiet + 1
+            # 判断是否满足一次手势要求
+            if gyoRightQuiet > GyoRightQuietTimes - 1:
+
+                if gyoRightActive < 2:  # 滤波
+
+                    gyoRightQuiet = 0
+                else:
+
+                    gyoRightQuiet = 0
+
+                    activeTimes = activeTimes + 1
+                    threshold = 30
+                    GyoRightQuietTimes = 2
+                    if activeTimes == ActiveTimes:
+                        isSave = False
+                        print(len(emgRightData))
+                        if len(emgRightData) != len(imuRightData):  # 接收到的鞥和imu数据长度不等
+                            print('wrong Data')
+                            # ping一下？？
+                        else:
+                            gyoRightActive = 0
+                            # print(gyoE)
+                            emgRight = emgRightData
+                            imuRight = imuRightData
+                            emgLeft = emgLeftData
+                            imuLeft = imuLeftData
+                            emgRightData = []
+                            imuRightData = []
+                            emgLeftData = []
+                            imuLeftData = []
+                            activeTimes = 0
+                            threshold = 700
+                            GyoRightQuietTimes = 1
+                            return emgRight, imuRight, emgRightDataAll, imuRightDataAll,\
+                                emgLeft, imuLeft, emgLeftDataAll, imuLeftDataAll, engeryData, engerySeg
+                            # print('ok')
