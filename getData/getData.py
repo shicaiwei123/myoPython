@@ -14,11 +14,11 @@ from myoAnalysis import *
 HAVE_PYGAME = True
 
 global timeBegin
-
 dataCache = list(range(1, 105))  # 缓存5个
 # 存储一个手势的数据
 dataCounter = 0
-dataFresh = False
+dataLeftFresh = False
+dataRightFresh = False
 isFull = False
 
 # 初始化
@@ -29,11 +29,10 @@ right_imu_list = []
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
 if HAVE_PYGAME:
-    w, h = 1200, 500
+    w, h = 10, 10
     scr = pygame.display.set_mode((w, h))
 # scr1 = pygame.display.set_mode((w, h))
 last_vals = None
-
 
 # 绘图函数，使用pygame绘制emg数据
 def plot(scr, vals):
@@ -65,8 +64,8 @@ def plot(scr, vals):
 
 def left_proc_emg(emg, times=[]):
     global left_emg_list
-    global dataFresh
-    dataFresh = True
+    global dataLeftFresh
+    dataLeftFresh = True
     t = [1.1]
     global emgCount
     # if HAVE_PYGAME:
@@ -90,6 +89,8 @@ def left_proc_emg(emg, times=[]):
 
 def right_proc_emg(emg, times=[]):
     global right_emg_list
+    global dataRightFresh
+    dataRightFresh =True
     t = [1.1]
     global emgCount
     # if HAVE_PYGAME:
@@ -195,19 +196,19 @@ def getOnceData(m):
     global left_emg_list
     global left_imu_list
     global dataCounter
-    global dataFresh
+    global dataLeftFresh
     emgLeftCache = []
     imuLeftCache = []
     emgRightCache = []
     imuRightCache = []
     while True:
         m.run(1)
-        if dataFresh:
+        if dataLeftFresh and dataRightFresh:
             emgLeftCache = left_emg_list[1:9]
             imuLeftCache = left_imu_list[5:11]
             emgRightCache = right_emg_list[1:9]
             imuRightCache = right_imu_list[5:11]
-            dataFresh = False
+            dataLeftFresh = False
             emgLeftCache = list(np.array(emgLeftCache) / 100)
             emgRightCache = list(np.array(emgRightCache) / 100)
             imuLeftCache = list(np.array(imuLeftCache) / 20)
@@ -259,12 +260,12 @@ def getGestureData(m):
     activeTimes = 0  # 记录能量峰的次数
     ActiveTimes = 2  # 几次能量峰表示一次手势，2是记录到两次能量峰的时候就表明记录了一次手势数据，修改这个参数可以进行连续和离散的手势分割
     GyoRightQuietTimes = 1  # 几次低于阈值表示一次能量峰的结束
-    #右手
+    # 右手
     emgRightData = []  # 缓存手势数据
     imuRightData = []
     emgRightDataAll = []  # 缓存全部数据
     imuRightDataAll = []
-    #左手
+    # 左手
     emgLeftData = []  # 缓存手势数据
     imuLeftData = []
     emgLeftDataAll = []  # 缓存全部数据
@@ -284,9 +285,9 @@ def getGestureData(m):
                     break
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
         # gyo = gyo + imuRightCache[3:6]
-        #采集带有时间的原始做判断
-        e=imuRightCache[8:11]
-        gyo = gyo + list(np.array(e)/20)
+        # 采集带有时间的原始做判断
+        e = imuRightCache[8:11]
+        gyo = gyo + list(np.array(e) / 20)
         emgRightDataAll.append(emgRightCache)
         imuRightDataAll.append(imuRightCache)
         emgLeftDataAll.append(emgLeftCache)
@@ -366,6 +367,7 @@ def getGestureData(m):
                             imuLeftData = []
                             activeTimes = 0
                             threshold = 700
+
                             GyoRightQuietTimes = 1
                             return emgRight, imuRight, emgRightDataAll, imuRightDataAll,\
                                 emgLeft, imuLeft, emgLeftDataAll, imuLeftDataAll, engeryData, engerySeg
