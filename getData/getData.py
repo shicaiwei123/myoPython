@@ -11,7 +11,7 @@ from Bean.myo_config import MyoConfig
 from Bean.myo_hub import MyoHub
 from myoAnalysis import *
 
-HAVE_PYGAME = True
+HAVE_PYGAME = False
 
 global timeBegin
 dataCache = list(range(1, 105))  # 缓存5个
@@ -28,13 +28,15 @@ left_imu_list = []
 right_imu_list = []
 
 # 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
-if HAVE_PYGAME:
-    w, h = 10, 10
-    scr = pygame.display.set_mode((w, h))
-# scr1 = pygame.display.set_mode((w, h))
-last_vals = None
+# if HAVE_PYGAME:
+#     w, h = 10, 10
+#     scr = pygame.display.set_mode((w, h))
+# # scr1 = pygame.display.set_mode((w, h))
+# last_vals = None
 
 # 绘图函数，使用pygame绘制emg数据
+
+
 def plot(scr, vals):
     global w, h
     DRAW_LINES = True
@@ -90,7 +92,7 @@ def left_proc_emg(emg, times=[]):
 def right_proc_emg(emg, times=[]):
     global right_emg_list
     global dataRightFresh
-    dataRightFresh =True
+    dataRightFresh = True
     t = [1.1]
     global emgCount
     # if HAVE_PYGAME:
@@ -215,9 +217,9 @@ def getOnceData(m):
             imuRightCache = list(np.array(imuRightCache) / 20)
             timeNow = time.time() - timeBegin
             # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
-            print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
-            # return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
-            return right_emg_list, right_imu_list, left_emg_list, left_imu_list
+            # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
+            return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
+            # return right_emg_list, right_imu_list, left_emg_list, left_imu_list
 
 # 求emg数据能力用来判断阈值
 
@@ -244,6 +246,8 @@ threshold = 700
 # 在原始数据基础上获取一次手势的数据
 # 实现分段
 #
+
+counter = 1
 
 
 def getGestureData(m):
@@ -274,20 +278,21 @@ def getGestureData(m):
     clearCounter = 1
     engeryData = []
     engerySeg = []
+    global counter
+    counter = counter + 1
     while True:
-        if HAVE_PYGAME:
-            for ev in pygame.event.get():
-                if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                    np.save('test/engeryData', np.array(engeryData))
-                    np.save('test/engerySeg', np.array(engerySeg))
-                    return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
-                    m.disconnect()
-                    break
+        # print(counter)
+        if counter > 40:
+            np.save('test/engeryData', np.array(engeryData))
+            np.save('test/engerySeg', np.array(engerySeg))
+            return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
+            m.disconnect()
+            break
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
-        # gyo = gyo + imuRightCache[3:6]
+        gyo = gyo + imuRightCache[3:6]
         # 采集带有时间的原始做判断
-        e = imuRightCache[8:11]
-        gyo = gyo + list(np.array(e) / 20)
+        # e = imuRightCache[8:11]
+        # gyo = gyo + list(np.array(e) / 20)
         emgRightDataAll.append(emgRightCache)
         imuRightDataAll.append(imuRightCache)
         emgLeftDataAll.append(emgLeftCache)
@@ -304,7 +309,7 @@ def getGestureData(m):
 
         else:
             gyoE = gyoEngery(gyo)
-            # print(gyoE)
+            print(gyoE)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1

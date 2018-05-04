@@ -19,13 +19,12 @@ def ZCR(data):
     return zcrSum
 
 
-def fetureGet(emgDataAll, imuDataAll):
+def featureGet(emgDataAll, imuDataAll, divisor=2):
     # 初始参数
     emgDataAll = np.array(emgDataAll)
     imuDataAll = np.array(imuDataAll)
     frq = 50  # 频率50Hz
     lenData = len(emgDataAll[:, 1])
-    divisor = 4
     reminder = np.mod(lenData, divisor)
     lenData = lenData - reminder
     windows = int(lenData / divisor)
@@ -33,8 +32,8 @@ def fetureGet(emgDataAll, imuDataAll):
     for j in range(divisor):
         # 数据预处理，归一化，无量纲化
         # 转成数组
-        if j==2:
-            a=1
+        if j == 2:
+            a = 1
 
         emgData = emgDataAll[0 + j * windows:windows + j * windows, :]
         imuData = imuDataAll[0 + j * windows:windows + j * windows, :]
@@ -244,6 +243,13 @@ def fetureGet(emgDataAll, imuDataAll):
         feature.append(rmsEmg7)
         feature.append(rmsEmg8)
     return feature
+
+
+def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisor=4):
+    featureRight = featureGet(emgDataRightAll, imuDataRightAll, divisor)
+    featureLeft = featureGet(emgDataLeftAll, imuDataLeftAll, divisor)
+    featureAll = featureRight + featureLeft
+    return featureAll
 
 
 import xlwt

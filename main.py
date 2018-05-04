@@ -10,9 +10,9 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = True
+    isSave = False
     # 导入模型
-
+    isTwo=False
     # 如果是存储数据
     if isSave:
         #右手
@@ -39,17 +39,20 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if emgRight == 10000:
 
-                    name = '2'
+                    name = '请'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
-                    saveExcle('wscData2/oneFinger/' + name + '/emgRightData.xls', emgRightData)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuRightData.xls', imuRightData)
-                    saveExcle('wscData2/oneFinger/' + name + '/emgRightDataAll.xls', emgRightDataAll)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuRightDataAll.xls', imuRightDataAll)
+                    saveExcle('wscData2/oneFinger/' + name + '/emgDataRight.xls', emgRightData)
+                    saveExcle('wscData2/oneFinger/' + name + '/imuDataRight.xls', imuRightData)
+                    saveExcle('wscData2/oneFinger/' + name + '/emgDataRightAll.xls', emgRightDataAll)
+                    saveExcle('wscData2/oneFinger/' + name + '/imuDataRightAll.xls', imuRightDataAll)
+                    # #存储单手数据
+                    # saveExcle('wscData2/oneFinger/' + name + '/emgDataOne.xls', emgLeftDataAll)
+                    # saveExcle('wscData2/oneFinger/' + name + '/imuDataOne.xls', imuLeftDataAll)
 
-                    saveExcle('wscData2/oneFinger/' + name + '/emgLeftData.xls', emgLeftData)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuLeftData.xls', imuLeftData)
-                    saveExcle('wscData2/oneFinger/' + name + '/emgLeftDataAll.xls', emgLeftDataAll)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuLeftDataAll.xls', imuLeftDataAll)
+                    saveExcle('wscData2/oneFinger/' + name + '/emgDataLeft.xls', emgLeftData)
+                    saveExcle('wscData2/oneFinger/' + name + '/imuDataLeft.xls', imuLeftData)
+                    saveExcle('wscData2/oneFinger/' + name + '/emgDataLeftAll.xls', emgLeftDataAll)
+                    saveExcle('wscData2/oneFinger/' + name + '/imuDataLeftAll.xls', imuLeftDataAll)
 
                     saveExcle('wscData2/oneFinger/' + name + '/engeryDataAll.xls', engeryDataAll)
                     saveExcle('wscData2/oneFinger/' + name + '/engeryDataSeg.xls', engeryDataSeg)
@@ -104,24 +107,52 @@ if __name__ == '__main__':
             print(out)  # 输出结果
         # 导入模型
         threads = []
-        model = joblib.load('KNN30')
+        modelOne = joblib.load('KNN30One')
+        modelTwo = joblib.load('KNN30Two')
         emg = []
         imu = []
         fetureCache = queue.Queue(10)
         while True:
-            emg, imu, a, b, c, d, e,F,G,H,i= getGestureData(m)
-            if emg == 10000:
+            emgRight, imuRight, emgRightAll, imuRightAll, \
+            emgLeft, imuLeft, emgLeftAll, imuLeftAll, \
+            engeryAll, engerySeg = getGestureData(m)
+            if emgRight == 10000:
                 break
+            imuArray=np.array(imuLeft)
+            gyo=imuArray[:,3:6]
+            gyoLen=len(gyo)
+            gyoE=gyoEngery(gyo)/gyoLen
+            if gyoE>50:
+                isTwo=True
             # 归一化
-            emgMax = np.max(np.max(emg))
-            imuMax = np.max(np.max(imu))
-            imuMin = np.min(np.min(imu))
-            emg = (emg) / emgMax
-            imu = (imu - imuMin) / (imuMax - imuMin)
+            emgRightMax = np.max(np.max(emgRight))
+            imuRightMax = np.max(np.max(imuRight))
+            imuRightMin = np.min(np.min(imuRight))
+            emgRight = (emgRight) / emgRightMax
+            imuRight = (imuRight - imuRightMin) / (imuRightMax - imuRightMin)
+
+            #左手
+            if isTwo:
+                emgLeftMax = np.max(np.max(emgLeft))
+                imuLeftMax = np.max(np.max(imuLeft))
+                imuLeftMin = np.min(np.min(imuLeft))
+                emgLeft = (emgLeft) / emgLeftMax
+                imuLeft = (imuLeft - imuLeftMin) / (imuLeftMax - imuLeftMin)
+
+
             # 特征提取
-            feture = fetureGet(emg, imu)
-            # 数据缓存
-            fetureCache.put([feture])
+            if isTwo:
+                feture = featureGetTwo(emgRight, imuRight,emgLeft, imuLeft)
+                # 数据缓存
+                fetureCache.put([feture])
+                t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))
+                t1.start()
+            else:
+                feture = featureGet(emgRight, imuRight,divisor=4)
+                # 数据缓存
+                fetureCache.put([feture])
+                t1 = threading.Thread(target=predict, args=(modelOne, fetureCache.get(),))
+                t1.start()
+            isTwo=False
             # 识别
-            t1 = threading.Thread(target=predict, args=(model, fetureCache.get(),))
-            t1.start()
+

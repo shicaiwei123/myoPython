@@ -495,7 +495,18 @@ import pickle
 
 #测试数组截取
 import  numpy as np
-a=[1,2,3,4,5]
+# a=[1,2,3,4,5]
+# b=np.array(a)
+# c=b[0:3]
+# print(c)
+
+
+#测试列表数据获取
+a=[[1,2,3],[5,6,7],[9,10,10]]
 b=np.array(a)
-c=b[0:3]
+c=b[:,1:3]
+d=np.array(c)
+print(d)
 print(c)
+print(b)
+print(a)
