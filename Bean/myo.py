@@ -4,12 +4,16 @@ Myo相关定义类
 """
 import enum
 import re
+import time
 
 from serial.tools.list_ports import comports
 
 from Bean.bt import BT
 from Bean.myo_packet import *
 from Bean.myo_utils import *
+from Bean.myo_info import *
+
+import logging
 
 
 class MyoHandler(enum.Enum):
@@ -37,28 +41,6 @@ class MyoHandler(enum.Enum):
     EMG_RAW_DATA_4_CCC_HANDLE = 0x35
 
 
-class Arm(enum.Enum):
-    UNKNOWN = 0
-    RIGHT = 1
-    LEFT = 2
-
-
-class XDirection(enum.Enum):
-    UNKNOWN = 0
-    X_TOWARD_WRIST = 1
-    X_TOWARD_ELBOW = 2
-
-
-class Pose(enum.Enum):
-    REST = 0
-    FIST = 1
-    WAVE_IN = 2
-    WAVE_OUT = 3
-    FINGERS_SPREAD = 4
-    THUMB_TO_PINKY = 5
-    UNKNOWN = 255
-
-
 class MyoRaw(object):
     """Implements the Myo-specific communication protocol."""
 
@@ -72,7 +54,8 @@ class MyoRaw(object):
             tty = self.detect_tty()
         if tty is None:
             raise ValueError('Myo dongle not found!')
-
+        
+        self.tty = tty
         self.bt = BT(tty)
         self.conn = None
         self.config = config
@@ -82,6 +65,16 @@ class MyoRaw(object):
         self.pose_handlers = []
         self.emg_raw_handlers = []
         self.mac_address = mac_address
+        self.logger = self.config_logger("MyoRaw")
+
+    def config_logger(self, logger_name):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+        return logger
 
     def detect_tty(self):
         """
@@ -106,7 +99,7 @@ class MyoRaw(object):
             return None
         return self.bt.read_attr(conn, attr)
 
-    def connect(self):
+    def connect(self, timeout=30):
         """
         连接two myos
         :return:
@@ -118,12 +111,18 @@ class MyoRaw(object):
         self.bt.disconnect(2)
 
         # 开始扫描
-        print('scanning...')
+        self.logger.info("Start scanning using %s", self.tty)
         self.bt.discover()
 
+        time_start = time.time()
+        address = None
+
         while True:
+            if time.time() - time_start > timeout:
+                break
+
             p = self.bt.recv_packet()
-            print('scan response:', p)
+            self.logger.info("Scan response: %s", p)
 
             # Find Two Myo armband
             if p.payload.endswith(b'\x06\x42\x48\x12\x4A\x7F\x2C\x48\x47\xB9\xDE\x04\xA9\x01\x00\x06\xD5'):
@@ -133,17 +132,18 @@ class MyoRaw(object):
                 else:
                     if self.get_mac_address(address) == self.mac_address:
                         break
-                # mac_address_judge = ":".join(map(lambda x: "%x" % x, reversed(list(multiord(p.payload[2:8])))))
-                # if mac_address_judge == "cc:25:15:ee:2e:12":
         self.bt.end_scan()
+        
+        if address is None:
+            raise TimeoutError("Scan myo timeout using %s" % self.tty)
 
         # make address:conn dict
         # use bt manager to connect
         conn_pkt = self.bt.connect(address)
         self.conn = multiord(conn_pkt.payload)[-1]
         self.bt.wait_event(3, 0)
+        self.logger.info("Device name: %s", self.get_name(self.conn))
 
-        print('device name: %s' % self.get_name(self.conn))
         # 禁止休眠
         self.never_sleep(self.conn)
         self.config_myo(self.config)
@@ -189,7 +189,6 @@ class MyoRaw(object):
                 print('data with unknown attr: %02X %s' % (attr, p))
 
         self.bt.add_handler(data_handler)
-        # self.start_collection()
 
     def disconnect(self):
         if self.conn is not None:
@@ -204,8 +203,6 @@ class MyoRaw(object):
         :return:
         """
         if myo_config is None:
-            self.is_broadcast_data(self.conn, MyoHandler.EMG_CCC_HANDLE.value, True)
-            self.is_enable_data(self.conn, emg_enable=True)
             return
 
         if myo_config.emg_enable:

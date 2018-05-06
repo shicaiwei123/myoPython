@@ -135,6 +135,9 @@ class BT(object):
         return self.wait_event(BTMessageClass.ATTRIBUTE_CLIENT.value,
                                BTEventMessageID.ATTRIBUTE_VALUE.value)
 
+    def read_attr_by_uuid(self, connection, attr_uuid):
+        pass
+
     def write_attr(self, connection, msg_handle, val):
         # B->unsigned char
         # H->unsigned short

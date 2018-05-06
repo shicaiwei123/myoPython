@@ -4,17 +4,129 @@ It returns left arm data and right arm data
 """
 import sys
 import os
-
+import multiprocessing
 import re
+import logging
+import queue
+import time
 
 sys.path.append(os.path.abspath(os.path.pardir))
 
-from Bean import myo
 from Bean.myo import MyoRaw
 from Bean.myo_config import MyoConfig
+from myo_info import Arm
 from serial.tools.list_ports import comports
 
+class MyoDataProcess(multiprocessing.Process):
+    """
+    负责判断Myo的手臂类型，之后收集数据，将数据通过queue.Queue传到MyoHub中进行缓存
+    """
+    class ArmHandler(object):
+        def __init__(self):
+            self.arm_type = Arm.UNKNOWN
+        
+        def arm_handler(self, arm, xdir):
+            self.arm_type = arm
 
+    def __init__(self, process_name, serial_port, data_queue, lock, timeout=30, mac_addr=""):
+        """
+        初始化Myo进程
+
+        :param process_name: str, 进程名称
+        :param serial_port: str, 进程对应的串口名称
+        :param data_queue: queue.Queue, 用于传输数据到MyoHub的queue
+        :param timeout: int, 超时时间
+        :param mac_addr: str, 默认为空，此时当串口扫描到任意一个Myo手环的时候都会连接，如果不为空，则当扫描到指定Mac地址手环的时候才会连接 
+        """
+        multiprocessing.Process.__init__(self)
+
+        self.lock = lock
+        self.process_name = process_name
+        self.logger = self.config_logger(self.process_name)
+
+        self.data_queue = data_queue
+        self.timeout = timeout
+        self.serial_port = serial_port
+        self.mac_addr = mac_addr
+
+        self.myo = None
+
+        self.kill_received = False
+        self.arm_type = Arm.UNKNOWN
+
+    def run(self):
+        """
+        先连接到手环，然后一直循环，直到kill_received标志位为True
+        """
+        # while not self.kill_received:
+        if self.myo is None:
+            self.connect_myo()
+        if self.myo is not None:
+            self.init_myo()
+        
+    def config_logger(self, logger_name=__name__):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+        return logger
+
+    def connect_myo(self):
+        if self.myo is None:
+            self.myo = MyoRaw(self.serial_port, mac_address=self.mac_addr)
+        try:
+            self.lock.acquire()
+            self.myo.connect(timeout=self.timeout)
+            self.lock.release()
+        except TimeoutError as e:
+            self.myo = None
+            self.logger.error("Cannot connect myo through %s, %s exit", self.serial_port, self.process_name)
+
+    def disconnect_myo(self):
+        self.myo.disconnect()
+    
+    def init_myo(self):
+        if self.myo is None:
+            return
+        self.get_myo_arm_type()
+        if self.arm_type == Arm.UNKNOWN:
+            return
+        # 打开Myo数据开关
+        self.start_get_data()
+
+    def config_myo(self, arm_enable=True, emg_enable=True, imu_enable=True):
+        config = MyoConfig()
+        config.arm_enable = arm_enable
+        config.emg_enable = emg_enable
+        config.imu_enable = imu_enable
+        self.myo.config_myo(config)
+
+    def get_myo_arm_type(self, timeout=30):
+        """
+        获得Myo手环的手臂类型
+        :param timeout: int, 超时时间
+        """
+        myo_arm_handler = self.ArmHandler()
+        self.myo.add_arm_handler(myo_arm_handler.arm_handler)
+        self.config_myo(arm_enable=True)
+        self.logger.info("Waiting for myo returns its arm type, please wave out and hold to sync")
+        start_time = time.time()
+        while not self.kill_received and time.time() - start_time < timeout and myo_arm_handler.arm_type == Arm.UNKNOWN:
+            self.myo.run(1)
+        if myo_arm_handler.arm_type == Arm.UNKNOWN:
+            self.logger.warning("Waiting for myo timeout!")
+        else:
+            self.arm_type = myo_arm_handler.arm_type
+            self.logger.info("Get myo arm type: %s", myo_arm_handler.arm_type)
+
+    def start_get_data():
+        """
+        开始获得数据
+        """
+        
+    
 class MyoHub:
 
     def __init__(self, config=None, tty_left=None, tty_right=None):
@@ -39,7 +151,7 @@ class MyoHub:
         :return:
         """
         self.config = MyoConfig()
-        self.config.open_all()
+        self.config.open_all_except_emg_raw()
         return
 
     @staticmethod
@@ -193,4 +305,12 @@ class MyoHub:
 
 
 if __name__ == '__main__':
-    MyoHub()
+    data_queue = queue.Queue()
+    lock = multiprocessing.Lock()
+    process = MyoDataProcess("myo_process_1", "/dev/ttyACM0", data_queue, lock=lock)
+    process1 = MyoDataProcess("myo_process_2", "/dev/ttyACM1", data_queue, lock=lock)
+    process.start()
+    process1.start()
+    process.join()
+    process1.join()
+
