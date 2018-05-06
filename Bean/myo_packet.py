@@ -45,6 +45,10 @@ class MyoUnlockMode(enum.Enum):
     LOCK_TIMED = 1
     HOLD = 2
 
+class MyoDataType(enum.Enum):
+    EMG = 0
+    IMU = 1
+
 
 class MyoCommandHeader:
     def __init__(self, command, payload_size):
@@ -127,3 +131,10 @@ class MyoUnlockCommandPacket:
                 self.type
             )
         )
+
+class MyoDataPacket:
+    def __init__(self, arm_type, data_type: MyoDataType, data):
+        self.arm_type = arm_type
+        self.data_type = data_type
+        self.data = data
+        

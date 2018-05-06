@@ -54,5 +54,6 @@ fabric.properties
 .idea/
 *.iml
 __pycache__/
+.vscode/
 
 
