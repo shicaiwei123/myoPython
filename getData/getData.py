@@ -159,30 +159,19 @@ def right_imu_proc(a, b, c):
 def init():
     # 初始化配置，并打开emg数据开关
     global timeBegin
-    config = MyoConfig()
-    config.emg_enable = True
-    config.imu_enable = True
-    config.arm_enable = False
-    config.emg_raw_enable = True
-
     # 初始化myo实体
     # m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
     #            config=config)
-    m = MyoHub()
+    m = MyoHub(myo_num=2)
 
     # 连接
-    m.add_left_myo_imu_handler(left_imu_proc)
-    m.add_left_myo_emg_handler(left_proc_emg)
-
-    # 添加各种数据的回调
-    m.add_right_myo_imu_handler(right_imu_proc)
-    m.add_right_myo_emg_handler(right_proc_emg)
     # m.add_emg_handler(lambda emg: print(emg))
     # m.add_imu_handler(lambda a, b, c: print(a, b, c))
     # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     # m.add_pose_handler(lambda p: print('pose', p))
     # m.add_emg_raw_handler(proc_emg_raw)
     timeBegin = time.time()
+    m.start()
     return m
 
 
@@ -202,22 +191,20 @@ def getOnceData(m):
     emgRightCache = []
     imuRightCache = []
     while True:
-        m.run(1)
+        emgLeftData, imuLeftData, emgRightData, imuRightData = m.get_data()
+        time.sleep(0.02)
         if dataLeftFresh and dataRightFresh:
-            emgLeftCache = left_emg_list[1:9]
-            imuLeftCache = left_imu_list[5:11]
-            emgRightCache = right_emg_list[1:9]
-            imuRightCache = right_imu_list[5:11]
             dataLeftFresh = False
-            emgLeftCache = list(np.array(emgLeftCache) / 100)
-            emgRightCache = list(np.array(emgRightCache) / 100)
-            imuLeftCache = list(np.array(imuLeftCache) / 20)
-            imuRightCache = list(np.array(imuRightCache) / 20)
+            emgLeftCache = list(np.array(emgLeftData) / 100)
+            emgRightCache = list(np.array(emgRightData) / 100)
+            imuLeftCache = list(np.array(imuLeftData) / 20)
+            imuRightCache = list(np.array(imuRightData) / 20)
             timeNow = time.time() - timeBegin
             # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
-            print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
+            # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
             # return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
-            return right_emg_list, right_imu_list, left_emg_list, left_imu_list
+            # TODO: 询问
+            return emgRightCache, imuRightCache, emgLeftCache, imuLeftCache
 
 # 求emg数据能力用来判断阈值
 

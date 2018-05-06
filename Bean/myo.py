@@ -8,10 +8,10 @@ import time
 
 from serial.tools.list_ports import comports
 
-from Bean.bt import BT
-from Bean.myo_packet import *
-from Bean.myo_utils import *
-from Bean.myo_info import *
+from bt import BT
+from myo_packet import *
+from myo_utils import *
+from myo_info import *
 
 import logging
 
@@ -130,7 +130,7 @@ class MyoRaw(object):
                 if self.mac_address == "":
                     break
                 else:
-                    if self.get_mac_address(address) == self.mac_address:
+                    if self.get_mac_address(address) == self.mac_address.lower():
                         break
         self.bt.end_scan()
         
@@ -145,7 +145,6 @@ class MyoRaw(object):
         self.logger.info("Device name: %s", self.get_name(self.conn))
 
         # 禁止休眠
-        self.never_sleep(self.conn)
         self.config_myo(self.config)
 
         def data_handler(p):
@@ -193,7 +192,6 @@ class MyoRaw(object):
     def disconnect(self):
         if self.conn is not None:
             # normal sleep
-            self.normal_sleep(self.conn)
             self.bt.disconnect(self.conn)
 
     def config_myo(self, myo_config):
@@ -212,13 +210,20 @@ class MyoRaw(object):
             self.is_broadcast_data(self.conn, MyoHandler.EMG_RAW_DATA_2_CCC_HANDLE.value, True)
             self.is_broadcast_data(self.conn, MyoHandler.EMG_RAW_DATA_3_CCC_HANDLE.value, True)
             self.is_broadcast_data(self.conn, MyoHandler.EMG_RAW_DATA_4_CCC_HANDLE.value, True)
+        else:
+            self.is_broadcast_data(self.conn, MyoHandler.EMG_CCC_HANDLE.value, False)
 
         if myo_config.imu_enable:
             self.is_broadcast_data(self.conn, MyoHandler.IMU_CCC_HANDLE.value, True)
+        else:
+            self.is_broadcast_data(self.conn, MyoHandler.IMU_CCC_HANDLE.value, False)
 
         if myo_config.arm_enable:
             # 使能arm数据通知
             self.is_broadcast_data(self.conn, MyoHandler.ARM_CCC_HANDLE.value, True)
+        else:
+            self.is_broadcast_data(self.conn, MyoHandler.ARM_CCC_HANDLE.value, False)
+
 
         self.is_enable_data(self.conn,
                             emg_enable=myo_config.emg_enable,
@@ -226,7 +231,7 @@ class MyoRaw(object):
                             arm_enable=myo_config.arm_enable,
                             emg_raw_enable=myo_config.emg_raw_enable)
 
-    def vibrate(self, conn, length):
+    def vibrate(self, length):
         if length in range(1, 4):
             command = MyoVibrateCommandPacket(
                 header=MyoCommandHeader(
@@ -235,7 +240,7 @@ class MyoRaw(object):
                 ),
                 vibrate_type=length
             )
-            self.write_attr(conn,
+            self.write_attr(self.conn,
                             MyoHandler.COMMAND_INPUT_HANDLE.value,
                             command.get_bytes()
                             )
@@ -252,7 +257,7 @@ class MyoRaw(object):
                         MyoHandler.COMMAND_INPUT_HANDLE.value,
                         command.get_bytes())
 
-    def never_sleep(self, conn):
+    def never_sleep(self):
         command = MyoSetSleepCommandPacket(
             header=MyoCommandHeader(
                 command=MyoCommand.SET_SLEEP_MODE.value,
@@ -260,7 +265,7 @@ class MyoRaw(object):
             ),
             sleep_mode=MyoSleepMode.NEVER_SLEEP.value
         )
-        self.write_attr(conn,
+        self.write_attr(self.conn,
                         MyoHandler.COMMAND_INPUT_HANDLE.value,
                         command.get_bytes()
                         )
@@ -399,4 +404,5 @@ class MyoRaw(object):
         :return:
         """
         mac_address = ":".join(map(lambda x: "%x" % x, reversed(addr)))
+        print(mac_address)
         return mac_address

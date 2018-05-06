@@ -5,8 +5,8 @@ import time
 
 import serial
 
-from .myo_utils import *
-from .packet import Packet
+from myo_utils import *
+from packet import Packet
 
 
 class BTMessageID(enum.Enum):
