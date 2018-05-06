@@ -6,26 +6,35 @@ from voice.speech import xf_speech
 # speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
+# 代码逻辑
+"""
+代码逻辑
+    isSave控制是识别还是采集数据
+    isTwo控制是单手还是双手，两个用的两个不同的模型来提高识别的准确度问题
+    isTwo的判断通过检测一次手势中的左手的gyo能量来判断，高于阈值则认为是双手
+    收集到数据之后，缓存，开启双线程进行识别
+"""
+
 if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
     isSave = False
     # 导入模型
-    isTwo=False
+    isTwo = False
     # 如果是存储数据
     if isSave:
-        #右手
+        # 右手
         emgRightData = []  # 一次手势数据
         imuRightData = []  # 一次手势数据
         emgRightDataAll = []  # 所有数据
         imuRightDataAll = []
-        #左手
+        # 左手
         emgLeftData = []  # 一次手势数据
         imuLeftData = []  # 一次手势数据
         emgLeftDataAll = []  # 所有数据
         imuLeftDataAll = []
-        #能量
+        # 能量
         engeryDataAll = []  # 所有数据
         engeryDataSeg = []  # 一次手势数据
         gestureCounter = 0
@@ -45,9 +54,6 @@ if __name__ == '__main__':
                     saveExcle('wscData2/oneFinger/' + name + '/imuDataRight.xls', imuRightData)
                     saveExcle('wscData2/oneFinger/' + name + '/emgDataRightAll.xls', emgRightDataAll)
                     saveExcle('wscData2/oneFinger/' + name + '/imuDataRightAll.xls', imuRightDataAll)
-                    # #存储单手数据
-                    # saveExcle('wscData2/oneFinger/' + name + '/emgDataOne.xls', emgLeftDataAll)
-                    # saveExcle('wscData2/oneFinger/' + name + '/imuDataOne.xls', imuLeftDataAll)
 
                     saveExcle('wscData2/oneFinger/' + name + '/emgDataLeft.xls', emgLeftData)
                     saveExcle('wscData2/oneFinger/' + name + '/imuDataLeft.xls', imuLeftData)
@@ -58,21 +64,21 @@ if __name__ == '__main__':
                     saveExcle('wscData2/oneFinger/' + name + '/engeryDataSeg.xls', engeryDataSeg)
                     # saveExcle('wscData/oneFinger/'+name+'/thresholdData.xls', threshold)
                     raise KeyboardInterrupt()
-                #右手
+                # 右手
                 emgRightData = emgRightData + emgRight + [[0]]
                 # print(emg)
                 imuRightData = imuRightData + imuRight + [[0]]
 
                 emgRightDataAll = emgRightDataAll + emgRightAll
                 imuRightDataAll = imuRightDataAll + imuRightAll
-                #左手
+                # 左手
                 emgLeftData = emgLeftData + emgLeft + [[0]]
                 # print(emg)
                 imuLeftData = imuLeftData + imuLeft + [[0]]
 
                 emgLeftDataAll = emgLeftDataAll + emgLeftAll
                 imuLeftDataAll = imuLeftDataAll + imuLeftAll
-                #能量
+                # 能量
                 engeryDataAll = engeryDataAll + engeryAll
                 engeryDataSeg = engeryDataSeg + engerySeg + [[0]]
 
@@ -114,16 +120,16 @@ if __name__ == '__main__':
         fetureCache = queue.Queue(10)
         while True:
             emgRight, imuRight, emgRightAll, imuRightAll, \
-            emgLeft, imuLeft, emgLeftAll, imuLeftAll, \
-            engeryAll, engerySeg = getGestureData(m)
+                emgLeft, imuLeft, emgLeftAll, imuLeftAll, \
+                engeryAll, engerySeg = getGestureData(m)
             if emgRight == 10000:
                 break
-            imuArray=np.array(imuLeft)
-            gyo=imuArray[:,3:6]
-            gyoLen=len(gyo)
-            gyoE=gyoEngery(gyo)/gyoLen
-            if gyoE>50:
-                isTwo=True
+            imuArray = np.array(imuLeft)
+            gyo = imuArray[:, 3:6]
+            gyoLen = len(gyo)
+            gyoE = gyoEngery(gyo) / gyoLen
+            if gyoE > 50:
+                isTwo = True
             # 归一化
             emgRightMax = np.max(np.max(emgRight))
             imuRightMax = np.max(np.max(imuRight))
@@ -131,7 +137,7 @@ if __name__ == '__main__':
             emgRight = (emgRight) / emgRightMax
             imuRight = (imuRight - imuRightMin) / (imuRightMax - imuRightMin)
 
-            #左手
+            # 左手
             if isTwo:
                 emgLeftMax = np.max(np.max(emgLeft))
                 imuLeftMax = np.max(np.max(imuLeft))
@@ -139,20 +145,18 @@ if __name__ == '__main__':
                 emgLeft = (emgLeft) / emgLeftMax
                 imuLeft = (imuLeft - imuLeftMin) / (imuLeftMax - imuLeftMin)
 
-
             # 特征提取
             if isTwo:
-                feture = featureGetTwo(emgRight, imuRight,emgLeft, imuLeft)
+                feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft)
                 # 数据缓存
                 fetureCache.put([feture])
                 t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))
                 t1.start()
             else:
-                feture = featureGet(emgRight, imuRight,divisor=4)
+                feture = featureGet(emgRight, imuRight, divisor=4)
                 # 数据缓存
                 fetureCache.put([feture])
                 t1 = threading.Thread(target=predict, args=(modelOne, fetureCache.get(),))
                 t1.start()
-            isTwo=False
+            isTwo = False
             # 识别
-
