@@ -172,6 +172,8 @@ def init():
     # m.add_emg_raw_handler(proc_emg_raw)
     timeBegin = time.time()
     m.start()
+    while not m.is_ready():
+        continue
     return m
 
 
@@ -191,8 +193,9 @@ def getOnceData(m):
     emgRightCache = []
     imuRightCache = []
     while True:
-        emgLeftData, imuLeftData, emgRightData, imuRightData = m.get_data()
-        time.sleep(0.02)
+        emgLeftData, emgRightData, imuLeftData, imuRightData= m.get_data()
+        # print(emgLeftData, emgRightData, imuLeftData, imuRightData)
+        # # time.sleep(0.015)
         if dataLeftFresh and dataRightFresh:
             dataLeftFresh = False
             emgLeftCache = list(np.array(emgLeftData) / 100)

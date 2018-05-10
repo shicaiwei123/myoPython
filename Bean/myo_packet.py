@@ -133,8 +133,9 @@ class MyoUnlockCommandPacket:
         )
 
 class MyoDataPacket:
-    def __init__(self, arm_type, data_type: MyoDataType, data):
+    def __init__(self, arm_type, data_type: MyoDataType, data, timestamp=None):
         self.arm_type = arm_type
         self.data_type = data_type
         self.data = data
+        self.timestamp = timestamp
         

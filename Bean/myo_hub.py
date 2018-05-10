@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.pardir))
 
 from Bean.myo import MyoRaw
 from Bean.myo_config import MyoConfig
-from myo_info import Arm
+from Bean.myo_info import Arm
 from serial.tools.list_ports import comports
 from Bean.myo_packet import MyoDataPacket, MyoDataType
 
@@ -31,8 +31,9 @@ class MyoDataProcess(multiprocessing.Process):
             self.arm_type = arm
     
     class DataHandler(object):
-        def __init__(self, arm_type, data_queue):
-            self.queue = data_queue
+        def __init__(self, arm_type, emg_data_queue, imu_data_queue):
+            self.emg_data_queue = emg_data_queue
+            self.imu_data_queue = imu_data_queue
             self.arm_type = arm_type
         
         def emg_handelr(self, emg):
@@ -44,13 +45,16 @@ class MyoDataProcess(multiprocessing.Process):
         def send_data(self, data_type, data):
             data_packet = MyoDataPacket(
                 self.arm_type,
-                data_type,
-                data
+                data_type=data_type,
+                data=data,
+                timestamp=time.time()
             )
-            self.queue.put(data_packet)
+            if data_type == MyoDataType.EMG:
+                self.emg_data_queue.put(data_packet)
+            elif data_type == MyoDataType.IMU:
+                self.imu_data_queue.put(data_packet)
 
-
-    def __init__(self, process_name, serial_port, data_queue, lock, timeout=30, mac_addr="", open_data=True, arm_type=Arm.UNKNOWN):
+    def __init__(self, process_name, serial_port, emg_data_queue, imu_data_queue, lock, timeout=30, mac_addr="", open_data=True, arm_type=Arm.UNKNOWN):
         """
         初始化Myo进程
 
@@ -66,7 +70,9 @@ class MyoDataProcess(multiprocessing.Process):
         self.process_name = process_name
         self.logger = self.config_logger(self.process_name)
 
-        self.data_queue = data_queue
+        self.emg_data_queue = emg_data_queue
+        self.imu_data_queue = imu_data_queue
+
         self.timeout = timeout
         self.serial_port = serial_port
         self.mac_addr = mac_addr
@@ -161,12 +167,15 @@ class MyoDataProcess(multiprocessing.Process):
         """
         开始获得数据
         """
-        data_handler = self.DataHandler(self.arm_type, self.data_queue)
+        data_handler = self.DataHandler(self.arm_type,
+                                        emg_data_queue=self.emg_data_queue,
+                                        imu_data_queue=self.imu_data_queue)
         self.myo.add_emg_handler(data_handler.emg_handelr)
         self.myo.add_imu_handler(data_handler.imu_handler)
         self.config_myo(arm_enable=False, emg_enable=True, imu_enable=True)
         self.ready = True
-        self.data_queue.put(self.ready)
+        # # 通过emg的数据通道判断是否同步
+        # self.emg_data_queue.put(self.ready)
         self.logger.info("Init myo succeed")
 
     
@@ -185,8 +194,8 @@ class MyoHub:
         self.collect_data_process = None
         self.running = True
         self.myos_mac = [
-            "C7:6B:1A:4B:8E:2A",
-            "E6:7A:C5:1E:93:AD"
+            "cc:25:15:ee:2e:12",
+            "fc:a9:e5:6f:15:6a"
         ]
         self.ready = False
 
@@ -201,7 +210,7 @@ class MyoHub:
 
     def start(self):
         self.init_myos()
-        self.start_collect_data()
+        # self.start_collect_data()
 
     @staticmethod
     def check_comport(port_name):
@@ -230,19 +239,18 @@ class MyoHub:
         tty_list = self.detect_ttys(self.myo_num)
 
         for i in range(self.myo_num):
-            data_queue = multiprocessing.Queue()
             self.process_pool.append(
                 MyoDataProcess(
                     process_name="myo_process_" + str(i+1),
                     serial_port=tty_list.pop(),
-                    data_queue = data_queue,
+                    emg_data_queue=self.emg_left_pool if i % 2 == 0 else self.emg_right_pool,
+                    imu_data_queue=self.imu_left_pool if i % 2 == 0 else self.imu_right_pool,
                     lock = lock,
                     open_data=True,
                     arm_type=Arm.LEFT if i % 2 == 0 else Arm.RIGHT,
                     mac_addr=self.myos_mac[i]
                 )
             )
-            self.queue_pool.append(data_queue)
         for process in self.process_pool:
             process.daemon = True
             process.start()
@@ -256,6 +264,7 @@ class MyoHub:
         self.collect_data_process.daemon = True
         self.collect_data_process.start()
 
+    # 丢弃
     def collect_data(self, myo_num, data_pool, emg_left_pool, emg_right_pool, imu_left_pool, imu_right_pool):
         while self.running:
             if not self.ready:
@@ -263,6 +272,8 @@ class MyoHub:
             for data_queue in data_pool:
                 try:
                     data = data_queue.get_nowait()
+                    if data.arm_type == Arm.LEFT and data.data_type == MyoDataType.EMG:
+                        print(data.arm_type, data.data, time.time())
                     if data.data_type == MyoDataType.EMG:
                         if myo_num == 1 or data.arm_type == Arm.LEFT:
                             emg_left_pool.put(data.data)
@@ -281,8 +292,6 @@ class MyoHub:
                     continue
     
     def get_data(self):
-        if not self.is_ready():
-            return
         if self.myo_num == 1:
             try:
                 emg_left = self.emg_left_pool.get_nowait()
@@ -295,27 +304,40 @@ class MyoHub:
             return emg_left, imu_left
         elif self.myo_num == 2:
             try:
-                emg_left = self.emg_left_pool.get_nowait()
+                emg_left_data_packet = self.emg_left_pool.get()
+                emg_left = emg_left_data_packet.data
+                emg_left_timestamp = emg_left_data_packet.timestamp
             except queue.Empty as e:
                 emg_left = None
+                emg_left_timestamp = None
             try:
-                emg_right = self.emg_right_pool.get_nowait()
+                emg_right_data_packet = self.emg_right_pool.get()
+                emg_right = emg_right_data_packet.data
+                emg_right_timestamp = emg_right_data_packet.timestamp
             except queue.Empty as e:
                 emg_right = None
+                emg_right_timestamp = None
             try:
-                imu_left = self.imu_left_pool.get_nowait()
+                imu_left = self.imu_left_pool.get().data
             except queue.Empty as e:
                 imu_left = None
             try:
-                imu_right = self.imu_right_pool.get_nowait()
+                imu_right = self.imu_right_pool.get().data
             except queue.Empty as e:
                 imu_right = None
+            # return emg_left, emg_right, imu_left, imu_right # imu_left, imu_right
             return emg_left, emg_right, imu_left, imu_right
-
+    #
     def is_ready(self):
-        for data_queue in self.queue_pool:
-            if data_queue.get() is None:
-                return False
+        try:
+            self.emg_right_pool.get_nowait()
+        except queue.Empty:
+            while True:
+                try:
+                    self.emg_left_pool.get_nowait()
+                except queue.Empty:
+                    break
+            return False
         return True
     
     def disconnect(self):
@@ -331,12 +353,12 @@ class MyoHub:
         self.logger.info("All process has been killed")
     
 
-
 if __name__ == '__main__':
     hub = MyoHub(myo_num=2)
     hub.start()
+    while not hub.is_ready():
+        continue
+    # time.sleep(1)
     while True:
         data = hub.get_data()
-        time.sleep(0.02)
-        print(data, time.time())
-        
+        print(data)

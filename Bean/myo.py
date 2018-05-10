@@ -8,10 +8,10 @@ import time
 
 from serial.tools.list_ports import comports
 
-from bt import BT
-from myo_packet import *
-from myo_utils import *
-from myo_info import *
+from Bean.bt import BT
+from Bean.myo_packet import *
+from Bean.myo_utils import *
+from Bean.myo_info import *
 
 import logging
 

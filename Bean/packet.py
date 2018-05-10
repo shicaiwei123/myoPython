@@ -1,4 +1,4 @@
-from myo_utils import multichr, multiord
+from .myo_utils import multichr, multiord
 
 
 class Packet(object):

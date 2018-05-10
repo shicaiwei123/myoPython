@@ -76,7 +76,8 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             pass
         finally:
-            m.disconnect()
+            pass
+            # m.disconnect()
     # 否则是分析数据
     else:
         from sklearn.externals import joblib
