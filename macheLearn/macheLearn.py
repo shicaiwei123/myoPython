@@ -45,7 +45,6 @@ def dataRead(file):
         emgLeft = emgLeft[0:row, :]
         imuLeft = imuLeft[0:row, :]
 
-
     # 归一化
     emgMax = np.max(np.max(emgRight))
     imuMax = np.max(np.max(imuRight))
@@ -68,7 +67,7 @@ def getKNN(trainX, trainY):
     from sklearn.neighbors import KNeighborsClassifier as knn
     trainX = np.array(trainX)
     trainY = np.array(trainY)
-    model = knn(n_neighbors=30, weights='distance')
+    model = knn(n_neighbors=1, weights='distance')
     model.fit(trainX, trainY.ravel())
     return model
 
@@ -86,10 +85,10 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     import os
     parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
-    path = parentPath + '/matDataTwo1/'
+    path = parentPath + '/matData4/'
     # 训练和测试
-    isLearn = True
-    modelName = 'KNN30Two'
+    isLearn = False
+    modelName = 'KNN30One'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数,
 
@@ -110,7 +109,7 @@ if __name__ == '__main__':
                 emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
                 # 如果是单手
                 if dataType == 1:
-                    feature = mAna.featureGet(emgRight, imuRight,divisor=4)
+                    feature = mAna.featureGet(emgRight, imuRight, divisor=4)
                     features.append(feature)
                     labels.append([label])
                 else:
@@ -138,13 +137,13 @@ if __name__ == '__main__':
             if counter == 1:
                 # a.append(i)
                 file = path + str(i) + '.mat'
-                emgRight, imuRight, emgLeft, imuLeft, label = dataRead(file)
-                if emgLeft == 0:
+                emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
+                if dataType == 1:
                     feature = mAna.featureGet(emgRight, imuRight)
-                    label.append([label])
+                    labels.append([label])
                 else:
                     feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft)
-                    label.append([label])
+                    labels.append([label])
                 r = model.predict([feature])
                 result.append(r)
                 # jielunjieguo

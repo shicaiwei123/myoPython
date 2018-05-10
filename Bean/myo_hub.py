@@ -4,43 +4,213 @@ It returns left arm data and right arm data
 """
 import sys
 import os
-
+import multiprocessing
 import re
+import logging
+import queue
+import time
+import threading
 
 sys.path.append(os.path.abspath(os.path.pardir))
 
-from Bean import myo
 from Bean.myo import MyoRaw
 from Bean.myo_config import MyoConfig
+from Bean.myo_info import Arm
 from serial.tools.list_ports import comports
+from Bean.myo_packet import MyoDataPacket, MyoDataType
 
+class MyoDataProcess(multiprocessing.Process):
+    """
+    负责判断Myo的手臂类型，之后收集数据，将数据通过queue.Queue传到MyoHub中进行缓存
+    """
+    class ArmHandler(object):
+        def __init__(self):
+            self.arm_type = Arm.UNKNOWN
+        
+        def arm_handler(self, arm, xdir):
+            self.arm_type = arm
+    
+    class DataHandler(object):
+        def __init__(self, arm_type, emg_data_queue, imu_data_queue):
+            self.emg_data_queue = emg_data_queue
+            self.imu_data_queue = imu_data_queue
+            self.arm_type = arm_type
+        
+        def emg_handelr(self, emg):
+            self.send_data(MyoDataType.EMG, emg)
 
+        def imu_handler(self, quat, acc, gyro):
+            self.send_data(MyoDataType.IMU, (acc, gyro))
+
+        def send_data(self, data_type, data):
+            data_packet = MyoDataPacket(
+                self.arm_type,
+                data_type=data_type,
+                data=data,
+                timestamp=time.time()
+            )
+            if data_type == MyoDataType.EMG:
+                self.emg_data_queue.put(data_packet)
+            elif data_type == MyoDataType.IMU:
+                self.imu_data_queue.put(data_packet)
+
+    def __init__(self, process_name, serial_port, emg_data_queue, imu_data_queue, lock, timeout=30, mac_addr="", open_data=True, arm_type=Arm.UNKNOWN):
+        """
+        初始化Myo进程
+
+        :param process_name: str, 进程名称
+        :param serial_port: str, 进程对应的串口名称
+        :param data_queue: queue.Queue, 用于传输数据到MyoHub的queue
+        :param timeout: int, 超时时间
+        :param mac_addr: str, 默认为空，此时当串口扫描到任意一个Myo手环的时候都会连接，如果不为空，则当扫描到指定Mac地址手环的时候才会连接 
+        """
+        multiprocessing.Process.__init__(self)
+
+        self.lock = lock
+        self.process_name = process_name
+        self.logger = self.config_logger(self.process_name)
+
+        self.emg_data_queue = emg_data_queue
+        self.imu_data_queue = imu_data_queue
+
+        self.timeout = timeout
+        self.serial_port = serial_port
+        self.mac_addr = mac_addr
+
+        self.myo = None
+
+        self.kill_received = False
+        self.arm_type = arm_type
+        self.open_data = open_data
+        self.ready = False
+
+    def run(self):
+        """
+        先连接到手环，然后一直循环，直到kill_received标志位为True
+        """
+        if self.myo is None:
+            self.connect_myo()
+        if self.myo is not None:
+            self.init_myo()
+        self.logger.info("Start to get myo data")
+        while not self.kill_received:
+            #self.lock.acquire()
+            self.myo.run(1)
+            #self.lock.release()
+        self.logger.info("Process exits")
+        self.disconnect_myo()
+        
+    def config_logger(self, logger_name=__name__):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+        return logger
+
+    def connect_myo(self):
+        if self.myo is None:
+            self.myo = MyoRaw(self.serial_port, mac_address=self.mac_addr)
+        try:
+            self.lock.acquire()
+            self.myo.connect(timeout=self.timeout)
+            self.myo.never_sleep()
+            self.myo.vibrate(1)
+            self.lock.release()
+        except TimeoutError as e:
+            self.myo = None
+            self.logger.error("Cannot connect myo through %s, %s exit", self.serial_port, self.process_name)
+
+    def disconnect_myo(self):
+        self.myo.disconnect()
+    
+    def init_myo(self, open_data=True):
+        if self.myo is None:
+            return
+        # self.get_myo_arm_type()
+        # if self.arm_type == Arm.UNKNOWN:
+        #     return
+        # 打开Myo数据开关
+        if self.open_data:
+            self.init_get_data()
+        
+
+    def config_myo(self, arm_enable=True, emg_enable=True, imu_enable=True):
+        config = MyoConfig()
+        config.arm_enable = arm_enable
+        config.emg_enable = emg_enable
+        config.imu_enable = imu_enable
+        self.myo.config_myo(config)
+
+    def get_myo_arm_type(self, timeout=30):
+        """
+        获得Myo手环的手臂类型
+        :param timeout: int, 超时时间
+        """
+        myo_arm_handler = self.ArmHandler()
+        self.myo.add_arm_handler(myo_arm_handler.arm_handler)
+        self.config_myo(arm_enable=True)
+        self.logger.info("Waiting for myo returns its arm type, please wave out and hold to sync")
+        start_time = time.time()
+        while not self.kill_received and time.time() - start_time < timeout and myo_arm_handler.arm_type == Arm.UNKNOWN:
+            self.lock.acquire()
+            self.myo.run(1)
+            self.lock.release()
+        if myo_arm_handler.arm_type == Arm.UNKNOWN:
+            self.logger.warning("Waiting for myo timeout!")
+        else:
+            self.arm_type = myo_arm_handler.arm_type
+            self.logger.info("Get myo arm type: %s", myo_arm_handler.arm_type)
+
+    def init_get_data(self):
+        """
+        开始获得数据
+        """
+        data_handler = self.DataHandler(self.arm_type,
+                                        emg_data_queue=self.emg_data_queue,
+                                        imu_data_queue=self.imu_data_queue)
+        self.myo.add_emg_handler(data_handler.emg_handelr)
+        self.myo.add_imu_handler(data_handler.imu_handler)
+        self.config_myo(arm_enable=False, emg_enable=True, imu_enable=True)
+        self.ready = True
+        # # 通过emg的数据通道判断是否同步
+        # self.emg_data_queue.put(self.ready)
+        self.logger.info("Init myo succeed")
+
+    
 class MyoHub:
 
-    def __init__(self, config=None, tty_left=None, tty_right=None):
-        print("Init two myo armbands")
-        self.left_myo, self.right_myo = self.init_myos(tty_left, tty_right)
-        self.config = config
+    def __init__(self, myo_num=2, tty_one=None, tty_two=None):
+        
+        self.logger = self.config_logger(logger_name="MyoHub")
+        self.process_pool = list()
+        self.queue_pool = list()
+        self.myo_num = myo_num
+        self.emg_left_pool = multiprocessing.Queue()
+        self.emg_right_pool = multiprocessing.Queue()
+        self.imu_left_pool = multiprocessing.Queue()
+        self.imu_right_pool = multiprocessing.Queue()
+        self.collect_data_process = None
+        self.running = True
+        self.myos_mac = [
+            "cc:25:15:ee:2e:12",
+            "fc:a9:e5:6f:15:6a"
+        ]
+        self.ready = False
 
-        if self.left_myo is None and self.right_myo is None:
-            raise ValueError("Cannot get two myo armbands' arm type")
+    def config_logger(self, logger_name=__name__):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+        return logger
 
-        if self.config is None:
-            self.init_config()
-
-        # self.add_data_handlers()
-        # open two threads to get data
-        # self.left_myo.config_myo(self.config)
-        # self.right_myo.config_myo(self.config)
-
-    def init_config(self):
-        """
-        return initial configure
-        :return:
-        """
-        self.config = MyoConfig()
-        self.config.open_all()
-        return
+    def start(self):
+        self.init_myos()
+        # self.start_collect_data()
 
     @staticmethod
     def check_comport(port_name):
@@ -53,144 +223,142 @@ class MyoHub:
         return port_name in port_name_list
 
     @staticmethod
-    def detect_ttys():
+    def detect_ttys(num=2):
         tty_list = list()
 
         for p in comports():
             if re.search(r'PID=2458:0*1', p[2]) and p[0] not in tty_list:
                 tty_list.append(p[0])
-        if len(tty_list) != 2:
-            raise ValueError("Two Myo dongles not found!")
-        return tty_list[0], tty_list[1]
+        if len(tty_list) < num:
+            raise ValueError("%d Myo dongles not found!" % num)
+        return tty_list[0:num]
 
-    def init_myos(self, tty_left=None, tty_right=None, wait_time=10000):
-        """
-        Connect two myo armbands and recognize left myo and right myo
+    def init_myos(self, wait_time=10000):
 
-        :param tty_left: left myo dongle tty name
-        :param tty_right: right myo dongle tty name
-        :param wait_time: wait time for getting arm type
-        :return: left_MyoRaw and right_MyoRaw
-        """
+        lock = multiprocessing.Lock()
+        tty_list = self.detect_ttys(self.myo_num)
 
-        if tty_left is None or tty_right is None:
-            tty_left, tty_right = self.detect_ttys()
+        for i in range(self.myo_num):
+            self.process_pool.append(
+                MyoDataProcess(
+                    process_name="myo_process_" + str(i+1),
+                    serial_port=tty_list.pop(),
+                    emg_data_queue=self.emg_left_pool if i % 2 == 0 else self.emg_right_pool,
+                    imu_data_queue=self.imu_left_pool if i % 2 == 0 else self.imu_right_pool,
+                    lock = lock,
+                    open_data=True,
+                    arm_type=Arm.LEFT if i % 2 == 0 else Arm.RIGHT,
+                    mac_addr=self.myos_mac[i]
+                )
+            )
+        for process in self.process_pool:
+            process.daemon = True
+            process.start()
+    
+    def start_collect_data(self):
+        while not self.is_ready():
+            continue
+        self.ready = True
+        self.collect_data_process = multiprocessing.Process(target=self.collect_data, args=(
+            self.myo_num, self.queue_pool, self.emg_left_pool, self.emg_right_pool, self.imu_left_pool, self.imu_right_pool,))
+        self.collect_data_process.daemon = True
+        self.collect_data_process.start()
 
-        if not (self.check_comport(tty_left) and self.check_comport(tty_right)):
-            raise ValueError("No comports %s and %s" % (tty_left, tty_right))
-
-        # open arm data switch only
-        arm_data_config = MyoConfig()
-        arm_data_config.emg_enable = True
-        arm_data_config.imu_enable = True
-
-        # CAUTION: ONLY MYO WHOSE MAC ADDRESS IS "cc:25:15:ee:2e:12" IS BE RECOGNISED AS LEFT MYO
-        # MYO WHOSE MAC ADDRESS IS "fc:a9:e5:6f:15:6a" IS BE RECOGNISED AS RIGHT MYO
-
-        myo_left = MyoRaw(tty_left, config=arm_data_config, mac_address='cc:25:15:ee:2e:12')
-        myo_right = MyoRaw(tty_right, config=arm_data_config, mac_address='fc:a9:e5:6f:15:6a')
-
-        # myo1_arm_type = myo.Arm.UNKNOWN
-        # myo2_arm_type = myo.Arm.UNKNOWN
-        #
-        # # TODO: check why myo cannot send arm data
-        #
-        # def myo1_arm_type_handler(arm_type, _):
-        #     global myo1_arm_type
-        #     print(arm_type)
-        #     myo1_arm_type = arm_type
-        #
-        # def myo2_arm_type_handler(arm_type, _):
-        #     global myo2_arm_type
-        #     print(arm_type)
-        #     myo2_arm_type = arm_type
-        #
-        # myo_left.add_arm_handler(myo1_arm_type_handler)
-        # myo_right.add_arm_handler(myo2_arm_type_handler)
-
-        myo_left.connect()
-        myo_right.connect()
-
-        # print("Wait for getting arm type......")
-
-        # NEED TO DO SYNC GESTURE TO GET ARM TYPE
-
-        # TODO: Open two threads to get myo data
-
-        # while not(myo1_arm_type != myo.Arm.UNKNOWN and myo2_arm_type != myo.Arm.UNKNOWN):
-        #     # if wait_time_now < wait_time:
-        #     #     wait_time_now += 1
-        #         continue
-        #     # else:
-        #     #     break
-        #
-        # print("Get two armbands' arm type")
-        #
-        # if myo1_arm_type == myo.Arm.LEFT and myo2_arm_type == myo.Arm.RIGHT:
-        #     return myo_left, myo_right
-        # elif myo1_arm_type == myo.Arm.RIGHT and myo2_arm_type == myo.Arm.LEFT:
-        #     return myo_right, myo_left
-        #
-        return myo_left, myo_right
-
-    def add_left_myo_emg_handler(self, emg_handler):
-        if self.left_myo is None or emg_handler is None:
-            return
-        self.left_myo.add_emg_handler(emg_handler)
-
-    def add_left_myo_imu_handler(self, imu_handler):
-        if self.left_myo is None or imu_handler is None:
-            return
-        self.left_myo.add_imu_handler(imu_handler)
-
-    def add_left_myo_pose_handler(self, pose_handler):
-        if self.left_myo is None or pose_handler is None:
-            return
-        self.left_myo.add_pose_handler(pose_handler)
-
-    def add_left_myo_emg_raw_handler(self, emg_raw_handler):
-        if self.left_myo is None or emg_raw_handler is None:
-            return
-        self.left_myo.add_emg_raw_handler(emg_raw_handler)
-
-    def add_left_myo_arm_handler(self, arm_handler):
-        if self.left_myo is None or arm_handler is None:
-            return
-        self.left_myo.add_arm_handler(arm_handler)
-
-    def add_right_myo_emg_handler(self, emg_handler):
-        if self.right_myo is None or emg_handler is None:
-            return
-        self.right_myo.add_emg_handler(emg_handler)
-
-    def add_right_myo_imu_handler(self, imu_handler):
-        if self.right_myo is None or imu_handler is None:
-            return
-        self.right_myo.add_imu_handler(imu_handler)
-
-    def add_right_myo_pose_handler(self, pose_handler):
-        if self.right_myo is None or pose_handler is None:
-            return
-        self.right_myo.add_pose_handler(pose_handler)
-
-    def add_right_myo_emg_raw_handler(self, emg_raw_handler):
-        if self.right_myo is None or emg_raw_handler is None:
-            return
-        self.right_myo.add_emg_raw_handler(emg_raw_handler)
-
-    def add_right_myo_arm_handler(self, arm_handler):
-        if self.right_myo is None or arm_handler is None:
-            return
-        self.right_myo.add_arm_handler(arm_handler)
-
-    def run(self, timeout=1):
-        self.left_myo.run(timeout)
-        self.right_myo.run(timeout)
-
+    # 丢弃
+    def collect_data(self, myo_num, data_pool, emg_left_pool, emg_right_pool, imu_left_pool, imu_right_pool):
+        while self.running:
+            if not self.ready:
+                continue
+            for data_queue in data_pool:
+                try:
+                    data = data_queue.get_nowait()
+                    if data.arm_type == Arm.LEFT and data.data_type == MyoDataType.EMG:
+                        print(data.arm_type, data.data, time.time())
+                    if data.data_type == MyoDataType.EMG:
+                        if myo_num == 1 or data.arm_type == Arm.LEFT:
+                            emg_left_pool.put(data.data)
+                            continue
+                        elif data.arm_type == Arm.RIGHT:
+                            emg_right_pool.put(data.data)
+                            continue
+                    elif data.data_type == MyoDataType.IMU:
+                        if myo_num == 1 or data.arm_type == Arm.LEFT:
+                            imu_left_pool.put(data.data)
+                            continue
+                        if data.arm_type == Arm.RIGHT:
+                            imu_right_pool.put(data.data)
+                            continue
+                except queue.Empty as e:
+                    continue
+    
+    def get_data(self):
+        if self.myo_num == 1:
+            try:
+                emg_left = self.emg_left_pool.get_nowait()
+            except queue.Empty as e:
+                emg_left = None
+            try:
+                imu_left = self.imu_left_pool.get_nowait()
+            except queue.Empty as e:
+                imu_left = None
+            return emg_left, imu_left
+        elif self.myo_num == 2:
+            try:
+                emg_left_data_packet = self.emg_left_pool.get()
+                emg_left = emg_left_data_packet.data
+                emg_left_timestamp = emg_left_data_packet.timestamp
+            except queue.Empty as e:
+                emg_left = None
+                emg_left_timestamp = None
+            try:
+                emg_right_data_packet = self.emg_right_pool.get()
+                emg_right = emg_right_data_packet.data
+                emg_right_timestamp = emg_right_data_packet.timestamp
+            except queue.Empty as e:
+                emg_right = None
+                emg_right_timestamp = None
+            try:
+                imu_left = self.imu_left_pool.get().data
+            except queue.Empty as e:
+                imu_left = None
+            try:
+                imu_right = self.imu_right_pool.get().data
+            except queue.Empty as e:
+                imu_right = None
+            # return emg_left, emg_right, imu_left, imu_right # imu_left, imu_right
+            return emg_left, emg_right, imu_left, imu_right
+    #
+    def is_ready(self):
+        try:
+            self.emg_right_pool.get_nowait()
+        except queue.Empty:
+            while True:
+                try:
+                    self.emg_left_pool.get_nowait()
+                except queue.Empty:
+                    break
+            return False
+        return True
+    
     def disconnect(self):
-        self.left_myo.disconnect()
-        self.right_myo.disconnect()
-
+        self.logger.warning("Send signal to data process")
+        for process in self.process_pool:
+            process.kill_received = True
+        for process in self.process_pool:
+            while process.is_alive():
+                continue
+        self.running = False
+        while self.collect_data_process.is_alive():
+            continue
+        self.logger.info("All process has been killed")
+    
 
 if __name__ == '__main__':
-    MyoHub()
+    hub = MyoHub(myo_num=2)
+    hub.start()
+    while not hub.is_ready():
+        continue
+    # time.sleep(1)
+    while True:
+        data = hub.get_data()
+        print(data)

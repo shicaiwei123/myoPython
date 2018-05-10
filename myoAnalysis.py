@@ -19,7 +19,7 @@ def ZCR(data):
     return zcrSum
 
 
-def featureGet(emgDataAll, imuDataAll, divisor=2):
+def featureGet(emgDataAll, imuDataAll, divisor=4):
     # 初始参数
     emgDataAll = np.array(emgDataAll)
     imuDataAll = np.array(imuDataAll)

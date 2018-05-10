@@ -159,4 +159,5 @@ if __name__ == '__main__':
                 t1 = threading.Thread(target=predict, args=(modelOne, fetureCache.get(),))
                 t1.start()
             isTwo = False
+        m.disconnect()
             # 识别
