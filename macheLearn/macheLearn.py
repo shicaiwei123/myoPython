@@ -76,7 +76,7 @@ def getSVM(trainX, trainY):
     from sklearn.svm import SVC
     trainX = np.array(trainX)
     trainY = np.array(trainY)
-    model = SVC(kernel='rbf', degree=3)
+    model = SVC(kernel='linear', degree=3)
     model.fit(trainX, trainY.ravel())
     return model
 
@@ -85,10 +85,10 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     import os
     parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
-    path = parentPath + '/matData4/'
+    path = parentPath + '/matDataTwo1/'
     # 训练和测试
     isLearn = False
-    modelName = 'KNN30One'
+    modelName = 'SVM3Two'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数,
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
                     labels.append([label])
 
         # 训练模型
-        model = getKNN(features, labels)
+        model = getSVM(features, labels)
         joblib.dump(model, modelName)
     else:
         feature = []

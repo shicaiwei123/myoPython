@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = False
+    isSave = True
     # 导入模型
     isTwo = False
     # 如果是存储数据
@@ -48,7 +48,7 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if emgRight == 10000:
 
-                    name = '请'
+                    name = '证'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
                     saveExcle('wscData2/oneFinger/' + name + '/emgDataRight.xls', emgRightData)
                     saveExcle('wscData2/oneFinger/' + name + '/imuDataRight.xls', imuRightData)
@@ -113,8 +113,8 @@ if __name__ == '__main__':
             print(out)  # 输出结果
         # 导入模型
         threads = []
-        modelOne = joblib.load('KNN30One')
-        modelTwo = joblib.load('KNN30Two')
+        modelOne = joblib.load('SVM3One')
+        modelTwo = joblib.load('SVM3Two')
         emg = []
         imu = []
         fetureCache = queue.Queue(10)
