@@ -29,6 +29,7 @@ def featureGet(emgDataAll, imuDataAll, divisor=4):
     lenData = lenData - reminder
     windows = int(lenData / divisor)
     feature = []
+    global ddddddd
     for j in range(divisor):
         # 数据预处理，归一化，无量纲化
         # 转成数组
@@ -245,7 +246,13 @@ def featureGet(emgDataAll, imuDataAll, divisor=4):
     return feature
 
 
+ddddddd=1
 def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisor=4):
+    # global ddddddd
+    # ddddddd = ddddddd + 1
+    # if ddddddd==486:
+    #     ddddddd=1
+    # print(ddddddd)
     featureRight = featureGet(emgDataRightAll, imuDataRightAll, divisor)
     featureLeft = featureGet(emgDataLeftAll, imuDataLeftAll, divisor)
     featureAll = featureRight + featureLeft

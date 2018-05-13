@@ -9,7 +9,7 @@ import myoAnalysis as mAna
 # nonZeoLabel是非0数组下标，row是非0数据行数
 # 读取数据
 
-
+dddddd=1
 def dataRead(file):
     from sklearn import preprocessing as pre
     data = scio.loadmat(file)
@@ -28,6 +28,10 @@ def dataRead(file):
         imuLeft = imuLeft[0, 0]
         labels = w['Lable']
         labels = labels[0, 0]
+        len = w['len']
+        len = len[0, 0]
+        len = len[0, 0]
+        row = len
     else:
         emgRight = w['emgData']
         imuRight = w['imuData']
@@ -35,10 +39,10 @@ def dataRead(file):
         imuRight = imuRight[0, 0]
         labels = w['lables']
         labels = labels[0, 0]
-    len = w['len']
-    len = len[0, 0]
-    row = len * 5
-    row = row[0, 0]
+        len = w['len']
+        len = len[0, 0]
+        len = len[0, 0]
+        row = len*5
     emgRight = emgRight[0:row, :]
     imuRight = imuRight[0:row, :]
     if dataType == 2:
@@ -82,13 +86,14 @@ def getSVM(trainX, trainY):
 
 
 if __name__ == '__main__':
+    global dddddd
     from sklearn.externals import joblib
     import os
     parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
-    path = parentPath + '/matDataTwo1/'
+    path = parentPath + '/matData4/'
     # 训练和测试
     isLearn = False
-    modelName = 'SVM3Two'
+    modelName = 'SVM3One'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数,
 
@@ -105,6 +110,8 @@ if __name__ == '__main__':
                     counter = 1
             if counter != 1:
                 a.append(i)
+                # if i==574:
+                #     print(i)
                 file = path + str(i) + '.mat'
                 emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
                 # 如果是单手
@@ -113,7 +120,9 @@ if __name__ == '__main__':
                     features.append(feature)
                     labels.append([label])
                 else:
-                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft)
+                    # dddddd=dddddd+1
+                    # print(dddddd)
+                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)
                     features.append(feature)
                     labels.append([label])
 
@@ -142,7 +151,7 @@ if __name__ == '__main__':
                     feature = mAna.featureGet(emgRight, imuRight)
                     labels.append([label])
                 else:
-                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft)
+                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)
                     labels.append([label])
                 r = model.predict([feature])
                 result.append(r)

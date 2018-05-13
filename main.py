@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = True
+    isSave = False
     # 导入模型
     isTwo = False
     # 如果是存储数据
@@ -127,8 +127,8 @@ if __name__ == '__main__':
             imuArray = np.array(imuLeft)
             gyo = imuArray[:, 3:6]
             gyoLen = len(gyo)
-            gyoE = gyoEngery(gyo) / gyoLen
-            if gyoE > 50:
+            gyoE = gyoEngery(gyo) / 50
+            if gyoE > 20:
                 isTwo = True
             # 归一化
             emgRightMax = np.max(np.max(emgRight))
@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
             # 特征提取
             if isTwo:
-                feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft)
+                feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)
                 # 数据缓存
                 fetureCache.put([feture])
                 t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))

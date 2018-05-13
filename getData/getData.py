@@ -239,6 +239,7 @@ threshold = 700
 
 
 def getGestureData(m):
+    t1 = time.time()
     global threshold  # 能量阈值，当能量高于阈值是active状态，低于阈值是quiet状态
     # 阈值在变化，如果是离散分割，那么第一次阈值大，第二次阈值小，连续分割阈值一样。
     # 根据实际分割的方式要修改代码中修改阈值的代码
@@ -295,8 +296,10 @@ def getGestureData(m):
             dataTimes = dataTimes + 1
 
         else:
+            t2 = time.time()
+            # print(t2 - t1)
             gyoE = gyoEngery(gyo)
-            print(gyoE)
+            # print(gyoE)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
@@ -359,6 +362,9 @@ def getGestureData(m):
                             imuLeftData = []
                             activeTimes = 0
                             threshold = 700
+                            t3=time.time()
+                            print(t3-t2)
+
 
                             GyoRightQuietTimes = 1
                             return emgRight, imuRight, emgRightDataAll, imuRightDataAll,\
