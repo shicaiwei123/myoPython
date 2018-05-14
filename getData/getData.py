@@ -299,7 +299,7 @@ def getGestureData(m):
             t2 = time.time()
             # print(t2 - t1)
             gyoE = gyoEngery(gyo)
-            # print(gyoE)
+            print(gyoE)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
