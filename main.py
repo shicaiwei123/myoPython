@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = False
+    isSave = True
     # 导入模型
     isTwo = False
     # 如果是存储数据
@@ -47,22 +47,22 @@ if __name__ == '__main__':
                 gestureCounter = gestureCounter + 1
                 print(gestureCounter)
                 if emgRight == 10000:
-
-                    name = '想'
+                    fileName='lzaData'
+                    gestureName = '幸福'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
-                    saveExcle('wscData2/oneFinger/' + name + '/emgDataRight.xls', emgRightData)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuDataRight.xls', imuRightData)
-                    saveExcle('wscData2/oneFinger/' + name + '/emgDataRightAll.xls', emgRightDataAll)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuDataRightAll.xls', imuRightDataAll)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
 
-                    saveExcle('wscData2/oneFinger/' + name + '/emgDataLeft.xls', emgLeftData)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuDataLeft.xls', imuLeftData)
-                    saveExcle('wscData2/oneFinger/' + name + '/emgDataLeftAll.xls', emgLeftDataAll)
-                    saveExcle('wscData2/oneFinger/' + name + '/imuDataLeftAll.xls', imuLeftDataAll)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
 
-                    saveExcle('wscData2/oneFinger/' + name + '/engeryDataAll.xls', engeryDataAll)
-                    saveExcle('wscData2/oneFinger/' + name + '/engeryDataSeg.xls', engeryDataSeg)
-                    # saveExcle('wscData/oneFinger/'+name+'/thresholdData.xls', threshold)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
+                    # saveExcle('wscData/oneFinger/'+gestureName+'/thresholdData.xls', threshold)
                     raise KeyboardInterrupt()
                 # 右手
                 emgRightData = emgRightData + emgRight + [[0]]
@@ -128,7 +128,7 @@ if __name__ == '__main__':
             gyo = imuArray[:, 3:6]
             gyoLen = len(gyo)
             gyoE = gyoEngery(gyo) / 50
-            if gyoE > 20:
+            if gyoE > 10:
                 isTwo = True
             # 归一化
             emgRightMax = np.max(np.max(emgRight))
