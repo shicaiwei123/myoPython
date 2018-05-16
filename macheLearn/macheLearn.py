@@ -90,7 +90,7 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     import os
     parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
-    path = parentPath + '/matData4/'
+    path = parentPath + '/matData6/'
     # 训练和测试
     isLearn = False
     modelName = 'SVM3One'

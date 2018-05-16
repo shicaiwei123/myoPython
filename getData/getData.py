@@ -194,6 +194,7 @@ def getOnceData(m):
     imuRightCache = []
     while True:
         emgLeftData, emgRightData, imuLeftData, imuRightData= m.get_data()
+        # print(imuLeftData, imuRightData)
         emgLeftData=list(emgLeftData)
         emgRightData=list(emgRightData)
         imuLeftData=list(imuLeftData[0]+imuLeftData[1])
@@ -204,6 +205,7 @@ def getOnceData(m):
         emgRightCache = list(np.array(emgRightData) / 100)
         imuLeftCache = list(np.array(imuLeftData) / 20)
         imuRightCache = list(np.array(imuRightData) / 20)
+        # print(imuLeftCache[0:3], '\t', imuRightCache[0:3])
         timeNow = time.time() - timeBegin
         # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
         # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
@@ -267,6 +269,7 @@ def getGestureData(m):
     clearCounter = 1
     engeryData = []
     engerySeg = []
+    gyoLeft=[]
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -277,7 +280,9 @@ def getGestureData(m):
                     return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
 
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
+        # print(imuLeftCache[0:3], '\t', imuRightCache[0:3])
         gyo = gyo + imuRightCache[3:6]
+        gyoLeft=gyoLeft+imuLeftCache[3:6]
         # 采集带有时间的原始做判断
         # e = imuRightCache[8:11]
         # gyo = gyo + list(np.array(e) / 20)
@@ -297,9 +302,11 @@ def getGestureData(m):
 
         else:
             t2 = time.time()
-            # print(t2 - t1)
-            gyoE = gyoEngery(gyo)
-            print(gyoE)
+            gyoLeftE = gyoEngery(gyoLeft)
+            gyoE=gyoEngery(gyo)
+            # print(gyoE)
+            # print(gyoLeftE)
+            gyoLeft=[]
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
@@ -363,7 +370,7 @@ def getGestureData(m):
                             activeTimes = 0
                             threshold = 700
                             t3=time.time()
-                            print(t3-t2)
+                            # print(t3-t2)
 
 
                             GyoRightQuietTimes = 1

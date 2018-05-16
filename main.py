@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = True
+    isSave = False
     # 导入模型
     isTwo = False
     # 如果是存储数据
@@ -47,8 +47,8 @@ if __name__ == '__main__':
                 gestureCounter = gestureCounter + 1
                 print(gestureCounter)
                 if emgRight == 10000:
-                    fileName='lzaData'
-                    gestureName = '幸福'
+                    fileName='wscData2'
+                    gestureName = '是'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
@@ -126,9 +126,13 @@ if __name__ == '__main__':
                 break
             imuArray = np.array(imuLeft)
             gyo = imuArray[:, 3:6]
-            gyoLen = len(gyo)
-            gyoE = gyoEngery(gyo) / 50
-            if gyoE > 10:
+            # gyo=np.where(gyo>10)
+            gyoLen=len(gyo)
+            print(gyoLen)
+            gyoE = gyoEngery(gyo)/gyoLen
+            print(gyoE)
+            if gyoE > 80:
+                # print(gyoE)
                 isTwo = True
             # 归一化
             emgRightMax = np.max(np.max(emgRight))

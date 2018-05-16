@@ -194,6 +194,7 @@ class MyoHub:
         self.collect_data_process = None
         self.running = True
         self.myos_mac = [
+            # "cc:25:15:ee:2e:12",
             "fc:a9:e5:6f:15:6a",
             "cc:25:15:ee:2e:12"
 
@@ -332,10 +333,12 @@ class MyoHub:
     def is_ready(self):
         try:
             self.emg_right_pool.get_nowait()
+            self.imu_right_pool.get_nowait()
         except queue.Empty:
             while True:
                 try:
                     self.emg_left_pool.get_nowait()
+                    self.imu_left_pool.get_nowait()
                 except queue.Empty:
                     break
             return False
