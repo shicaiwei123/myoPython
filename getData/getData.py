@@ -194,8 +194,8 @@ def getOnceData(m):
     imuRightCache = []
     while True:
         emgLeftData, emgRightData, imuLeftData, imuRightData= m.get_data()
-        # print(imuLeftData, imuRightData)
-        emgLeftData=list(emgLeftData)
+        print(emgLeftData, emgRightData, imuLeftData, imuRightData)
+        # emgLeftData=list(emgLeftData)
         emgRightData=list(emgRightData)
         imuLeftData=list(imuLeftData[0]+imuLeftData[1])
         imuRightData=list(imuRightData[0]+imuRightData[1])

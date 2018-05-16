@@ -196,10 +196,10 @@ class MyoHub:
         self.myos_mac = [
             # "cc:25:15:ee:2e:12",
             "fc:a9:e5:6f:15:6a",
-            "cc:25:15:ee:2e:12"
-
+            "cc:25:15:ee:2e:12",
         ]
-        self.ready = False
+        self.drop_num = 2
+        self.is_droped = False
 
     def config_logger(self, logger_name=__name__):
         logger = logging.getLogger(logger_name)
@@ -257,41 +257,41 @@ class MyoHub:
             process.daemon = True
             process.start()
     
-    def start_collect_data(self):
-        while not self.is_ready():
-            continue
-        self.ready = True
-        self.collect_data_process = multiprocessing.Process(target=self.collect_data, args=(
-            self.myo_num, self.queue_pool, self.emg_left_pool, self.emg_right_pool, self.imu_left_pool, self.imu_right_pool,))
-        self.collect_data_process.daemon = True
-        self.collect_data_process.start()
-
-    # 丢弃
-    def collect_data(self, myo_num, data_pool, emg_left_pool, emg_right_pool, imu_left_pool, imu_right_pool):
-        while self.running:
-            if not self.ready:
-                continue
-            for data_queue in data_pool:
-                try:
-                    data = data_queue.get_nowait()
-                    if data.arm_type == Arm.LEFT and data.data_type == MyoDataType.EMG:
-                        print(data.arm_type, data.data, time.time())
-                    if data.data_type == MyoDataType.EMG:
-                        if myo_num == 1 or data.arm_type == Arm.LEFT:
-                            emg_left_pool.put(data.data)
-                            continue
-                        elif data.arm_type == Arm.RIGHT:
-                            emg_right_pool.put(data.data)
-                            continue
-                    elif data.data_type == MyoDataType.IMU:
-                        if myo_num == 1 or data.arm_type == Arm.LEFT:
-                            imu_left_pool.put(data.data)
-                            continue
-                        if data.arm_type == Arm.RIGHT:
-                            imu_right_pool.put(data.data)
-                            continue
-                except queue.Empty as e:
-                    continue
+    # def start_collect_data(self):
+    #     while not self.is_ready():
+    #         continue
+    #     self.ready = True
+    #     self.collect_data_process = multiprocessing.Process(target=self.collect_data, args=(
+    #         self.myo_num, self.queue_pool, self.emg_left_pool, self.emg_right_pool, self.imu_left_pool, self.imu_right_pool,))
+    #     self.collect_data_process.daemon = True
+    #     self.collect_data_process.start()
+    #
+    # # 丢弃
+    # def collect_data(self, myo_num, data_pool, emg_left_pool, emg_right_pool, imu_left_pool, imu_right_pool):
+    #     while self.running:
+    #         if not self.ready:
+    #             continue
+    #         for data_queue in data_pool:
+    #             try:
+    #                 data = data_queue.get_nowait()
+    #                 if data.arm_type == Arm.LEFT and data.data_type == MyoDataType.EMG:
+    #                     print(data.arm_type, data.data, time.time())
+    #                 if data.data_type == MyoDataType.EMG:
+    #                     if myo_num == 1 or data.arm_type == Arm.LEFT:
+    #                         emg_left_pool.put(data.data)
+    #                         continue
+    #                     elif data.arm_type == Arm.RIGHT:
+    #                         emg_right_pool.put(data.data)
+    #                         continue
+    #                 elif data.data_type == MyoDataType.IMU:
+    #                     if myo_num == 1 or data.arm_type == Arm.LEFT:
+    #                         imu_left_pool.put(data.data)
+    #                         continue
+    #                     if data.arm_type == Arm.RIGHT:
+    #                         imu_right_pool.put(data.data)
+    #                         continue
+    #             except queue.Empty as e:
+    #                 continue
     
     def get_data(self):
         if self.myo_num == 1:
@@ -305,45 +305,65 @@ class MyoHub:
                 imu_left = None
             return emg_left, imu_left
         elif self.myo_num == 2:
-            try:
-                emg_left_data_packet = self.emg_left_pool.get()
-                emg_left = emg_left_data_packet.data
-                emg_left_timestamp = emg_left_data_packet.timestamp
-            except queue.Empty as e:
-                emg_left = None
-                emg_left_timestamp = None
-            try:
-                emg_right_data_packet = self.emg_right_pool.get()
-                emg_right = emg_right_data_packet.data
-                emg_right_timestamp = emg_right_data_packet.timestamp
-            except queue.Empty as e:
-                emg_right = None
-                emg_right_timestamp = None
-            try:
-                imu_left = self.imu_left_pool.get().data
-            except queue.Empty as e:
-                imu_left = None
-            try:
-                imu_right = self.imu_right_pool.get().data
-            except queue.Empty as e:
-                imu_right = None
-            # return emg_left, emg_right, imu_left, imu_right # imu_left, imu_right
-            return emg_left, emg_right, imu_left, imu_right
-    #
+
+            # 首先丢弃@self.drop_num次imu数据，使数据同步
+            emg_left_data_packet = self.emg_left_pool.get()
+            emg_left = emg_left_data_packet.data
+            emg_left_timestamp = emg_left_data_packet.timestamp
+
+            if not self.is_droped:
+                for i in range(self.drop_num):
+                    imu_left_data_packet = self.imu_left_pool.get()
+                    imu_left = imu_left_data_packet.data
+                    imu_left_timestamp = imu_left_data_packet.timestamp
+            else:
+                imu_left_data_packet = self.imu_left_pool.get()
+                imu_left = imu_left_data_packet.data
+                imu_left_timestamp = imu_left_data_packet.timestamp
+
+            emg_right_data_packet = self.emg_right_pool.get()
+            emg_right = emg_right_data_packet.data
+            emg_right_timestamp = emg_right_data_packet.timestamp
+
+            if not self.is_droped:
+                for i in range(self.drop_num):
+                    imu_right_data_packet = self.imu_right_pool.get()
+                    imu_right = imu_right_data_packet.data
+                    imu_right_timestamp = imu_right_data_packet.timestamp
+            else:
+                imu_right_data_packet = self.imu_right_pool.get()
+                imu_right = imu_right_data_packet.data
+                imu_right_timestamp = imu_right_data_packet.timestamp
+
+            self.is_droped = True
+
+            # return emg_left, emg_right, imu_left, imu_right
+            return emg_left_timestamp, emg_right_timestamp, imu_left_timestamp, imu_right_timestamp
+            # return 0.0, 0.0, 0.0, 0.0
+
     def is_ready(self):
+
         try:
             self.emg_right_pool.get_nowait()
-            self.imu_right_pool.get_nowait()
         except queue.Empty:
             while True:
                 try:
                     self.emg_left_pool.get_nowait()
+                except queue.Empty:
+                    break
+            while True:
+                try:
                     self.imu_left_pool.get_nowait()
+                except queue.Empty:
+                    break
+            while True:
+                try:
+                    self.imu_right_pool.get_nowait()
                 except queue.Empty:
                     break
             return False
         return True
-    
+
     def disconnect(self):
         self.logger.warning("Send signal to data process")
         for process in self.process_pool:
@@ -365,4 +385,5 @@ if __name__ == '__main__':
     # time.sleep(1)
     while True:
         data = hub.get_data()
-        print(data)
+        print("%.4f, %.4f, %.4f, %.4f" % data)
+

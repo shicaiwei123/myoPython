@@ -55,10 +55,10 @@ if __name__ == '__main__':
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
 
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
+                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
 
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
             print(gyoLen)
             gyoE = gyoEngery(gyo)/gyoLen
             print(gyoE)
-            if gyoE > 80:
+            if gyoE > 50:
                 # print(gyoE)
                 isTwo = True
             # 归一化
