@@ -194,9 +194,9 @@ class MyoHub:
         self.collect_data_process = None
         self.running = True
         self.myos_mac = [
-            # "cc:25:15:ee:2e:12",
+            "e6:7a:c5:1e:93:ad",
             "fc:a9:e5:6f:15:6a",
-            "c7:6b:1a:4b:8e:2a",
+            # "c7:6b:1a:4b:8e:2a",
             # "cc:25:15:ee:2e:12",
 
 
@@ -341,8 +341,8 @@ class MyoHub:
 
             self.is_droped = True
 
-            # return emg_left, emg_right, imu_left, imu_right
-            return emg_left_timestamp, emg_right_timestamp, imu_left_timestamp, imu_right_timestamp, emg_left_timestamp - imu_left_timestamp, emg_right_timestamp - imu_right_timestamp
+            return emg_left, emg_right, imu_left, imu_right
+            # return emg_left_timestamp, emg_right_timestamp, imu_left_timestamp, imu_right_timestamp, emg_left_timestamp - imu_left_timestamp, emg_right_timestamp - imu_right_timestamp
             # return 0.0, 0.0, 0.0, 0.0
 
     def is_ready(self):
