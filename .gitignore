@@ -53,5 +53,8 @@ fabric.properties
 
 .idea/
 *.iml
-
+__pycache__/
+matData*/
+lzaData/
+wscData2/
 
