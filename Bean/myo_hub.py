@@ -194,9 +194,9 @@ class MyoHub:
         self.collect_data_process = None
         self.running = True
         self.myos_mac = [
-            "e6:7a:c5:1e:93:ad",
+            # "e6:7a:c5:1e:93:ad",
             "fc:a9:e5:6f:15:6a",
-            # "c7:6b:1a:4b:8e:2a",
+            "c7:6b:1a:4b:8e:2a",
             # "cc:25:15:ee:2e:12",
 
 

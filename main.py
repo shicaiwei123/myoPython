@@ -128,9 +128,9 @@ if __name__ == '__main__':
             gyo = imuArray[:, 3:6]
             # gyo=np.where(gyo>10)
             gyoLen=len(gyo)
-            print(gyoLen)
+            # print(gyoLen)
             gyoE = gyoEngery(gyo)/gyoLen
-            print(gyoE)
+            # print(gyoE)
             if gyoE > 50:
                 # print(gyoE)
                 isTwo = True

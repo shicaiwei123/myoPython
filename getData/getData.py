@@ -207,7 +207,7 @@ def getOnceData(m):
         emgRightCache = list(np.array(emgRightData) / 100)
         imuLeftCache = list(np.array(imuLeftData) / 20)
         imuRightCache = list(np.array(imuRightData) / 20)
-        print(emgLeftData, '\t', imuLeftCache[0:3], '\t', emgRightData, '\t', imuRightCache[0:3])
+        # print(emgLeftData, '\t', imuLeftCache[0:3], '\t', emgRightData, '\t', imuRightCache[0:3])
         timeNow = time.time() - timeBegin
         # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
         # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
@@ -272,6 +272,7 @@ def getGestureData(m):
     engeryData = []
     engerySeg = []
     gyoLeft = []
+    timeBegin=time.time()
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -303,7 +304,7 @@ def getGestureData(m):
             dataTimes = dataTimes + 1
 
         else:
-            t2 = time.time()
+
             gyoLeftE = gyoEngery(gyoLeft)
             gyoE = gyoEngery(gyo)
             # print(gyoE)
@@ -372,7 +373,7 @@ def getGestureData(m):
                             activeTimes = 0
                             threshold = 700
                             t3 = time.time()
-                            # print(t3-t2)
+                            print(t3-timeBegin)
 
                             GyoRightQuietTimes = 1
                             return emgRight, imuRight, emgRightDataAll, imuRightDataAll,\
