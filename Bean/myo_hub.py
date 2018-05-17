@@ -196,7 +196,11 @@ class MyoHub:
         self.myos_mac = [
             # "cc:25:15:ee:2e:12",
             "fc:a9:e5:6f:15:6a",
-            "cc:25:15:ee:2e:12",
+            "c7:6b:1a:4b:8e:2a",
+            # "cc:25:15:ee:2e:12",
+
+
+
         ]
         self.drop_num = 2
         self.is_droped = False
@@ -311,34 +315,34 @@ class MyoHub:
             emg_left = emg_left_data_packet.data
             emg_left_timestamp = emg_left_data_packet.timestamp
 
-            if not self.is_droped:
-                for i in range(self.drop_num):
-                    imu_left_data_packet = self.imu_left_pool.get()
-                    imu_left = imu_left_data_packet.data
-                    imu_left_timestamp = imu_left_data_packet.timestamp
-            else:
-                imu_left_data_packet = self.imu_left_pool.get()
-                imu_left = imu_left_data_packet.data
-                imu_left_timestamp = imu_left_data_packet.timestamp
+            # if not self.is_droped:
+            #     for i in range(self.drop_num):
+            #         imu_left_data_packet = self.imu_left_pool.get()
+            #         imu_left = imu_left_data_packet.data
+            #         imu_left_timestamp = imu_left_data_packet.timestamp
+            # else:
+            imu_left_data_packet = self.imu_left_pool.get()
+            imu_left = imu_left_data_packet.data
+            imu_left_timestamp = imu_left_data_packet.timestamp
 
             emg_right_data_packet = self.emg_right_pool.get()
             emg_right = emg_right_data_packet.data
             emg_right_timestamp = emg_right_data_packet.timestamp
 
-            if not self.is_droped:
-                for i in range(self.drop_num):
-                    imu_right_data_packet = self.imu_right_pool.get()
-                    imu_right = imu_right_data_packet.data
-                    imu_right_timestamp = imu_right_data_packet.timestamp
-            else:
-                imu_right_data_packet = self.imu_right_pool.get()
-                imu_right = imu_right_data_packet.data
-                imu_right_timestamp = imu_right_data_packet.timestamp
+            # if not self.is_droped:
+            #     for i in range(self.drop_num):
+            #         imu_right_data_packet = self.imu_right_pool.get()
+            #         imu_right = imu_right_data_packet.data
+            #         imu_right_timestamp = imu_right_data_packet.timestamp
+            # else:
+            imu_right_data_packet = self.imu_right_pool.get()
+            imu_right = imu_right_data_packet.data
+            imu_right_timestamp = imu_right_data_packet.timestamp
 
             self.is_droped = True
 
             # return emg_left, emg_right, imu_left, imu_right
-            return emg_left_timestamp, emg_right_timestamp, imu_left_timestamp, imu_right_timestamp
+            return emg_left_timestamp, emg_right_timestamp, imu_left_timestamp, imu_right_timestamp, emg_left_timestamp - imu_left_timestamp, emg_right_timestamp - imu_right_timestamp
             # return 0.0, 0.0, 0.0, 0.0
 
     def is_ready(self):
@@ -385,5 +389,5 @@ if __name__ == '__main__':
     # time.sleep(1)
     while True:
         data = hub.get_data()
-        print("%.4f, %.4f, %.4f, %.4f" % data)
+        print("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f" % data)
 

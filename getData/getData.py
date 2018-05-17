@@ -35,6 +35,8 @@ if HAVE_PYGAME:
 last_vals = None
 
 # 绘图函数，使用pygame绘制emg数据
+
+
 def plot(scr, vals):
     global w, h
     DRAW_LINES = True
@@ -90,7 +92,7 @@ def left_proc_emg(emg, times=[]):
 def right_proc_emg(emg, times=[]):
     global right_emg_list
     global dataRightFresh
-    dataRightFresh =True
+    dataRightFresh = True
     t = [1.1]
     global emgCount
     # if HAVE_PYGAME:
@@ -193,25 +195,25 @@ def getOnceData(m):
     emgRightCache = []
     imuRightCache = []
     while True:
-        emgLeftData, emgRightData, imuLeftData, imuRightData= m.get_data()
-        print(emgLeftData, emgRightData, imuLeftData, imuRightData)
+        emgLeftData, emgRightData, imuLeftData, imuRightData = m.get_data()
+        # print(emgLeftData, emgRightData, imuLeftData, imuRightData)
         # emgLeftData=list(emgLeftData)
-        emgRightData=list(emgRightData)
-        imuLeftData=list(imuLeftData[0]+imuLeftData[1])
-        imuRightData=list(imuRightData[0]+imuRightData[1])
+        emgRightData = list(emgRightData)
+        imuLeftData = list(imuLeftData[0] + imuLeftData[1])
+        imuRightData = list(imuRightData[0] + imuRightData[1])
 
         # print(emgLeftData, emgRightData, imuLeftData, imuRightData)
         emgLeftCache = list(np.array(emgLeftData) / 100)
         emgRightCache = list(np.array(emgRightData) / 100)
         imuLeftCache = list(np.array(imuLeftData) / 20)
         imuRightCache = list(np.array(imuRightData) / 20)
-        # print(imuLeftCache[0:3], '\t', imuRightCache[0:3])
+        print(emgLeftData, '\t', imuLeftCache[0:3], '\t', emgRightData, '\t', imuRightCache[0:3])
         timeNow = time.time() - timeBegin
         # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
         # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
         # return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
         # TODO: 询问
-        return emgLeftCache, imuLeftCache,emgRightCache, imuRightCache
+        return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
 
 # 求emg数据能力用来判断阈值
 
@@ -269,7 +271,7 @@ def getGestureData(m):
     clearCounter = 1
     engeryData = []
     engerySeg = []
-    gyoLeft=[]
+    gyoLeft = []
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -282,7 +284,7 @@ def getGestureData(m):
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
         # print(imuLeftCache[0:3], '\t', imuRightCache[0:3])
         gyo = gyo + imuRightCache[3:6]
-        gyoLeft=gyoLeft+imuLeftCache[3:6]
+        gyoLeft = gyoLeft + imuLeftCache[3:6]
         # 采集带有时间的原始做判断
         # e = imuRightCache[8:11]
         # gyo = gyo + list(np.array(e) / 20)
@@ -303,10 +305,10 @@ def getGestureData(m):
         else:
             t2 = time.time()
             gyoLeftE = gyoEngery(gyoLeft)
-            gyoE=gyoEngery(gyo)
+            gyoE = gyoEngery(gyo)
             # print(gyoE)
             # print(gyoLeftE)
-            gyoLeft=[]
+            gyoLeft = []
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
@@ -369,9 +371,8 @@ def getGestureData(m):
                             imuLeftData = []
                             activeTimes = 0
                             threshold = 700
-                            t3=time.time()
+                            t3 = time.time()
                             # print(t3-t2)
-
 
                             GyoRightQuietTimes = 1
                             return emgRight, imuRight, emgRightDataAll, imuRightDataAll,\
