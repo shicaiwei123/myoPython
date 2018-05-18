@@ -52,7 +52,10 @@ class MyoDataProcess(multiprocessing.Process):
             )
             if data_type == MyoDataType.EMG:
                 self.emg_time = time.time()
-                self.emg_data_queue.put(data_packet)
+                try:
+                    self.emg_data_queue.put_nowait(data_packet)
+                except queue.Full:
+                    pass
             elif data_type == MyoDataType.IMU:
                 try:
                     self.imu_data_queue.put_nowait(data_packet)
