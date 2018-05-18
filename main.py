@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = False
+    isSave = True
     # 导入模型
     isTwo = False
     # 如果是存储数据
@@ -48,7 +48,7 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if emgRight == 10000:
                     fileName='wscData2'
-                    gestureName = '是'
+                    gestureName = '家'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
@@ -157,7 +157,7 @@ if __name__ == '__main__':
                 t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))
                 t1.start()
             else:
-                feture = featureGet(emgRight, imuRight, divisor=4)
+                feture = featureGet(emgRight, imuRight, divisor=8)
                 # 数据缓存
                 fetureCache.put([feture])
                 t1 = threading.Thread(target=predict, args=(modelOne, fetureCache.get(),))

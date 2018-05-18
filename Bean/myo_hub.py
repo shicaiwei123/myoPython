@@ -35,6 +35,7 @@ class MyoDataProcess(multiprocessing.Process):
             self.emg_data_queue = emg_data_queue
             self.imu_data_queue = imu_data_queue
             self.arm_type = arm_type
+            self.emg_time = time.time()
         
         def emg_handelr(self, emg):
             self.send_data(MyoDataType.EMG, emg)
@@ -50,9 +51,13 @@ class MyoDataProcess(multiprocessing.Process):
                 timestamp=time.time()
             )
             if data_type == MyoDataType.EMG:
+                self.emg_time = time.time()
                 self.emg_data_queue.put(data_packet)
             elif data_type == MyoDataType.IMU:
-                self.imu_data_queue.put(data_packet)
+                try:
+                    self.imu_data_queue.put_nowait(data_packet)
+                except queue.Full:
+                    pass
 
     def __init__(self, process_name, serial_port, emg_data_queue, imu_data_queue, lock, timeout=30, mac_addr="", open_data=True, arm_type=Arm.UNKNOWN):
         """
@@ -187,17 +192,17 @@ class MyoHub:
         self.process_pool = list()
         self.queue_pool = list()
         self.myo_num = myo_num
-        self.emg_left_pool = multiprocessing.Queue()
-        self.emg_right_pool = multiprocessing.Queue()
-        self.imu_left_pool = multiprocessing.Queue()
-        self.imu_right_pool = multiprocessing.Queue()
+        self.emg_left_pool = multiprocessing.Queue(1)
+        self.emg_right_pool = multiprocessing.Queue(1)
+        self.imu_left_pool = multiprocessing.Queue(1)
+        self.imu_right_pool = multiprocessing.Queue(1)
         self.collect_data_process = None
         self.running = True
         self.myos_mac = [
             # "e6:7a:c5:1e:93:ad",
             "fc:a9:e5:6f:15:6a",
-            "c7:6b:1a:4b:8e:2a",
-            # "cc:25:15:ee:2e:12",
+            # "c7:6b:1a:4b:8e:2a",
+            "cc:25:15:ee:2e:12",
 
 
 

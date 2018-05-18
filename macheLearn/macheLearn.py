@@ -116,7 +116,7 @@ if __name__ == '__main__':
                 emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
                 # 如果是单手
                 if dataType == 1:
-                    feature = mAna.featureGet(emgRight, imuRight, divisor=4)
+                    feature = mAna.featureGet(emgRight, imuRight, divisor=8)
                     features.append(feature)
                     labels.append([label])
                 else:
@@ -148,7 +148,7 @@ if __name__ == '__main__':
                 file = path + str(i) + '.mat'
                 emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
                 if dataType == 1:
-                    feature = mAna.featureGet(emgRight, imuRight)
+                    feature = mAna.featureGet(emgRight, imuRight,divisor=8)
                     labels.append([label])
                 else:
                     feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)

@@ -211,7 +211,6 @@ def getOnceData(m):
         timeNow = time.time() - timeBegin
         # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
         # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
-        # return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
         # TODO: 询问
         return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
 
@@ -277,9 +276,6 @@ def getGestureData(m):
         if HAVE_PYGAME:
             for ev in pygame.event.get():
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                    np.save('test/engeryData', np.array(engeryData))
-                    np.save('test/engerySeg', np.array(engerySeg))
-                    # m.disconnect()
                     return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
 
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
@@ -307,7 +303,7 @@ def getGestureData(m):
 
             gyoLeftE = gyoEngery(gyoLeft)
             gyoE = gyoEngery(gyo)
-            # print(gyoE)
+            print(gyoE)
             # print(gyoLeftE)
             gyoLeft = []
             gyo = []
