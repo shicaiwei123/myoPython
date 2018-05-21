@@ -90,10 +90,10 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     import os
     parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
-    path = parentPath + '/matData6/'
+    path = parentPath + '/matDataTwo4/'
     # 训练和测试
-    isLearn = False
-    modelName = 'SVM3One'
+    isLearn = True
+    modelName = 'SVM3Two'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数,
 
@@ -151,7 +151,7 @@ if __name__ == '__main__':
                     feature = mAna.featureGet(emgRight, imuRight,divisor=8)
                     labels.append([label])
                 else:
-                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)
+                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
                     labels.append([label])
                 r = model.predict([feature])
                 result.append(r)

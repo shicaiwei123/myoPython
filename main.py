@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     m = init()
     # shifoubaocunshuju
-    isSave = True
+    isSave = False
     # 导入模型
     isTwo = False
     # 如果是存储数据
@@ -48,17 +48,17 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if emgRight == 10000:
                     fileName='wscData2'
-                    gestureName = '家'
+                    gestureName = '走'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
 
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
+                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
 
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
