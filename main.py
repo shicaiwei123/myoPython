@@ -47,8 +47,8 @@ if __name__ == '__main__':
                 gestureCounter = gestureCounter + 1
                 print(gestureCounter)
                 if emgRight == 10000:
-                    fileName='wscData2'
-                    gestureName = '走'
+                    fileName='wscData'
+                    gestureName = '昨天'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
                     saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)

@@ -235,7 +235,7 @@ def gyoEngery(gyoData):
     return gyoSum
 
 
-threshold = 700
+threshold = 500
 # 在原始数据基础上获取一次手势的数据
 # 实现分段
 #
