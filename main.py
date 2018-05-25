@@ -3,7 +3,7 @@ from myoAnalysis import *
 from voice.speech import xf_speech
 
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-# speaker = xf_speech('/dev/ttyUSB0')
+speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -108,7 +108,7 @@ if __name__ == '__main__':
             t2 = time.time()
             isFinish = True
             out = dataDict[result]
-            # speaker.speech_sy(out)
+            speaker.speech_sy(out)
             print(t2 - t1)  # 测试识别时间
             print(out)  # 输出结果
         # 导入模型
