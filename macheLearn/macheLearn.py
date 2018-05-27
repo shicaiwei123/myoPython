@@ -80,7 +80,7 @@ def getSVM(trainX, trainY):
     from sklearn.svm import SVC
     trainX = np.array(trainX)
     trainY = np.array(trainY)
-    model = SVC(kernel='linear', degree=3)
+    model = SVC(kernel='linear',degree=3)
     model.fit(trainX, trainY.ravel())
     return model
 
@@ -90,10 +90,10 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     import os
     parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
-    path = parentPath + '/allDataOne2/'
+    path = parentPath + '/allDataTwo2/'
     # 训练和测试
     isLearn = True
-    modelName = 'SVM3One'
+    modelName = 'SVM3Two'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数,
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
                 else:
                     # dddddd=dddddd+1
                     # print(dddddd)
-                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)
+                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
                     features.append(feature)
                     labels.append([label])
 
@@ -151,7 +151,7 @@ if __name__ == '__main__':
                     feature = mAna.featureGet(emgRight, imuRight,divisor=8)
                     labels.append([label])
                 else:
-                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)
+                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
                     labels.append([label])
                 r = model.predict([feature])
                 result.append(r)

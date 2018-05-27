@@ -3,7 +3,7 @@ from myoAnalysis import *
 from voice.speech import xf_speech
 
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-speaker = xf_speech('/dev/ttyUSB0')
+# speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -48,21 +48,21 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if emgRight == 10000:
                     fileName='wscData'
-                    gestureName = '昨天'
+                    gestureName = '见'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
+                    saveExcle(fileName+'/two/' + gestureName + '/emgDataRight.xls', emgRightData)
+                    saveExcle(fileName+'/two/' + gestureName + '/imuDataRight.xls', imuRightData)
+                    saveExcle(fileName+'/two/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
+                    saveExcle(fileName+'/two/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
 
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
-                    # saveExcle(fileName+'/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
+                    saveExcle(fileName+'/two/' + gestureName + '/emgDataLeft.xls', emgLeftData)
+                    saveExcle(fileName+'/two/' + gestureName + '/imuDataLeft.xls', imuLeftData)
+                    saveExcle(fileName+'/two/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
+                    saveExcle(fileName+'/two/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
 
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
-                    saveExcle(fileName+'/oneFinger/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
-                    # saveExcle('wscData/oneFinger/'+gestureName+'/thresholdData.xls', threshold)
+                    saveExcle(fileName+'/two/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
+                    saveExcle(fileName+'/two/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
+                    # saveExcle('wscData/twoFinger/'+gestureName+'/thresholdData.xls', threshold)
                     raise KeyboardInterrupt()
                 # 右手
                 emgRightData = emgRightData + emgRight + [[0]]
@@ -108,7 +108,7 @@ if __name__ == '__main__':
             t2 = time.time()
             isFinish = True
             out = dataDict[result]
-            speaker.speech_sy(out)
+            # speaker.speech_sy(out)
             print(t2 - t1)  # 测试识别时间
             print(out)  # 输出结果
         # 导入模型
@@ -124,6 +124,8 @@ if __name__ == '__main__':
                 engeryAll, engerySeg = getGestureData(m)
             if emgRight == 10000:
                 break
+            if len(emgRight)<50:
+                continue
             imuArray = np.array(imuLeft)
             gyo = imuArray[:, 3:6]
             # gyo=np.where(gyo>10)
@@ -134,7 +136,7 @@ if __name__ == '__main__':
             if gyoE > 50:
                 # print(gyoE)
                 isTwo = True
-            # 归一化
+            # 归一化QQ
             emgRightMax = np.max(np.max(emgRight))
             imuRightMax = np.max(np.max(imuRight))
             imuRightMin = np.min(np.min(imuRight))
@@ -151,7 +153,7 @@ if __name__ == '__main__':
 
             # 特征提取
             if isTwo:
-                feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=8)
+                feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
                 # 数据缓存
                 fetureCache.put([feture])
                 t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))
