@@ -47,22 +47,22 @@ if __name__ == '__main__':
                 gestureCounter = gestureCounter + 1
                 print(gestureCounter)
                 if emgRight == 10000:
-                    fileName='wscData'
-                    gestureName = '见'
+                    fileName = 'wscData'
+                    gestureName = '删除2'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
-                    saveExcle(fileName+'/two/' + gestureName + '/emgDataRight.xls', emgRightData)
-                    saveExcle(fileName+'/two/' + gestureName + '/imuDataRight.xls', imuRightData)
-                    saveExcle(fileName+'/two/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
-                    saveExcle(fileName+'/two/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
 
-                    saveExcle(fileName+'/two/' + gestureName + '/emgDataLeft.xls', emgLeftData)
-                    saveExcle(fileName+'/two/' + gestureName + '/imuDataLeft.xls', imuLeftData)
-                    saveExcle(fileName+'/two/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
-                    saveExcle(fileName+'/two/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
 
-                    saveExcle(fileName+'/two/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
-                    saveExcle(fileName+'/two/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
-                    # saveExcle('wscData/twoFinger/'+gestureName+'/thresholdData.xls', threshold)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
+                    saveExcle(fileName + '/oneFinger/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
+                    # saveExcle('wscData/oneFingerFinger/'+gestureName+'/thresholdData.xls', threshold)
                     raise KeyboardInterrupt()
                 # 右手
                 emgRightData = emgRightData + emgRight + [[0]]
@@ -98,6 +98,8 @@ if __name__ == '__main__':
         # 预测函数，用于多线程的回调
         # isFinsh 是线程锁
         isFinish = False
+        outCache = DataCache()
+        outCache.__init__()
 
         def predict(model, data):
             t1 = time.time()
@@ -107,10 +109,29 @@ if __name__ == '__main__':
             result = int(result)
             t2 = time.time()
             isFinish = True
-            out = dataDict[result]
-            # speaker.speech_sy(out)
-            print(t2 - t1)  # 测试识别时间
-            print(out)  # 输出结果
+            """
+            400和402是删除
+            401是完成
+            其余是数据缓存
+            """
+            if (result == 400) or (result ==402):
+                outCache.delete()
+                out = outCache.getCache()
+                #list->str
+                str="".join(out)
+                print(str)  # 输出结果
+            elif result == 401:
+                out = outCache.getCache()
+                str = "".join(out)
+                # speaker.speech_sy(str)
+                print(str)  # 输出结果
+            else:
+                out = dataDict[result]
+                outCache.update(out)
+                print(t2 - t1)  # 测试识别时间
+                out = outCache.getCache()
+                str = "".join(out)
+                print(str)  # 输出结果
         # 导入模型
         threads = []
         modelOne = joblib.load('SVM3One')
@@ -124,14 +145,14 @@ if __name__ == '__main__':
                 engeryAll, engerySeg = getGestureData(m)
             if emgRight == 10000:
                 break
-            if len(emgRight)<50:
+            if len(emgRight) < 40:
                 continue
             imuArray = np.array(imuLeft)
             gyo = imuArray[:, 3:6]
             # gyo=np.where(gyo>10)
-            gyoLen=len(gyo)
+            gyoLen = len(gyo)
             # print(gyoLen)
-            gyoE = gyoEngery(gyo)/gyoLen
+            gyoE = gyoEngery(gyo) / gyoLen
             # print(gyoE)
             if gyoE > 50:
                 # print(gyoE)
@@ -153,7 +174,7 @@ if __name__ == '__main__':
 
             # 特征提取
             if isTwo:
-                feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
+                feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisor=4)
                 # 数据缓存
                 fetureCache.put([feture])
                 t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))
@@ -166,4 +187,4 @@ if __name__ == '__main__':
                 t1.start()
             isTwo = False
         m.disconnect()
-            # 识别
+        # 识别

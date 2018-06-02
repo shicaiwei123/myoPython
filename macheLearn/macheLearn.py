@@ -90,9 +90,9 @@ if __name__ == '__main__':
     from sklearn.externals import joblib
     import os
     parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
-    path = parentPath + '/allDataOne3/'
+    path = parentPath + '/allDataOne6/'
     # 训练和测试
-    isLearn = False
+    isLearn = True
     modelName = 'SVM3One'
     dirData = os.listdir(path)
     len = len(dirData)  # 数据总数,

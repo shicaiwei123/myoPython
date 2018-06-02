@@ -502,11 +502,29 @@ import  numpy as np
 
 
 #测试列表数据获取
-a=[[1,2,3],[5,6,7],[9,10,10]]
-b=np.array(a)
-c=b[:,1:3]
-d=np.array(c)
-print(d)
-print(c)
-print(b)
-print(a)
+# a=[[1,2,3],[5,6,7],[9,10,10]]
+# b=np.array(a)
+# c=b[:,1:3]
+# d=np.array(c)
+# print(d)
+# print(c)
+# print(b)
+# print(a)
+
+#字符组合
+import  string
+a=''
+b='爱'
+c=','
+d='你'
+e=[]
+e.append(b)
+# e.append(c)
+e.append(d)
+e.pop()
+print(e)
+str="".join(e)
+print(str)
+# e=e.Substring(0,e,e.length-1)
+print(e)
+print(len(e))

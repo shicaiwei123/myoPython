@@ -246,7 +246,9 @@ def featureGet(emgDataAll, imuDataAll, divisor=4):
     return feature
 
 
-ddddddd=1
+ddddddd = 1
+
+
 def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisor=4):
     # global ddddddd
     # ddddddd = ddddddd + 1
@@ -307,3 +309,56 @@ def excelToDict(file, colnameindex=0, by_name=u'Sheet1'):
                 value = int(value)
             dict[keyName] = value
     return dict
+
+
+import datetime
+import random
+
+
+class DataCache():
+    """"""
+
+    def __init__(self, maxCacheSize = 100):
+        """Constructor"""
+        self.cache = []
+        self.max_cache_size = maxCacheSize
+        self.cacheLength = 0
+
+    def getCache(self):
+        """
+        根据该键是否存在于缓存当中返回True或者False
+        """
+        return self.cache
+
+    def update(self, string):
+        """
+        更新该缓存
+        """
+        if self.cacheLength > self.max_cache_size:
+            print('cache is full')
+            return False
+
+        self.cache.append(string)
+        self.cacheLength += 1
+
+    def delete(self):
+        """
+        删除具备最早访问日期的输入数据
+        """
+        self.cache.pop()
+        self.cacheLength -= 1
+
+    @property
+    def size(self):
+        """
+        返回缓存容量大小
+        """
+        return self.cacheLength
+
+if __name__ =='__main__':
+    cache=DataCache()
+    cache.update('你好')
+    cache.delete()
+    print(cache.getCache())
+
+
