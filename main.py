@@ -125,6 +125,7 @@ if __name__ == '__main__':
                 str = "".join(out)
                 # speaker.speech_sy(str)
                 print(str)  # 输出结果
+                outCache.clear()
             else:
                 out = dataDict[result]
                 outCache.update(out)

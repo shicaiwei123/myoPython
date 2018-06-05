@@ -318,7 +318,7 @@ import random
 class DataCache():
     """"""
 
-    def __init__(self, maxCacheSize = 100):
+    def __init__(self, maxCacheSize=100):
         """Constructor"""
         self.cache = []
         self.max_cache_size = maxCacheSize
@@ -345,8 +345,11 @@ class DataCache():
         """
         删除具备最早访问日期的输入数据
         """
-        self.cache.pop()
-        self.cacheLength -= 1
+        if self.cacheLength == 0:
+            print('Null')
+        else:
+            self.cache.pop()
+            self.cacheLength -= 1
 
     @property
     def size(self):
@@ -355,10 +358,12 @@ class DataCache():
         """
         return self.cacheLength
 
-if __name__ =='__main__':
-    cache=DataCache()
+    def clear(self):
+        self.cache = []
+
+
+if __name__ == '__main__':
+    cache = DataCache()
     cache.update('你好')
     cache.delete()
     print(cache.getCache())
-
-
