@@ -48,7 +48,7 @@ if __name__ == '__main__':
                 print(gestureCounter)
                 if emgRight == 10000:
                     fileName = 'wscData'
-                    gestureName = '删除2'
+                    gestureName = '完成2'
                     engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
                     saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
                     saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
@@ -110,17 +110,18 @@ if __name__ == '__main__':
             t2 = time.time()
             isFinish = True
             """
-            400和402是删除
-            401是完成
+            402和401是删除
+            400是完成
             其余是数据缓存
             """
-            if (result == 400) or (result ==402):
+            if (result == 402) or (result == 401):
                 outCache.delete()
-                out = outCache.getCache()
-                #list->str
-                str="".join(out)
-                print(str)  # 输出结果
-            elif result == 401:
+                if outCache.size != 0:
+                    out = outCache.getCache()
+                    # list->str
+                    str = "".join(out)
+                    print(str)  # 输出结果
+            elif (result == 400):
                 out = outCache.getCache()
                 str = "".join(out)
                 # speaker.speech_sy(str)

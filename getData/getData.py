@@ -303,7 +303,7 @@ def getGestureData(m):
 
             gyoLeftE = gyoEngery(gyoLeft)
             gyoE = gyoEngery(gyo)
-            print(gyoE)
+            # print(gyoE)
             # print(gyoLeftE)
             gyoLeft = []
             gyo = []
@@ -367,9 +367,9 @@ def getGestureData(m):
                             emgLeftData = []
                             imuLeftData = []
                             activeTimes = 0
-                            threshold = 700
+                            threshold = 500
                             t3 = time.time()
-                            print(t3-timeBegin)
+                            # print(t3-timeBegin)
 
                             GyoRightQuietTimes = 1
                             return emgRight, imuRight, emgRightDataAll, imuRightDataAll,\

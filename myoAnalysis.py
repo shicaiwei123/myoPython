@@ -339,7 +339,7 @@ class DataCache():
             return False
 
         self.cache.append(string)
-        self.cacheLength += 1
+        self.cacheLength = self.cacheLength + 1
 
     def delete(self):
         """
@@ -349,7 +349,7 @@ class DataCache():
             print('Null')
         else:
             self.cache.pop()
-            self.cacheLength -= 1
+            self.cacheLength = self.cacheLength - 1
 
     @property
     def size(self):
@@ -360,6 +360,7 @@ class DataCache():
 
     def clear(self):
         self.cache = []
+        self.cacheLength = 0
 
 
 if __name__ == '__main__':
