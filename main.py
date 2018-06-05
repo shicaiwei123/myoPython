@@ -110,18 +110,18 @@ if __name__ == '__main__':
             t2 = time.time()
             isFinish = True
             """
-            402和401是删除
-            400是完成
+            400和401是完成
+            402是删除
             其余是数据缓存
             """
-            if (result == 402) or (result == 401):
+            if (result == 402):
                 outCache.delete()
                 if outCache.size != 0:
                     out = outCache.getCache()
                     # list->str
                     str = "".join(out)
                     print(str)  # 输出结果
-            elif (result == 400):
+            elif (result == 400) or (result == 401):
                 out = outCache.getCache()
                 str = "".join(out)
                 # speaker.speech_sy(str)
