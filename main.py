@@ -133,6 +133,7 @@ if __name__ == '__main__':
                 print(t2 - t1)  # 测试识别时间
                 out = outCache.getCache()
                 str = "".join(out)
+                # speaker.speech_sy(str)
                 print(str)  # 输出结果
         # 导入模型
         threads = []

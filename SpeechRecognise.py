@@ -15,8 +15,8 @@ from BaiduSpeech.SpeechRecognizer import *
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    baidu_oauth_conf = 'BaiduSpeech./BaiduOAuth.ini'
-    api_key, secret_key = get_baidu_api_key_config(baidu_oauth_conf)
+    api_key = 'm0lwCtK4VVMmhFQFCF4ZpnFD'
+    secret_key = 'ia7oc1UQkrmWofC0Qv05ftOjdqUGv1ao'
     access_token = get_baidu_token_url(api_key, secret_key)
     # save_baidu_token_config(baidu_oauth_conf, access_token)
     # access_token = get_baidu_token_config(baidu_oauth_conf)
