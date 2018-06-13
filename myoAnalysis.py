@@ -109,7 +109,7 @@ def featureGet(emgDataAll, imuDataAll, divisor=4):
         meanEmg6 = np.mean(emg6)
         meanEmg7 = np.mean(emg7)
         meanEmg8 = np.mean(emg8)
-        #
+        #均方值
         rmsEmg1 = np.mean(emg1)
         rmsEmg2 = np.sqrt(np.mean(emg2**2))
         rmsEmg3 = np.sqrt(np.mean(emg3**2))

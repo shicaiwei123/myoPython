@@ -242,7 +242,14 @@ threshold = 500
 
 
 def getGestureData(m):
-    t1 = time.time()
+    """
+    会缓存所有的数据，能量的手势的
+    会实时的进行能量的判断，大于阈值为活动，小于阈值为静止
+    会统计活动和静止的次数
+    静止大于一定值就认为结束，清空。
+    清空的阈值和结束的阈值可能是不一样的
+    开始存储和开始的阈值也是不一样的
+    """
     global threshold  # 能量阈值，当能量高于阈值是active状态，低于阈值是quiet状态
     # 阈值在变化，如果是离散分割，那么第一次阈值大，第二次阈值小，连续分割阈值一样。
     # 根据实际分割的方式要修改代码中修改阈值的代码
@@ -272,6 +279,7 @@ def getGestureData(m):
     engerySeg = []
     gyoLeft = []
     timeBegin=time.time()
+    i=1
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -279,9 +287,8 @@ def getGestureData(m):
                     return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
 
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
-        # print(imuLeftCache[0:3], '\t', imuRightCache[0:3])
+        # print(imuLeftCache[3:6], '\t', imuRightCache[3:6])
         gyo = gyo + imuRightCache[3:6]
-        gyoLeft = gyoLeft + imuLeftCache[3:6]
         # 采集带有时间的原始做判断
         # e = imuRightCache[8:11]
         # gyo = gyo + list(np.array(e) / 20)
@@ -301,15 +308,15 @@ def getGestureData(m):
 
         else:
 
-            gyoLeftE = gyoEngery(gyoLeft)
             gyoE = gyoEngery(gyo)
-            # print(gyoE)
-            # print(gyoLeftE)
-            gyoLeft = []
+            print('\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t',gyoE)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
             if gyoE > beginSave:  # 开始存储数据
+                if i==1:
+                    tStart = time.time()
+                    i=i+1
                 isSave = True
                 clearCounter = 1
             if isSave:             # 存储手势能量
@@ -347,11 +354,13 @@ def getGestureData(m):
                     gyoRightQuiet = 0
 
                     activeTimes = activeTimes + 1
-                    threshold = 30
-                    GyoRightQuietTimes = 2
+                    threshold = 50
+                    GyoRightQuietTimes = 1
                     if activeTimes == ActiveTimes:
                         isSave = False
-                        print(len(emgRightData))
+                        t3=time.time()
+                        print(t3-tStart)
+                        print((len(emgRightData)/5)*0.1)  #理论时间
                         if len(emgRightData) != len(imuRightData):  # 接收到的鞥和imu数据长度不等
                             print('wrong Data')
                             # ping一下？？
@@ -368,8 +377,6 @@ def getGestureData(m):
                             imuLeftData = []
                             activeTimes = 0
                             threshold = 500
-                            t3 = time.time()
-                            # print(t3-timeBegin)
 
                             GyoRightQuietTimes = 1
                             return emgRight, imuRight, emgRightDataAll, imuRightDataAll,\
