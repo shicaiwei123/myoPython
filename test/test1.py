@@ -530,9 +530,26 @@
 # print(len(e))
 
 
-#测试下划线
+# #测试下划线
+#
+# from  myoAnalysis import *
+# import myoAnalysis as M
+# data=[1,2,3,4]
+# b=M._ZCR()
 
-from  myoAnalysis import *
-import myoAnalysis as M
-data=[1,2,3,4]
-b=M._ZCR()
+
+
+# #文件夹生成测试
+# # import os
+# # path = 'GuestData/one'
+# # os.makedirs(path)
+
+
+#文件夹访问测试
+import  os
+path = 'GuestData/one'
+floderExist=os.path.exists(path)
+count = 0
+if floderExist:
+    for fn in os.listdir(path):  # fn 表示的是文件名
+        count = count + 1
