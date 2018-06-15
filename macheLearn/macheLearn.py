@@ -1,70 +1,6 @@
-import scipy.io as scio
+
 import numpy as np
-import sklearn
-import myoAnalysis as mAna
-# mat数据结构
-# 包含结构体w
-# w包含四个数据，emgData imuData len以及 lables
-# len是包含了，但是当时统计错误
-# nonZeoLabel是非0数组下标，row是非0数据行数
-# 读取数据
-
-dddddd=1
-def dataRead(file):
-    from sklearn import preprocessing as pre
-    data = scio.loadmat(file)
-    w = data['data']
-    dataType = w['dataType']
-    dataType = dataType[0, 0]
-    dataType = dataType[0, 0]
-    if dataType == 2:
-        emgRight = w['emgRight']
-        imuRight = w['imuRight']
-        emgRight = emgRight[0, 0]
-        imuRight = imuRight[0, 0]
-        emgLeft = w['emgLeft']
-        imuLeft = w['imuLeft']
-        emgLeft = emgLeft[0, 0]
-        imuLeft = imuLeft[0, 0]
-        labels = w['Lable']
-        labels = labels[0, 0]
-        len = w['len']
-        len = len[0, 0]
-        len = len[0, 0]
-        row = len
-    else:
-        emgRight = w['emgData']
-        imuRight = w['imuData']
-        emgRight = emgRight[0, 0]
-        imuRight = imuRight[0, 0]
-        labels = w['lables']
-        labels = labels[0, 0]
-        len = w['len']
-        len = len[0, 0]
-        len = len[0, 0]
-        row = len*5
-    emgRight = emgRight[0:row, :]
-    imuRight = imuRight[0:row, :]
-    if dataType == 2:
-        emgLeft = emgLeft[0:row, :]
-        imuLeft = imuLeft[0:row, :]
-
-    # 归一化
-    emgMax = np.max(np.max(emgRight))
-    imuMax = np.max(np.max(imuRight))
-    imuMin = np.min(np.min(imuRight))
-    emgRight = (emgRight) / emgMax
-    imuRight = (imuRight - imuMin) / (imuMax - imuMin)
-    if dataType == 2:
-        emgMax = np.max(np.max(emgLeft))
-        imuMax = np.max(np.max(imuLeft))
-        imuMin = np.min(np.min(imuLeft))
-        emgLeft = (emgLeft) / emgMax
-        imuLeft = (imuLeft - imuMin) / (imuMax - imuMin)
-    if dataType == 1:
-        emgLeft = 0
-        imuLeft = 0
-    return emgRight, imuRight, emgLeft, imuLeft, labels, dataType
+from  myoAnalysis import featureGetTwo,featureGet,dataRead
 
 
 def getKNN(trainX, trainY):
@@ -116,13 +52,13 @@ if __name__ == '__main__':
                 emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
                 # 如果是单手
                 if dataType == 1:
-                    feature = mAna.featureGet(emgRight, imuRight, divisor=8)
+                    feature = featureGet(emgRight, imuRight, divisor=8)
                     features.append(feature)
                     labels.append([label])
                 else:
                     # dddddd=dddddd+1
                     # print(dddddd)
-                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
+                    feature = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
                     features.append(feature)
                     labels.append([label])
 
@@ -148,10 +84,10 @@ if __name__ == '__main__':
                 file = path + str(i) + '.mat'
                 emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
                 if dataType == 1:
-                    feature = mAna.featureGet(emgRight, imuRight,divisor=8)
+                    feature = featureGet(emgRight, imuRight,divisor=8)
                     labels.append([label])
                 else:
-                    feature = mAna.featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
+                    feature = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft,divisor=4)
                     labels.append([label])
                 r = model.predict([feature])
                 result.append(r)

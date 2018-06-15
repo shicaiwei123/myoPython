@@ -177,7 +177,7 @@ def init():
 
 
 #
-def getOnceData(m):
+def _getOnceData(m):
     """
     Get One DataSet From Myo
     :param m: Myo
@@ -214,7 +214,7 @@ def getOnceData(m):
 # 求emg数据能力用来判断阈值
 
 
-def __engery(emgData):
+def _engery(emgData):
     emgArray = np.array(emgData)
     emgArray = emgArray
     emgSquare = np.square(emgArray)
@@ -283,7 +283,7 @@ def getGestureData(m):
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
                     return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
 
-        emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = getOnceData(m)
+        emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = _getOnceData(m)
         # print(imuLeftCache[3:6], '\t', imuRightCache[3:6])
         gyo = gyo + imuRightCache[3:6]
         # 采集带有时间的原始做判断
