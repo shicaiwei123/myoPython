@@ -5,9 +5,6 @@ import time
 
 import pygame
 from pygame.locals import *
-
-from Bean.myo import MyoRaw
-from Bean.myo_config import MyoConfig
 from Bean.myo_hub import MyoHub
 from myoAnalysis import *
 
@@ -37,7 +34,7 @@ last_vals = None
 # 绘图函数，使用pygame绘制emg数据
 
 
-def plot(scr, vals):
+def __plot(scr, vals):
     global w, h
     DRAW_LINES = True
 
@@ -64,7 +61,7 @@ def plot(scr, vals):
     last_vals = vals
 
 
-def left_proc_emg(emg, times=[]):
+def __left_proc_emg(emg, times=[]):
     global left_emg_list
     global dataLeftFresh
     dataLeftFresh = True
@@ -89,7 +86,7 @@ def left_proc_emg(emg, times=[]):
         left_emg_list = data
 
 
-def right_proc_emg(emg, times=[]):
+def __right_proc_emg(emg, times=[]):
     global right_emg_list
     global dataRightFresh
     dataRightFresh = True
@@ -115,7 +112,7 @@ def right_proc_emg(emg, times=[]):
         right_emg_list = data
 
 
-def left_imu_proc(a, b, c):
+def __left_imu_proc(a, b, c):
     global imuCount
     global left_imu_list
     # imuCount = imuCount + 1
@@ -136,7 +133,7 @@ def left_imu_proc(a, b, c):
     left_imu_list = c
 
 
-def right_imu_proc(a, b, c):
+def __right_imu_proc(a, b, c):
     global imuCount
     global right_imu_list
     # imuCount = imuCount + 1
@@ -217,7 +214,7 @@ def getOnceData(m):
 # 求emg数据能力用来判断阈值
 
 
-def engery(emgData):
+def __engery(emgData):
     emgArray = np.array(emgData)
     emgArray = emgArray
     emgSquare = np.square(emgArray)
@@ -278,8 +275,8 @@ def getGestureData(m):
     engeryData = []
     engerySeg = []
     gyoLeft = []
-    timeBegin=time.time()
-    i=1
+    timeBegin = time.time()
+    i = 1
     while True:
         if HAVE_PYGAME:
             for ev in pygame.event.get():
@@ -309,14 +306,14 @@ def getGestureData(m):
         else:
 
             gyoE = gyoEngery(gyo)
-            print('\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t',gyoE)
+            print('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
             if gyoE > beginSave:  # 开始存储数据
-                if i==1:
+                if i == 1:
                     tStart = time.time()
-                    i=i+1
+                    i = i + 1
                 isSave = True
                 clearCounter = 1
             if isSave:             # 存储手势能量
@@ -358,9 +355,9 @@ def getGestureData(m):
                     GyoRightQuietTimes = 1
                     if activeTimes == ActiveTimes:
                         isSave = False
-                        t3=time.time()
-                        print(t3-tStart)
-                        print((len(emgRightData)/5)*0.1)  #理论时间
+                        t3 = time.time()
+                        print(t3 - tStart)
+                        print((len(emgRightData) / 5) * 0.1)  # 理论时间
                         if len(emgRightData) != len(imuRightData):  # 接收到的鞥和imu数据长度不等
                             print('wrong Data')
                             # ping一下？？

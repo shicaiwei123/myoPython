@@ -4,10 +4,10 @@
 # 数据特征提取
 
 import numpy as np
-import math
+import xlwt
+# xlwt只能储存float数据
 
-
-def ZCR(data):
+def _ZCR(data):
     # 输入是numpy的一维数组
     # 输出是过零率
     zcrSum = 0
@@ -97,9 +97,9 @@ def featureGet(emgDataAll, imuDataAll, divisor=4):
         rangeGcoY = np.max(gcoX) - np.min(gcoY)
         rangeGcoZ = np.max(gcoX) - np.min(gcoZ)
         # 过零率
-        gcoXZCR = ZCR(gcoX)
-        gcoYZCR = ZCR(gcoY)
-        gcoZZCR = ZCR(gcoZ)
+        gcoXZCR = _ZCR(gcoX)
+        gcoYZCR = _ZCR(gcoY)
+        gcoZZCR = _ZCR(gcoZ)
         # 均值
         meanEmg1 = np.mean(emg1)
         meanEmg2 = np.mean(emg2)
@@ -109,7 +109,7 @@ def featureGet(emgDataAll, imuDataAll, divisor=4):
         meanEmg6 = np.mean(emg6)
         meanEmg7 = np.mean(emg7)
         meanEmg8 = np.mean(emg8)
-        #均方值
+        # 均方值
         rmsEmg1 = np.mean(emg1)
         rmsEmg2 = np.sqrt(np.mean(emg2**2))
         rmsEmg3 = np.sqrt(np.mean(emg3**2))
@@ -246,23 +246,14 @@ def featureGet(emgDataAll, imuDataAll, divisor=4):
     return feature
 
 
-ddddddd = 1
-
-
 def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisor=4):
-    # global ddddddd
-    # ddddddd = ddddddd + 1
-    # if ddddddd==486:
-    #     ddddddd=1
-    # print(ddddddd)
     featureRight = featureGet(emgDataRightAll, imuDataRightAll, divisor)
     featureLeft = featureGet(emgDataLeftAll, imuDataLeftAll, divisor)
     featureAll = featureRight + featureLeft
     return featureAll
 
 
-import xlwt
-# xlwt只能储存float数据
+
 
 
 def saveExcleTwoDimension(file='new.xls', dataArray=[], index=0):
@@ -293,7 +284,6 @@ import xlrd
 import pickle
 # 根据名称获取Excel表格中的数据   参数:file：Excel文件路径  colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
 
-
 def excelToDict(file, colnameindex=0, by_name=u'Sheet1'):
     data = xlrd.open_workbook(file)
     table = data.sheet_by_name(by_name)
@@ -309,10 +299,6 @@ def excelToDict(file, colnameindex=0, by_name=u'Sheet1'):
                 value = int(value)
             dict[keyName] = value
     return dict
-
-
-import datetime
-import random
 
 
 class DataCache():
