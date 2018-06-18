@@ -235,7 +235,7 @@ def gyoEngery(gyoData):
 threshold = 500
 # 在原始数据基础上获取一次手势的数据
 # 实现分段
-#
+#如果把第一次的阈值也变小呢？
 
 
 def getGestureData(m):

@@ -417,6 +417,24 @@ def dataRead(file):
         imuLeft = 0
     return emgRight, imuRight, emgLeft, imuLeft, labels, dataType
 
+def getKNN(trainX, trainY):
+    from sklearn.neighbors import KNeighborsClassifier as knn
+    trainX = np.array(trainX)
+    trainY = np.array(trainY)
+    model = knn(n_neighbors=1, weights='distance')
+    model.fit(trainX, trainY.ravel())
+    return model
+
+
+def getSVM(trainX, trainY):
+    from sklearn.svm import SVC
+    trainX = np.array(trainX)
+    trainY = np.array(trainY)
+    model = SVC(kernel='linear',degree=3)
+    model.fit(trainX, trainY.ravel())
+    return model
+
+
 
 if __name__ == '__main__':
     cache = DataCache()

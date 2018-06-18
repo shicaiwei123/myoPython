@@ -5,7 +5,13 @@ import os
 import xlrd
 
 
-def findLabel(dict=None, gestureName=None):
+def findKey(dict=None, gestureName=None):
+    """
+    根据value查找字典的key
+    :param dict:   字典
+    :param gestureName:  字典的value
+    :return:  字典valued对应的 key
+    """
     keyList = []
     valueList = []
     label = 0
@@ -39,8 +45,11 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
     # 初始化
     m = myoData.init()
     dataDict = excelToDict('dataSheet.xlsx')
-    label = findLabel(dataDict, fileName)
-    floderNumber = getFloderNumber('GuestData/')
+    label = findKey(dataDict, fileName)
+    if os.path.exists('GuestData'):
+        floderNumber=1
+    else:
+        floderNumber = getFloderNumber('GuestData/')
     floderPath = 'GuestData/' + 'time' + str(floderNumber) + '/'
     # 右手
     emgRightData = []  # 一次手势数据
