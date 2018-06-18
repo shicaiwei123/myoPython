@@ -1,8 +1,10 @@
 
 import numpy as np
-from myoAnalysis import featureGetTwo, featureGet, dataRead
+from myoAnalysis import featureGetTwo, featureGet, matRead
 from myoAnalysis import getKNN, getSVM
 import os
+
+
 
 
 def getModel(path=None):
@@ -21,7 +23,7 @@ def getModel(path=None):
     counter = 1
     for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试
         file = path + str(i) + '.mat'
-        emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
+        emgRight, imuRight, emgLeft, imuLeft, label, dataType = matRead(file)
         # 如果是单手
         if dataType == 1:
             feature = featureGet(emgRight, imuRight, divisor=8)
@@ -49,7 +51,7 @@ def getModel(path=None):
                 counter = 1
         if counter != 1:
             file = path + str(i) + '.mat'
-            emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
+            emgRight, imuRight, emgLeft, imuLeft, label, dataType = matRead(file)
             # 如果是单手
             if dataType == 1:
                 feature = featureGet(emgRight, imuRight, divisor=8)
@@ -77,7 +79,7 @@ def getModel(path=None):
                 counter = 1
         if counter == 1:
             file = path + str(i) + '.mat'
-            emgRight, imuRight, emgLeft, imuLeft, label, dataType = dataRead(file)
+            emgRight, imuRight, emgLeft, imuLeft, label, dataType = matRead(file)
             if dataType == 1:
                 feature = featureGet(emgRight, imuRight, divisor=8)
                 labels.append([label])

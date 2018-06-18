@@ -351,8 +351,22 @@ class DataCache():
         self.cache = []
         self.cacheLength = 0
 
+def normalized(gestureEmg,gestureImu):
+    """
+    对数据归一化
+    :param gestureEmg:  手语运动的肌电流数据
+    :param gestureEmg:  手语运动的惯性传感器数据
+    :return:  归一化数据的肌电流，惯性传感器数据
+    """
+    emgMax = np.max(np.max(gestureEmg))
+    imuMax = np.max(np.max(gestureImu))
+    imuMin = np.min(np.min(gestureImu))
+    emgData = (gestureEmg) / emgMax
+    imuData = (gestureImu - imuMin) / (imuMax - imuMin)
+    return emgData,imuData
 
-def dataRead(file):
+
+def matRead(file):
     """
     mat数据结构
     包含结构体w
@@ -383,6 +397,9 @@ def dataRead(file):
         len = len[0, 0]
         len = len[0, 0]
         row = len
+        emgLeft = emgLeft[0:row, :]
+        imuLeft = imuLeft[0:row, :]
+        emgLeft, imuLeft = normalized(emgLeft, imuLeft)
     else:
         emgRight = w['emgData']
         imuRight = w['imuData']
@@ -394,28 +411,18 @@ def dataRead(file):
         len = len[0, 0]
         len = len[0, 0]
         row = len*5
-    emgRight = emgRight[0:row, :]
-    imuRight = imuRight[0:row, :]
-    if dataType == 2:
-        emgLeft = emgLeft[0:row, :]
-        imuLeft = imuLeft[0:row, :]
-
-    # 归一化
-    emgMax = np.max(np.max(emgRight))
-    imuMax = np.max(np.max(imuRight))
-    imuMin = np.min(np.min(imuRight))
-    emgRight = (emgRight) / emgMax
-    imuRight = (imuRight - imuMin) / (imuMax - imuMin)
-    if dataType == 2:
-        emgMax = np.max(np.max(emgLeft))
-        imuMax = np.max(np.max(imuLeft))
-        imuMin = np.min(np.min(imuLeft))
-        emgLeft = (emgLeft) / emgMax
-        imuLeft = (imuLeft - imuMin) / (imuMax - imuMin)
-    if dataType == 1:
+        #只有一只手的数据，那就将左手设定为0
         emgLeft = 0
         imuLeft = 0
+    emgRight = emgRight[0:row, :]
+    imuRight = imuRight[0:row, :]
+
+    # 归一化
+    emgRight,imuRight=normalized(emgRight,imuRight)
     return emgRight, imuRight, emgLeft, imuLeft, labels, dataType
+
+
+
 
 def getKNN(trainX, trainY):
     from sklearn.neighbors import KNeighborsClassifier as knn

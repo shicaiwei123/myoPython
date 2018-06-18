@@ -546,10 +546,18 @@
 
 
 #文件夹访问测试
-import  os
-path = 'GuestData/one'
-floderExist=os.path.exists(path)
-count = 0
-if floderExist:
-    for fn in os.listdir(path):  # fn 表示的是文件名
-        count = count + 1
+# import  os
+# path = 'GuestData/one'
+# floderExist=os.path.exists(path)
+# count = 0
+# if floderExist:
+#     for fn in os.listdir(path):  # fn 表示的是文件名
+#         count = count + 1
+
+
+#子串测试
+b='allTwo'
+c='two'
+d='Two'
+e= d in b
+print(e)
