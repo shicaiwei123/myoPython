@@ -422,6 +422,8 @@ def matRead(file):
     return emgRight, imuRight, emgLeft, imuLeft, labels, dataType
 
 
+def xlsRead(file='.xls'):
+
 
 
 def getKNN(trainX, trainY):

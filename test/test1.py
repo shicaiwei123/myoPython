@@ -555,9 +555,37 @@
 #         count = count + 1
 
 
-#子串测试
-b='allTwo'
-c='two'
-d='Two'
-e= d in b
-print(e)
+# #子串测试
+# # b='allTwo'
+# # c='two'
+# # d='Two'
+# # e= d in b
+# # print(e)
+
+
+#xls读写
+import  xlrd
+data =xlrd.open_workbook('emgDataRight.xls')
+table=data.sheet_by_index(0)    #一个excle可能有多个sheet
+colNumber=table.ncols
+dataAll=[]
+firstCol=table.col_values(0)
+for i in range(colNumber):
+    dataAll.append(table.col_values(i))
+firstCol=[0]+firstCol
+zeroIndex=[]
+dataCache=[]
+for i ,x in enumerate(firstCol):
+    if x ==0:
+        zeroIndex.append(i)
+zeroNumber=len(zeroIndex)
+for i in range(zeroNumber-1):
+    indexLow=zeroIndex[i]
+    indexHigh=zeroIndex[i+1]
+    data=dataAll[indexLow+1:indexHigh]
+    dataCache.append(data)
+
+
+
+print('1')
+
