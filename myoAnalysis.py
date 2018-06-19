@@ -22,8 +22,15 @@ def _ZCR(data):
     return zcrSum
 
 
-def featureGet(emgDataAll, imuDataAll, divisor=4):
+def featureGet(emgDataAll, imuDataAll, divisor=8):
     # 初始参数
+    """
+    获取数据的特征
+    :param emgDataAll:  emg数据，可以是list也可以是array
+    :param imuDataAll: imu数据，可以是list也可以是array
+    :param divisor: 分片数
+    :return: 返回特征
+    """
     emgDataAll = np.array(emgDataAll)
     imuDataAll = np.array(imuDataAll)
     frq = 50  # 频率50Hz
@@ -256,9 +263,6 @@ def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftA
     return featureAll
 
 
-
-
-
 def saveExcleTwoDimension(file='new.xls', dataArray=[], index=0):
     # index是行偏置
     book = xlwt.Workbook()  # 创建一个Excel
@@ -286,6 +290,7 @@ def saveExcle(file='new.xls', dataArray=[], dimensions=2):
 import xlrd
 import pickle
 # 根据名称获取Excel表格中的数据   参数:file：Excel文件路径  colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
+
 
 def excelToDict(file, colnameindex=0, by_name=u'Sheet1'):
     data = xlrd.open_workbook(file)
@@ -351,7 +356,8 @@ class DataCache():
         self.cache = []
         self.cacheLength = 0
 
-def normalized(gestureEmg,gestureImu):
+
+def normalized(gestureEmg, gestureImu):
     """
     对数据归一化
     :param gestureEmg:  手语运动的肌电流数据
@@ -363,10 +369,10 @@ def normalized(gestureEmg,gestureImu):
     imuMin = np.min(np.min(gestureImu))
     emgData = (gestureEmg) / emgMax
     imuData = (gestureImu - imuMin) / (imuMax - imuMin)
-    return emgData,imuData
+    return emgData, imuData
 
 
-def matRead(file):
+def getMatFeature(file):
     """
     mat数据结构
     包含结构体w
@@ -375,9 +381,11 @@ def matRead(file):
     nonZeoLabel是非0数组下标，row是非0数据行数
     读取数据
     :param file:
-    :return: 数据和标签
+    :return: 特征和标签
     """
     data = scio.loadmat(file)
+    featureOne = []
+    featureTwo = []
     w = data['data']
     dataType = w['dataType']
     dataType = dataType[0, 0]
@@ -410,19 +418,101 @@ def matRead(file):
         len = w['len']
         len = len[0, 0]
         len = len[0, 0]
-        row = len*5
-        #只有一只手的数据，那就将左手设定为0
+        row = len * 5
+        # 只有一只手的数据，那就将左手设定为0
         emgLeft = 0
         imuLeft = 0
     emgRight = emgRight[0:row, :]
     imuRight = imuRight[0:row, :]
 
     # 归一化
-    emgRight,imuRight=normalized(emgRight,imuRight)
-    return emgRight, imuRight, emgLeft, imuLeft, labels, dataType
+    emgRight, imuRight = normalized(emgRight, imuRight)
+    if dataType == 1:
+        featureOne = featureGet(emgRight, imuRight, divisor=8)
+
+    elif dataType == 2:
+        featureTwo = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisor=4)
+    if featureOne == []:
+        return featureTwo, labels
+    else:
+        return featureOne, labels
 
 
-def xlsRead(file='.xls'):
+
+def getxlsData(file='*.xls'):
+    """
+    从xls中获取分段好的数据
+    :param file: 存储数据的xls文件
+    :return: 分段好的所有数据
+    """
+    import xlrd
+    data = xlrd.open_workbook(file)
+    table = data.sheet_by_index(0)  # 一个excle可能有多个sheet
+    colNumber = table.ncols
+    dataAll = []
+    zeroIndex = []
+    dataCache = []
+    firstCol = table.col_values(0)
+    for i in range(colNumber):
+        dataAll.append(table.col_values(i))
+    firstCol = [0] + firstCol
+    for i, x in enumerate(firstCol):
+        if x == 0:
+            zeroIndex.append(i)
+    zeroNumber = len(zeroIndex)
+    for i in range(zeroNumber - 1):
+        indexLow = zeroIndex[i]
+        indexHigh = zeroIndex[i + 1]
+        data = dataAll[indexLow + 1:indexHigh]
+        dataCache.append(data)
+    return dataCache
+
+
+def getxlsFeature(path=''):
+    """
+    获取用户自定义数据的特征，数据存储在xls表格中
+    :param path: 要获取的特征的数据路径
+    :param handNumber: 要获取手势是单手还是双手，单手1，双手2
+    :return: 手势的特征
+    """
+    features=[]
+    #判断单手还是双手
+    keyWord=['two','Two']
+    handNumber=1
+    for word in keyWord:
+        if word in path:
+            handNumber=2
+    if handNumber ==1:
+        emgRightFile=path+'emgDataRight.xls'
+        imuRightFile=path+'imuDataRight.xls'
+        emgRightDataAll=getxlsData(emgRightFile)
+        imuRightDataAll=getxlsData(imuRightFile)
+        dataNumber=len(emgRightDataAll)
+        for i in range(dataNumber):
+            emgRighData=emgRightDataAll.pop() #三维list弹出二维list
+            imuRightData=imuRightDataAll.pop()
+            featureOne=featureGet(emgRighData,imuRightData,divisor=8)
+            features.append(featureOne)
+    elif handNumber ==2:
+        emgRightFile=path+'emgDataRight.xls'
+        imuRightFile=path+'imuDataRight.xls'
+        emgLeftFile=path+'emgDataLeft.xls'
+        imuLeftFile=path+'imuDataLeft.xls'
+        emgRightDataAll=getxlsData(emgRightFile)
+        imuRightDataAll=getxlsData(imuRightFile)
+        emgLeftDataAll=getxlsData(emgLeftFile)
+        imuLeftDataAll = getxlsData(imuLeftFile)
+        dataNumber=len(emgRightDataAll)
+        for i in range(dataNumber):
+            emgRighData=emgRightDataAll.pop() #三维list弹出二维list
+            imuRightData=imuRightDataAll.pop()
+            emgLeftData=emgLeftDataAll.pop()
+            imuLeftData=imuLeftDataAll.pop()
+            featureTwo=featureGetTwo(emgRighData,imuRightData,emgLeftData,imuLeftData,divisor=8)
+            features.append(featureTwo)
+    else:
+        print('error')
+    return  features
 
 
 
@@ -439,10 +529,9 @@ def getSVM(trainX, trainY):
     from sklearn.svm import SVC
     trainX = np.array(trainX)
     trainY = np.array(trainY)
-    model = SVC(kernel='linear',degree=3)
+    model = SVC(kernel='linear', degree=3)
     model.fit(trainX, trainY.ravel())
     return model
-
 
 
 if __name__ == '__main__':

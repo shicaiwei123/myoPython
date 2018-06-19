@@ -445,17 +445,23 @@
 # # animation.write_gif("sinc.gif", fps=20)
 #
 #
-# # #测试列表
-# # a=[[[1,2,3],[2,3,4]]]
-# # b=a[0]
-# # c=[]
-# # c=c+a
-# # c[0].append([111,111111])
-# # b.append([66,64,1])
-# # a[0].append([11,11,1111])
-# # print(a)
-# # print(c)
-# # print(b)
+#测试列表
+import numpy as np
+a=[[[1,2,3]],[[2,3,4]]]
+b=a.pop()
+c=np.array(b)
+print(c)
+# b=a[0]
+# c=[]
+# c=c+a
+# c[0].append([111,111111])
+# b.append([66,64,1])
+# a[0].append([11,11,1111])
+# print(a)
+# print(c)
+# print(b)
+
+
 #
 # # # 测试python程序
 # # import numpy as np
@@ -556,36 +562,36 @@
 
 
 # #子串测试
-# # b='allTwo'
-# # c='two'
-# # d='Two'
-# # e= d in b
-# # print(e)
+# b='allTwo'
+# c=['two','Two']
+# for i in c:
+#     e=i in b
+#     print(e)
 
-
-#xls读写
-import  xlrd
-data =xlrd.open_workbook('emgDataRight.xls')
-table=data.sheet_by_index(0)    #一个excle可能有多个sheet
-colNumber=table.ncols
-dataAll=[]
-firstCol=table.col_values(0)
-for i in range(colNumber):
-    dataAll.append(table.col_values(i))
-firstCol=[0]+firstCol
-zeroIndex=[]
-dataCache=[]
-for i ,x in enumerate(firstCol):
-    if x ==0:
-        zeroIndex.append(i)
-zeroNumber=len(zeroIndex)
-for i in range(zeroNumber-1):
-    indexLow=zeroIndex[i]
-    indexHigh=zeroIndex[i+1]
-    data=dataAll[indexLow+1:indexHigh]
-    dataCache.append(data)
-
-
-
-print('1')
-
+#
+# #xls读写
+# import  xlrd
+# data =xlrd.open_workbook('emgDataRight.xls')
+# table=data.sheet_by_index(0)    #一个excle可能有多个sheet
+# colNumber=table.ncols
+# dataAll=[]
+# zeroIndex=[]
+# dataCache=[]
+# firstCol=table.col_values(0)
+# for i in range(colNumber):
+#     dataAll.append(table.col_values(i))
+# firstCol=[0]+firstCol
+# for i ,x in enumerate(firstCol):
+#     if x ==0:
+#         zeroIndex.append(i)
+# zeroNumber=len(zeroIndex)
+# for i in range(zeroNumber-1):
+#     indexLow=zeroIndex[i]
+#     indexHigh=zeroIndex[i+1]
+#     data=dataAll[indexLow+1:indexHigh]
+#     dataCache.append(data)
+#
+#
+#
+# print('1')
+#
