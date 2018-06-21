@@ -1,11 +1,14 @@
 import getData.getData as myoData  # 数据接口
 from myoAnalysis import saveExcle  # 数据操作
 from myoAnalysis import excelToDict
+from myoAnalysis import featureGetTwo, featureGet
+from myoAnalysis import normalized
 import os
+import numpy as np
 import xlrd
 
 
-def findKey(dict=None, gestureName=None):
+def getKey(dict=None, gestureName=None):
     """
     根据value查找字典的key
     :param dict:   字典
@@ -32,7 +35,7 @@ def getFloderNumber(path=None):
     :param path: 文件夹路径
     :return: 当前路径下文件夹数目
     """
-    count = 1
+    count = 0
     floderExist = os.path.exists(path)
     if floderExist:
         for fn in os.listdir(path):  # fn 表示的是文件名
@@ -40,18 +43,127 @@ def getFloderNumber(path=None):
     return count
 
 
+def getxlsData(file='*.xls'):
+    """
+    从xls中获取分段好的数据
+    :param file: 存储数据的xls文件
+    :return: 分段好的所有数据
+    """
+    import xlrd
+    data = xlrd.open_workbook(file)
+    table = data.sheet_by_index(0)  # 一个excle可能有多个sheet
+    colNumber = table.ncols
+    dataAll = []
+    zeroIndex = []
+    dataCache = []
+    firstCol = table.col_values(0)
+    for i in range(colNumber):
+        dataAll.append(table.col_values(i))
+    firstCol = [0] + firstCol
+    for i, x in enumerate(firstCol):
+        if x == 0:
+            zeroIndex.append(i)
+    zeroNumber = len(zeroIndex)
+    for i in range(zeroNumber - 1):
+        indexLow = zeroIndex[i]
+        indexHigh = zeroIndex[i + 1]
+        import numpy as np
+        b=np.array(dataAll)
+        dataAll = np.array(dataAll)
+        data=dataAll[:,indexLow:indexHigh-1]
+        # data = dataAll[:][indexLow:indexHigh - 1]
+        data = np.array(data)
+        data = np.transpose(data)
+        data = np.delete(data, indexHigh - indexLow-2, 0)
+        data = list(data)
+        dataCache.append(data)
+    return dataCache
+
+
+def getxlsFeature(path=''):
+    """
+    获取用户自定义数据的特征，数据存储在xls表格中
+    :param path: 要获取的特征的数据路径
+    :param handNumber: 要获取手势是单手还是双手，单手1，双手2
+    :return: 手势的特征
+    """
+    features = []
+    # 判断单手还是双手
+    keyWord = ['two', 'Two']
+    handNumber = 1
+    for word in keyWord:
+        if word in path:
+            handNumber = 2
+    if handNumber == 1:
+        emgRightFile = path + 'emgDataRight.xls'
+        imuRightFile = path + 'imuDataRight.xls'
+        emgRightDataAll = getxlsData(emgRightFile)
+        imuRightDataAll = getxlsData(imuRightFile)
+        dataNumber = len(emgRightDataAll)
+        for i in range(dataNumber):
+            emgRightData = emgRightDataAll.pop()  # 三维list弹出二维list
+            imuRightData = imuRightDataAll.pop()
+            emgRightData = np.array(emgRightData, dtype='float_')
+            imuRightData = np.array(imuRightData, dtype='float_')
+            emgRightData, imuRightData = normalized(emgRightData, imuRightData)
+            featureOne = featureGet(emgRightData, imuRightData, divisor=8)
+            features.append(featureOne)
+    elif handNumber == 2:
+        emgRightFile = path + 'emgDataRight.xls'
+        imuRightFile = path + 'imuDataRight.xls'
+        emgLeftFile = path + 'emgDataLeft.xls'
+        imuLeftFile = path + 'imuDataLeft.xls'
+        emgRightDataAll = getxlsData(emgRightFile)
+        imuRightDataAll = getxlsData(imuRightFile)
+        emgLeftDataAll = getxlsData(emgLeftFile)
+        imuLeftDataAll = getxlsData(imuLeftFile)
+        dataNumber = len(emgRightDataAll)
+        for i in range(dataNumber):
+            emgRightData = emgRightDataAll.pop()  # 三维list弹出二维list
+            imuRightData = imuRightDataAll.pop()
+            emgLeftData = emgLeftDataAll.pop()
+            imuLeftData = imuLeftDataAll.pop()
+            emgRightData = np.array(emgRightData, dtype='float_')
+            imuRightData = np.array(imuRightData, dtype='float_')
+            emgLeftData = np.array(emgLeftData, dtype='float_')
+            imuLeftData = np.array(imuLeftData, dtype='float_')
+            emgRightData, imuRightData = normalized(emgRightData, imuRightData)
+            emgLeftData, imuLeftData = normalized(emgLeftData, imuLeftData)
+            featureTwo = featureGetTwo(emgRightData, imuRightData, emgLeftData, imuLeftData, divisor=4)
+            features.append(featureTwo)
+    else:
+        print('error')
+    return features
+
+
 def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
+    """
+    获取用户自定义的数据并且存储
+    :param HandNumber:   采集的手势是单手的还是双手的
+    :param FileName:     采集的手势的名字
+    :param DataNumber:   采集的手势要采集多少个
+    :return: 没有返回值，直接是存储的数据
+    """
 
     # 初始化
     m = myoData.init()
     dataDict = excelToDict('dataSheet.xlsx')
-    label = findKey(dataDict, fileName)
-    if os.path.exists('GuestData'):
-        floderNumber=1
-    else:
-        floderNumber = getFloderNumber('GuestData/')
-    floderPath = 'GuestData/' + 'time' + str(floderNumber) + '/'
+    # label = findKey(dataDict, fileName)
+    if not os.path.exists('GuestData'):
+        os.makedirs('GuestData')
+
+    #     floderNumber = getFloderNumber('GuestData/')
+    # else:
+    #     floderNumber = 1
+    # #看原文件夹有没有这个手势文件，如果没有就放在原文件，有就新建一个文件夹
+    # for i in range(floderNumber):
+    #     floderPath = 'GuestData/' + 'time' + str(i+1) + '/'+FileName
+    #     if ~os.path.exists(floderPath):
+    #         floderNumber=i+1
+    #         break
+
     # 右手
+    floderPath = 'GuestData/'
     emgRightData = []  # 一次手势数据
     imuRightData = []  # 一次手势数据
     emgRightDataAll = []  # 所有数据
@@ -77,7 +189,8 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
             engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
             if HandNumber == 1:
                 path = floderPath + 'one/' + FileName
-                os.makedirs(path)
+                if not os.path.exists(path):
+                    os.makedirs(path)
                 saveExcle(path + '/emgDataRight.xls', emgRightData)
                 saveExcle(path + '/imuDataRight.xls', imuRightData)
                 saveExcle(path + '/emgDataRightAll.xls', emgRightDataAll)
@@ -85,11 +198,12 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
 
                 saveExcle(path + '/engeryDataAll.xls', engeryDataAll)
                 saveExcle(path + '/engeryDataSeg.xls', engeryDataSeg)
-                saveExcle(path + '/label.xls', [label])
+                # saveExcle(path + '/label.xls', [label])
 
             elif HandNumber == 2:
                 path = floderPath + 'two/' + FileName
-                os.makedirs(path)
+                if not os.path.exists(path):
+                    os.makedirs(path)
                 saveExcle(path + '/emgDataRight.xls', emgRightData)
                 saveExcle(path + '/imuDataRight.xls', imuRightData)
                 saveExcle(path + '/emgDataRightAll.xls', emgRightDataAll)
@@ -102,7 +216,7 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
 
                 saveExcle(path + '/engeryDataAll.xls', engeryDataAll)
                 saveExcle(path + '/engeryDataSeg.xls', engeryDataSeg)
-                saveExcle(path + '/label.xls', [label])
+                # saveExcle(path + '/label.xls', [label])
             else:
                 print("error")
             break
@@ -132,14 +246,23 @@ if __name__ == '__main__':
     """
     获取数据
     """
-    print("采集单手手势输入1，双手手势输入2：\t")
-    handNumber = int(input())
-    print("请输入要采集的手势名称：\t")
-    fileName = input()
-    print("请输入要采集手势的采集数目：\t")
-    dataNumber = int(input())
-    getDataSet(handNumber, fileName, dataNumber)
-    print('hello world')
+    dataDict = excelToDict('dataSheet.xlsx')
+    features = []
+    labels = []
+    # while True:
+    #     print("采集单手手势输入1，双手手势输入2：\t")
+    #     handNumber = int(input())
+    #     print("请输入要采集的手势名称：\t")
+    #     fileName = input()
+    #     print("请输入要采集手势的采集数目：\t")
+    #     dataNumber = int(input())
+    #     getDataSet(handNumber, fileName, dataNumber)
+    #     print('是否继续？继续请输入y，否则输入n')
+    #     flag=input()
+    #     if flag=='n':
+    #         break
+
+
 # lable单独保存，后面可能是存一次就训练，也可能采集多次再训练
 # 同一个手势采集了多次怎么办？
     # 训练的时候遍历这些文件夹
@@ -150,4 +273,35 @@ if __name__ == '__main__':
     # 接下来是文件操作，数据读取，训练，保存。
     # 天，那还不如就直接做一个app设置。
 
-#解决了冲突问题
+# 解决了冲突问题
+    guestOnePath = 'GuestData/one/'
+    guestTwoPath = 'GuestData/two/'
+    gestureOneNumber = getFloderNumber(guestOnePath)
+    gestureTwoNumber = getFloderNumber(guestTwoPath)
+    rootOne, oneFileName, file = os.walk(guestOnePath)
+    rootTwo, twoFileName, file = os.walk(guestOnePath)
+    gestureOneName = rootOne[1]
+    gestureTwoName = rootTwo[1]
+    # 操作单手数据
+    for i in range(gestureOneNumber):
+        gestureName = gestureOneName[i]
+        label = getKey(dataDict, gestureName)
+        gesturePath = guestOnePath + gestureName + '/'
+        gestureFeature = getxlsFeature(gesturePath)
+        features.append(gestureFeature)
+        featureNumber = len(gestureFeature)
+        for _ in range(featureNumber):
+            labels.append(label)
+
+    # 操作双手数据
+    for i in range(gestureTwoNumber):
+        gestureName = gestureTwoName[i]
+        label = getKey(dataDict, gestureName)
+        gesturePath = guestOnePath + gestureName + '/'
+        gestureFeature = getxlsFeature(gesturePath)
+        features.append(gestureFeature)
+        featureNumber = len(gestureFeature)
+        for _ in range(featureNumber):
+            labels.append(label)
+
+#完成了用户自定义特征的提取，接下来加入初始特征就可以

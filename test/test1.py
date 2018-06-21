@@ -446,11 +446,11 @@
 #
 #
 #测试列表
-import numpy as np
-a=[[[1,2,3]],[[2,3,4]]]
-b=a.pop()
-c=np.array(b)
-print(c)
+# import numpy as np
+# a=[[[1,2,3]],[[2,3,4]]]
+# b=a.pop()
+# c=np.array(b)
+# print(c)
 # b=a[0]
 # c=[]
 # c=c+a
@@ -594,4 +594,9 @@ print(c)
 #
 #
 # print('1')
-#
+import  numpy as np
+a=[[1,2,3],[4,5,6],[7,8,9]]
+a=np.array(a)
+b=a[:,0:3]
+print(b)
+

@@ -364,6 +364,8 @@ def normalized(gestureEmg, gestureImu):
     :param gestureEmg:  手语运动的惯性传感器数据
     :return:  归一化数据的肌电流，惯性传感器数据
     """
+    gestureEmg=np.array(gestureEmg)
+    gestureImu=np.array(gestureImu)
     emgMax = np.max(np.max(gestureEmg))
     imuMax = np.max(np.max(gestureImu))
     imuMin = np.min(np.min(gestureImu))
@@ -439,80 +441,6 @@ def getMatFeature(file):
 
 
 
-def getxlsData(file='*.xls'):
-    """
-    从xls中获取分段好的数据
-    :param file: 存储数据的xls文件
-    :return: 分段好的所有数据
-    """
-    import xlrd
-    data = xlrd.open_workbook(file)
-    table = data.sheet_by_index(0)  # 一个excle可能有多个sheet
-    colNumber = table.ncols
-    dataAll = []
-    zeroIndex = []
-    dataCache = []
-    firstCol = table.col_values(0)
-    for i in range(colNumber):
-        dataAll.append(table.col_values(i))
-    firstCol = [0] + firstCol
-    for i, x in enumerate(firstCol):
-        if x == 0:
-            zeroIndex.append(i)
-    zeroNumber = len(zeroIndex)
-    for i in range(zeroNumber - 1):
-        indexLow = zeroIndex[i]
-        indexHigh = zeroIndex[i + 1]
-        data = dataAll[indexLow + 1:indexHigh]
-        dataCache.append(data)
-    return dataCache
-
-
-def getxlsFeature(path=''):
-    """
-    获取用户自定义数据的特征，数据存储在xls表格中
-    :param path: 要获取的特征的数据路径
-    :param handNumber: 要获取手势是单手还是双手，单手1，双手2
-    :return: 手势的特征
-    """
-    features=[]
-    #判断单手还是双手
-    keyWord=['two','Two']
-    handNumber=1
-    for word in keyWord:
-        if word in path:
-            handNumber=2
-    if handNumber ==1:
-        emgRightFile=path+'emgDataRight.xls'
-        imuRightFile=path+'imuDataRight.xls'
-        emgRightDataAll=getxlsData(emgRightFile)
-        imuRightDataAll=getxlsData(imuRightFile)
-        dataNumber=len(emgRightDataAll)
-        for i in range(dataNumber):
-            emgRighData=emgRightDataAll.pop() #三维list弹出二维list
-            imuRightData=imuRightDataAll.pop()
-            featureOne=featureGet(emgRighData,imuRightData,divisor=8)
-            features.append(featureOne)
-    elif handNumber ==2:
-        emgRightFile=path+'emgDataRight.xls'
-        imuRightFile=path+'imuDataRight.xls'
-        emgLeftFile=path+'emgDataLeft.xls'
-        imuLeftFile=path+'imuDataLeft.xls'
-        emgRightDataAll=getxlsData(emgRightFile)
-        imuRightDataAll=getxlsData(imuRightFile)
-        emgLeftDataAll=getxlsData(emgLeftFile)
-        imuLeftDataAll = getxlsData(imuLeftFile)
-        dataNumber=len(emgRightDataAll)
-        for i in range(dataNumber):
-            emgRighData=emgRightDataAll.pop() #三维list弹出二维list
-            imuRightData=imuRightDataAll.pop()
-            emgLeftData=emgLeftDataAll.pop()
-            imuLeftData=imuLeftDataAll.pop()
-            featureTwo=featureGetTwo(emgRighData,imuRightData,emgLeftData,imuLeftData,divisor=8)
-            features.append(featureTwo)
-    else:
-        print('error')
-    return  features
 
 
 
