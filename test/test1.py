@@ -594,9 +594,11 @@
 #
 #
 # print('1')
-import  numpy as np
-a=[[1,2,3],[4,5,6],[7,8,9]]
-a=np.array(a)
-b=a[:,0:3]
-print(b)
-
+# import  numpy as np
+# a=[[1,2,3],[4,5,6],[7,8,9]]
+# a=np.array(a)
+# # np.save('b.npy',a)
+# b=np.load('b.npy')
+# print(b)
+import os
+print(os.getcwd())

@@ -24,9 +24,11 @@ def getdataModel(path=None):
     for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试
         file = path + str(i) + '.mat'
         feature, label = getMatFeature(file)
+        label=list(label[0])
         features.append(feature)
-        labels.append([label])
+        labels.append(label)
     # 训练模型
+
     model = getSVM(features, labels)
 
     # 训练和测试
@@ -43,8 +45,9 @@ def getdataModel(path=None):
         if counter != 1:
             file = path + str(i) + '.mat'
             feature,label = getMatFeature(file)
+            label = list(label[0])
             features.append(feature)
-            labels.append([label])
+            labels.append(label)
     # 训练模型
     modelTest = getSVM(features, labels)
     # joblib.dump(model, modelName)
@@ -63,7 +66,7 @@ def getdataModel(path=None):
         if counter == 1:
             file = path + str(i) + '.mat'
             feature,label = getMatFeature(file)
-            labels.append([label])
+            label=label[0]
             r = modelTest.predict([feature])
             result.append(r)
             # 结论
@@ -78,7 +81,8 @@ def getdataModel(path=None):
 if __name__ == '__main__':
 
 #初始化
-    parentPath = os.path.abspath(os.path.dirname(os.getcwd()))
+
+    parentPath = os.path.dirname(os.getcwd())
     path = parentPath + '/allDataOne6/'
     modelOne,accuracy=getdataModel(path)
     print(accuracy)

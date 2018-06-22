@@ -1,5 +1,14 @@
-from getData.getData import *
-from myoAnalysis import *
+import getData.getData as myoData
+from myoAnalysis import featureGet ,featureGetTwo
+from myoAnalysis import excelToDict
+from myoAnalysis import normalized
+from  myoAnalysis import  DataCache
+from sklearn.externals import joblib
+import numpy as np
+import threading
+import queue
+import time
+import os
 from voice.speech import xf_speech
 
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
@@ -15,166 +24,104 @@ from voice.speech import xf_speech
     收集到数据之后，缓存，开启双线程进行识别
 """
 
+
+def predict(model, data):
+    """
+    利用模型进行识别，以及进行一些基本的控制
+    :param model: 模型
+    :param data: 特征
+    :return:
+    """
+
+    t1 = time.time()
+    global isFinish
+    global dataDict
+    result = model.predict(data)
+    result = int(result)
+    t2 = time.time()
+    isFinish = True
+    """
+    400和401是完成
+    402是删除
+    其余是数据缓存
+    """
+    if (result == 402):
+        outCache.delete()
+        if outCache.size != 0:
+            out = outCache.getCache()
+            # list->str
+            str = "".join(out)
+            print(str)  # 输出结果
+    elif (result == 400) or (result == 401):
+        out = outCache.getCache()
+        str = "".join(out)
+        # speaker.speech_sy(str)
+        print(str)  # 输出结果
+        outCache.clear()
+    else:
+        out = dataDict[result]
+        outCache.update(out)
+        print(t2 - t1)  # 测试识别时间
+        out = outCache.getCache()
+        str = "".join(out)
+        # speaker.speech_sy(str)
+        print(str)  # 输出结果
+
 if __name__ == '__main__':
 
-    m = init()
-    # shifoubaocunshuju
-    isSave = False
-    # 导入模型
+    m = myoData.init()
+    threads = []
+    guestModel=['modelOne','modelTwo']
+    parantPath=os.getcwd()
     isTwo = False
-    # 如果是存储数据
-    # if isSave:
-    #     # 右手
-    #     emgRightData = []  # 一次手势数据
-    #     imuRightData = []  # 一次手势数据
-    #     emgRightDataAll = []  # 所有数据
-    #     imuRightDataAll = []
-    #     # 左手
-    #     emgLeftData = []  # 一次手势数据
-    #     imuLeftData = []  # 一次手势数据
-    #     emgLeftDataAll = []  # 所有数据
-    #     imuLeftDataAll = []
-    #     # 能量
-    #     engeryDataAll = []  # 所有数据
-    #     engeryDataSeg = []  # 一次手势数据
-    #     gestureCounter = 0
-    #     try:
-    #         while True:
-    #             # emg, imu, emg_raw = getOnceData(m)
-    #             emgRight, imuRight, emgRightAll, imuRightAll, \
-    #                 emgLeft, imuLeft, emgLeftAll, imuLeftAll, \
-    #                 engeryAll, engerySeg = getGestureData(m)
-    #             gestureCounter = gestureCounter + 1
-    #             print(gestureCounter)
-    #             if emgRight == 10000:
-    #                 fileName = 'wscData'
-    #                 gestureName = '完成2'
-    #                 engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataRight.xls', emgRightData)
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataRight.xls', imuRightData)
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataRightAll.xls', emgRightDataAll)
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataRightAll.xls', imuRightDataAll)
-    #
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataLeft.xls', emgLeftData)
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataLeft.xls', imuLeftData)
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/emgDataLeftAll.xls', emgLeftDataAll)
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/imuDataLeftAll.xls', imuLeftDataAll)
-    #
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/engeryDataAll.xls', engeryDataAll)
-    #                 saveExcle(fileName + '/oneFinger/' + gestureName + '/engeryDataSeg.xls', engeryDataSeg)
-    #                 # saveExcle('wscData/oneFingerFinger/'+gestureName+'/thresholdData.xls', threshold)
-    #                 raise KeyboardInterrupt()
-    #             # 右手
-    #             emgRightData = emgRightData + emgRight + [[0]]
-    #             # print(emg)
-    #             imuRightData = imuRightData + imuRight + [[0]]
-    #
-    #             emgRightDataAll = emgRightDataAll + emgRightAll
-    #             imuRightDataAll = imuRightDataAll + imuRightAll
-    #             # 左手
-    #             emgLeftData = emgLeftData + emgLeft + [[0]]
-    #             # print(emg)
-    #             imuLeftData = imuLeftData + imuLeft + [[0]]
-    #
-    #             emgLeftDataAll = emgLeftDataAll + emgLeftAll
-    #             imuLeftDataAll = imuLeftDataAll + imuLeftAll
-    #             # 能量
-    #             engeryDataAll = engeryDataAll + engeryAll
-    #             engeryDataSeg = engeryDataSeg + engerySeg + [[0]]
-    #
-    #     except KeyboardInterrupt:
-    #         pass
-    #     finally:
-    #         m.disconnect()
-    # # 否则是分析数据
-    # else:
-    from sklearn.externals import joblib
-    import threading
-    import queue
-    import time
-
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
-    # 预测函数，用于多线程的回调
-    # isFinsh 是线程锁
-    isFinish = False
+    isFinish = False     # isFinsh 是线程锁
     outCache = DataCache()
     outCache.__init__()
-
-    def predict(model, data):
-        t1 = time.time()
-        global isFinish
-        global dataDict
-        result = model.predict(data)
-        result = int(result)
-        t2 = time.time()
-        isFinish = True
-        """
-        400和401是完成
-        402是删除
-        其余是数据缓存
-        """
-        if (result == 402):
-            outCache.delete()
-            if outCache.size != 0:
-                out = outCache.getCache()
-                # list->str
-                str = "".join(out)
-                print(str)  # 输出结果
-        elif (result == 400) or (result == 401):
-            out = outCache.getCache()
-            str = "".join(out)
-            # speaker.speech_sy(str)
-            print(str)  # 输出结果
-            outCache.clear()
-        else:
-            out = dataDict[result]
-            outCache.update(out)
-            print(t2 - t1)  # 测试识别时间
-            out = outCache.getCache()
-            str = "".join(out)
-            # speaker.speech_sy(str)
-            print(str)  # 输出结果
     # 导入模型
-    threads = []
-    modelOne = joblib.load('SVM3One')
-    modelTwo = joblib.load('SVM3Two')
+    #如果存在客户自定义模型则导入，不然导入默认模型
+    gusetModelPath='GetDataSet'
+    guestModelContext= os.listdir(gusetModelPath)
+    if guestModel[0] in guestModelContext:
+        modelPath='GetDataSet/'+guestModel[0]
+        modelOne = joblib.load(modelPath)
+    else:
+        modelOne = joblib.load('SVM3One')
+
+    if guestModel[1] in guestModelContext:
+        modelPath='GetDataSet/'+guestModel[1]
+        modelTwo = joblib.load(modelPath)
+    else:
+        modelTwo = joblib.load('SVM3Two')
+
     emg = []
     imu = []
     fetureCache = queue.Queue(10)
     while True:
         emgRight, imuRight, emgRightAll, imuRightAll, \
             emgLeft, imuLeft, emgLeftAll, imuLeftAll, \
-            engeryAll, engerySeg = getGestureData(m)
+            engeryAll, engerySeg = myoData.getGestureData(m)
         if emgRight == 10000:
             break
         if len(emgRight) < 40:
             continue
+        #判断是否为双手
         imuArray = np.array(imuLeft)
         gyo = imuArray[:, 3:6]
         # gyo=np.where(gyo>10)
         gyoLen = len(gyo)
         # print(gyoLen)
-        gyoE = gyoEngery(gyo) / gyoLen
+        gyoE = myoData.gyoEngery(gyo) / gyoLen
         # print(gyoE)
         if gyoE > 50:
             # print(gyoE)
             isTwo = True
-        # 归一化QQ
-        emgRightMax = np.max(np.max(emgRight))
-        imuRightMax = np.max(np.max(imuRight))
-        imuRightMin = np.min(np.min(imuRight))
-        emgRight = (emgRight) / emgRightMax
-        imuRight = (imuRight - imuRightMin) / (imuRightMax - imuRightMin)
-
+        # 归一化
+        emgRight,imuRight=normalized(emgRight,imuRight)
         # 左手
         if isTwo:
-            emgLeftMax = np.max(np.max(emgLeft))
-            imuLeftMax = np.max(np.max(imuLeft))
-            imuLeftMin = np.min(np.min(imuLeft))
-            emgLeft = (emgLeft) / emgLeftMax
-            imuLeft = (imuLeft - imuLeftMin) / (imuLeftMax - imuLeftMin)
-
+            emgLeft,imuLeft=normalized(emgLeft,imuLeft)
         # 特征提取
         if isTwo:
             feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisor=4)

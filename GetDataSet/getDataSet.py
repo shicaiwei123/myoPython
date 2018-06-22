@@ -3,9 +3,11 @@ from myoAnalysis import saveExcle  # 数据操作
 from myoAnalysis import excelToDict
 from myoAnalysis import featureGetTwo, featureGet
 from myoAnalysis import normalized
+from myoAnalysis import getMatFeature
+from myoAnalysis import getSVM
+from sklearn.externals import joblib
 import os
 import numpy as np
-import xlrd
 
 
 def getKey(dict=None, gestureName=None):
@@ -68,13 +70,12 @@ def getxlsData(file='*.xls'):
         indexLow = zeroIndex[i]
         indexHigh = zeroIndex[i + 1]
         import numpy as np
-        b=np.array(dataAll)
+        b = np.array(dataAll)
         dataAll = np.array(dataAll)
-        data=dataAll[:,indexLow:indexHigh-1]
-        # data = dataAll[:][indexLow:indexHigh - 1]
+        data = dataAll[:, indexLow:indexHigh - 1]
         data = np.array(data)
         data = np.transpose(data)
-        data = np.delete(data, indexHigh - indexLow-2, 0)
+        data = np.delete(data, indexHigh - indexLow - 2, 0)
         data = list(data)
         dataCache.append(data)
     return dataCache
@@ -85,7 +86,7 @@ def getxlsFeature(path=''):
     获取用户自定义数据的特征，数据存储在xls表格中
     :param path: 要获取的特征的数据路径
     :param handNumber: 要获取手势是单手还是双手，单手1，双手2
-    :return: 手势的特征
+    :return: 手势的特征,二维列表
     """
     features = []
     # 判断单手还是双手
@@ -147,21 +148,8 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
 
     # 初始化
     m = myoData.init()
-    dataDict = excelToDict('dataSheet.xlsx')
-    # label = findKey(dataDict, fileName)
     if not os.path.exists('GuestData'):
         os.makedirs('GuestData')
-
-    #     floderNumber = getFloderNumber('GuestData/')
-    # else:
-    #     floderNumber = 1
-    # #看原文件夹有没有这个手势文件，如果没有就放在原文件，有就新建一个文件夹
-    # for i in range(floderNumber):
-    #     floderPath = 'GuestData/' + 'time' + str(i+1) + '/'+FileName
-    #     if ~os.path.exists(floderPath):
-    #         floderNumber=i+1
-    #         break
-
     # 右手
     floderPath = 'GuestData/'
     emgRightData = []  # 一次手势数据
@@ -198,7 +186,6 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
 
                 saveExcle(path + '/engeryDataAll.xls', engeryDataAll)
                 saveExcle(path + '/engeryDataSeg.xls', engeryDataSeg)
-                # saveExcle(path + '/label.xls', [label])
 
             elif HandNumber == 2:
                 path = floderPath + 'two/' + FileName
@@ -216,7 +203,6 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
 
                 saveExcle(path + '/engeryDataAll.xls', engeryDataAll)
                 saveExcle(path + '/engeryDataSeg.xls', engeryDataSeg)
-                # saveExcle(path + '/label.xls', [label])
             else:
                 print("error")
             break
@@ -242,11 +228,32 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
         engeryDataSeg = engeryDataSeg + engerySeg + [[0]]
 
 
+def getInitDaat(path=None):
+    """
+    获取初始系统初始话带有的数据
+    :param path: 初始化自带数据路径
+    :return: 初始化数据的特征和标签，都是二维列表
+    """
+    labels=[]
+    features=[]
+    dirData = os.listdir(path)
+    length = len(dirData)  # 数据总数,
+    for i in range(1, length):
+        file = path + str(i) + '.mat'
+        feature, label = getMatFeature(file)
+        label = list(label[0])
+        features.append(feature)
+        labels.append(label)
+    return features, labels
+
+
 if __name__ == '__main__':
     """
     获取数据
     """
-    dataDict = excelToDict('dataSheet.xlsx')
+    lastPath = os.path.dirname(os.getcwd()) # 获取上一层目录路径
+    gestureDataPath=lastPath+'/dataSheet.xlsx'
+    dataDict = excelToDict(gestureDataPath)
     features = []
     labels = []
     # while True:
@@ -273,9 +280,8 @@ if __name__ == '__main__':
     # 接下来是文件操作，数据读取，训练，保存。
     # 天，那还不如就直接做一个app设置。
 
-# 解决了冲突问题
-    guestOnePath = 'GuestData/one/'
-    guestTwoPath = 'GuestData/two/'
+    guestOnePath = lastPath+'/GuestData/one/'
+    guestTwoPath = lastPath+'/GuestData/two/'
     gestureOneNumber = getFloderNumber(guestOnePath)
     gestureTwoNumber = getFloderNumber(guestTwoPath)
     rootOne, oneFileName, file = os.walk(guestOnePath)
@@ -288,20 +294,34 @@ if __name__ == '__main__':
         label = getKey(dataDict, gestureName)
         gesturePath = guestOnePath + gestureName + '/'
         gestureFeature = getxlsFeature(gesturePath)
-        features.append(gestureFeature)
+        features=features+gestureFeature
         featureNumber = len(gestureFeature)
         for _ in range(featureNumber):
-            labels.append(label)
+            labels.append([label])
+
+    # 获取系统初始化的单手的数据
+    initOnePath = lastPath + '/allDataOne6/'
+    initOneFeature, initOneLabel = getInitDaat(initOnePath)
+    oneFeature = features + initOneFeature
+    oneLabel = labels + initOneLabel
+    modelOne = getSVM(features, labels)
+    joblib.dump(modelOne, 'modelOne')
 
     # 操作双手数据
     for i in range(gestureTwoNumber):
         gestureName = gestureTwoName[i]
-        label = getKey(dataDict, gestureName)
         gesturePath = guestOnePath + gestureName + '/'
         gestureFeature = getxlsFeature(gesturePath)
-        features.append(gestureFeature)
+        features = features + gestureFeature
         featureNumber = len(gestureFeature)
+        label = getKey(dataDict, gestureName)
+        label = list(label)
         for _ in range(featureNumber):
             labels.append(label)
-
-#完成了用户自定义特征的提取，接下来加入初始特征就可以
+    # 获取初始化双特征并训练
+    initTwoPath = lastPath + '/allDataTwo4/'
+    initTwoFeature, initTwoLabel = getInitDaat(initTwoPath)
+    twoFeature = features + initTwoFeature
+    twoLabel = labels + initTwoLabel
+    modelTwo = getSVM(twoFeature, twoLabel)
+    joblib.dump(modelTwo, 'modelTwo')
