@@ -445,7 +445,7 @@
 # # animation.write_gif("sinc.gif", fps=20)
 #
 #
-#测试列表
+# 测试列表
 # import numpy as np
 # a=[[[1,2,3]],[[2,3,4]]]
 # b=a.pop()
@@ -544,14 +544,13 @@
 # b=M._ZCR()
 
 
-
 # #文件夹生成测试
 # # import os
 # # path = 'GuestData/one'
 # # os.makedirs(path)
 
 
-#文件夹访问测试
+# 文件夹访问测试
 # import  os
 # path = 'GuestData/one'
 # floderExist=os.path.exists(path)
@@ -600,5 +599,25 @@
 # # np.save('b.npy',a)
 # b=np.load('b.npy')
 # print(b)
-import os
-print(os.getcwd())
+# import os
+# print(os.getcwd())
+
+
+"""随机访问列表"""
+import random
+import numpy as np
+a = [[1, 2, 3, 4], [1, 3], [1, 2], [4, 5]]
+b= random.sample(a,2)
+index=[]
+remainingData=[]
+for i in b:
+    index.append(a.index(i))
+index=tuple(index)
+allIndex=tuple(range(len(a)))
+remaining=set(allIndex).difference(set(index))
+remaining=list(remaining)
+for i in remaining:
+    remainingData.append(a[i])
+
+print(remainingData)
+print(b)
