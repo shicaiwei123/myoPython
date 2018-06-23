@@ -104,7 +104,7 @@ if __name__ == '__main__':
             engeryAll, engerySeg = myoData.getGestureData(m)
         if emgRight == 10000:
             break
-        if len(emgRight) < 40:
+        if len(emgRight) < 30:
             continue
         #判断是否为双手
         imuArray = np.array(imuLeft)

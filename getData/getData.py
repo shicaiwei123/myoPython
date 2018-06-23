@@ -208,6 +208,7 @@ def _getOnceData(m):
         timeNow = time.time() - timeBegin
         # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
         # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
+        # print(imuRightCache)
         # TODO: 询问
         return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
 
@@ -276,6 +277,7 @@ def getGestureData(m):
     engerySeg = []
     gyoLeft = []
     timeBegin = time.time()
+    accQuiet=np.array([67,23,58])
     i = 1
     while True:
         if HAVE_PYGAME:
@@ -286,6 +288,7 @@ def getGestureData(m):
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = _getOnceData(m)
         # print(imuLeftCache[3:6], '\t', imuRightCache[3:6])
         gyo = gyo + imuRightCache[3:6]
+        acc=np.array(imuRightCache[0:3])
         # 采集带有时间的原始做判断
         # e = imuRightCache[8:11]
         # gyo = gyo + list(np.array(e) / 20)
@@ -304,15 +307,16 @@ def getGestureData(m):
             dataTimes = dataTimes + 1
 
         else:
-
+            accDiff=(acc[0]-accQuiet[0])**2+(acc[1]-accQuiet[1])**2+(acc[2]-accQuiet[2])**2
             gyoE = gyoEngery(gyo)
             # print('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
+            # print(accDiff)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
             if gyoE > beginSave:  # 开始存储数据
                 if i == 1:
-                    tStart = time.time()
+                    # tStart = time.time()
                     i = i + 1
                 isSave = True
                 clearCounter = 1
@@ -346,18 +350,20 @@ def getGestureData(m):
                 if gyoRightActive < 2:  # 滤波
 
                     gyoRightQuiet = 0
+                elif accDiff>5000:
+                    gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
                 else:
 
                     gyoRightQuiet = 0
 
                     activeTimes = activeTimes + 1
-                    threshold = 50
+                    threshold = 500
                     GyoRightQuietTimes = 1
                     if activeTimes == ActiveTimes:
                         isSave = False
-                        t3 = time.time()
-                        print(t3 - tStart)
-                        print((len(emgRightData) / 5) * 0.1)  # 理论时间
+                        # t3 = time.time()
+                        # print(t3 - tStart)
+                        # print((len(emgRightData) / 5) * 0.1)  # 理论时间
                         if len(emgRightData) != len(imuRightData):  # 接收到的鞥和imu数据长度不等
                             print('wrong Data')
                             # ping一下？？
