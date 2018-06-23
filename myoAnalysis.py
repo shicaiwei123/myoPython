@@ -6,6 +6,7 @@
 import numpy as np
 import xlwt
 import scipy.io as scio
+import random
 
 
 # xlwt只能储存float数据
@@ -461,6 +462,45 @@ def getSVM(trainX, trainY):
     model.fit(trainX, trainY.ravel())
     return model
 
+
+def getModel(feature, label, ratio):
+    """
+
+    :param feature: 数据特征
+    :param label: 数据标签，维度要和特征一直
+    :param ratio: 用于测试的数据比例
+    :return: 训练模型和准确度
+    """
+
+    " ""初始化 """
+    length = len(feature)
+    """模型训练"""
+    model = getSVM(feature, label)
+    """测试模型准确度"""
+    """获取测试数据，训练数据"""
+    learnLabel = []
+    learnIndex = []
+    number = int(length * (1 - ratio))
+    learnData = random.sample(feature, number)
+    for i in learnData:
+        learnIndex.append(feature.index(i))
+    learnIndex = tuple(learnIndex)
+    allIndex = tuple(range(len(feature)))
+    testIndex = set(allIndex).difference(set(learnIndex))
+    for i in learnIndex:
+        learnLabel.append(label[i])
+
+    learnModel = getSVM(learnData, learnLabel)
+
+    right = 0
+    for i in testIndex:
+        testData = feature[i]
+        testLabel = label[i]
+        testResult = learnModel.predict([testData])
+        if testResult == testLabel:
+            right = right + 1
+    accuracy = right / len(testIndex)
+    return model, accuracy
 
 if __name__ == '__main__':
     cache = DataCache()

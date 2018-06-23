@@ -306,7 +306,7 @@ def getGestureData(m):
         else:
 
             gyoE = gyoEngery(gyo)
-            print('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
+            # print('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1

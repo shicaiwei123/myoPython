@@ -68,7 +68,7 @@ def predict(model, data):
         print(str)  # 输出结果
 
 if __name__ == '__main__':
-
+    #去做准确率测试
     m = myoData.init()
     threads = []
     guestModel=['modelOne','modelTwo']

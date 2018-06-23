@@ -304,7 +304,7 @@ if __name__ == '__main__':
     initOneFeature, initOneLabel = getInitDaat(initOnePath)
     oneFeature = features + initOneFeature
     oneLabel = labels + initOneLabel
-    modelOne,accuracyOne=getModel(oneFeature,oneLabel)
+    modelOne,accuracyOne=getModel(oneFeature,oneLabel,0.2)
     joblib.dump(modelOne, 'modelOne')
     print(accuracyOne)
 
@@ -324,6 +324,6 @@ if __name__ == '__main__':
     initTwoFeature, initTwoLabel = getInitDaat(initTwoPath)
     twoFeature = features + initTwoFeature
     twoLabel = labels + initTwoLabel
-    modelTwo,accuracyTwo = getModel(twoFeature, twoLabel)
+    modelTwo,accuracyTwo = getModel(twoFeature, twoLabel,0.2)
     joblib.dump(modelTwo, 'modelTwo')
     print(accuracyTwo)
