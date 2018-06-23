@@ -9,7 +9,6 @@ from sklearn.externals import joblib
 import os
 import numpy as np
 
-
 def getKey(dict=None, gestureName=None):
     """
     根据value查找字典的key
@@ -256,20 +255,20 @@ if __name__ == '__main__':
     dataDict = excelToDict(gestureDataPath)
     features = []
     labels = []
-    # while True:
-    #     print("采集单手手势输入1，双手手势输入2：\t")
-    #     handNumber = int(input())
-    #     print("请输入要采集的手势名称：\t")
-    #     fileName = input()
-    #     print("请输入要采集手势的采集数目：\t")
-    #     dataNumber = int(input())
-    #     getDataSet(handNumber, fileName, dataNumber)
-    #     print('是否继续？继续请输入y，否则输入n')
-    #     flag=input()
-    #     if flag=='n':
-    #         break
+    while True:
+        print("采集单手手势输入1，双手手势输入2：\t")
+        handNumber = int(input())
+        print("请输入要采集的手势名称：\t")
+        fileName = input()
+        print("请输入要采集手势的采集数目：\t")
+        dataNumber = int(input())
+        getDataSet(handNumber, fileName, dataNumber)
+        print('是否继续？继续请输入y，否则输入n')
+        flag=input()
+        if flag=='n':
+            break
 
-
+    print('开始训练')
 # lable单独保存，后面可能是存一次就训练，也可能采集多次再训练
 # 同一个手势采集了多次怎么办？
     # 训练的时候遍历这些文件夹
@@ -327,3 +326,4 @@ if __name__ == '__main__':
     modelTwo,accuracyTwo = getModel(twoFeature, twoLabel,0.2)
     joblib.dump(modelTwo, 'modelTwo')
     print(accuracyTwo)
+    print('训练完成')
