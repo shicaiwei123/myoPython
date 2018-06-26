@@ -12,6 +12,13 @@ except ImportError:
         from StringIO import StringIO
 from WaveOperate.WaveFilter import *
 from BaiduSpeech.SpeechRecognizer import *
+from Server.server import ShowWebSocket
+
+
+def push_recognize_data(err_no, result):
+    print(result)
+    ShowWebSocket.push_data("0", result)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -44,7 +51,8 @@ if __name__ == "__main__":
     speech_recognizer.wav_file_recognize_async('WaveOperate/RecordExample.wav', print, print)
     # speech_recognizer.wav_file_recognize_async('WaveOperate/RecordFilteredExample.wav', print, print)
 
-    speech_recognizer.speech_recognize_async(print, print)
+    # speech_recognizer.speech_recognize_async(print, print)
+    speech_recognizer.speech_recognize_async(push_recognize_data, print)
 
 
 
