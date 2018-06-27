@@ -10,7 +10,9 @@ t1.start()
 def server():
     os.system("python3 ./Server/server.py")
 
-t2 = threading.Thread(target=server)
-t2.start()
+#t2 = threading.Thread(target=server)
+#t2.start()
 
 os.system("python3 ./main.py")
+#t1.join()
+#t2.join()

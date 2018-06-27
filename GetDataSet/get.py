@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../')
 import getData.getData as myoData  # 数据接口
 from myoAnalysis import saveExcle  # 数据操作
 from myoAnalysis import excelToDict

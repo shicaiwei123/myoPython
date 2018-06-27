@@ -3,6 +3,8 @@ import json
 import uuid
 import logging
 import threading
+import redis
+
 try:
     from io import BytesIO as StringIO
 except ImportError:
@@ -14,10 +16,13 @@ from WaveOperate.WaveFilter import *
 from BaiduSpeech.SpeechRecognizer import *
 from Server.server import ShowWebSocket
 
+r = redis.Redis(host="127.0.0.1")
 
 def push_recognize_data(err_no, result):
-    print(result)
-    ShowWebSocket.push_data("0", result)
+    #print(result)
+    r.publish("voice", "0+" + result[0])
+    print("push data to redis")
+    #print(result[0])
 
 
 if __name__ == "__main__":
@@ -36,7 +41,7 @@ if __name__ == "__main__":
     sonic_conf = Sonic(**sonic_conf)
     bandpass_filter = butter_bandpass(150, 2000, sonic_conf.sample_frequency)
     record_conf = {
-        'gate_value':200,
+            'gate_value':700,
         'series_min_count':30,
         'block_min_count':8,
         'speech_filter':bandpass_filter

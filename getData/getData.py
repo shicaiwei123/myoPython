@@ -8,7 +8,7 @@ from pygame.locals import *
 from Bean.myo_hub import MyoHub
 from myoAnalysis import *
 
-HAVE_PYGAME = True
+HAVE_PYGAME = False
 
 global timeBegin
 dataCache = list(range(1, 105))  # 缓存5个
@@ -350,14 +350,14 @@ def getGestureData(m):
                 if gyoRightActive < 2:  # 滤波
 
                     gyoRightQuiet = 0
-                elif accDiff>5000:
-                    gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
+               # elif accDiff>10000:
+                   # gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
                 else:
 
                     gyoRightQuiet = 0
 
                     activeTimes = activeTimes + 1
-                    threshold = 500
+                    threshold = 100
                     GyoRightQuietTimes = 1
                     if activeTimes == ActiveTimes:
                         isSave = False

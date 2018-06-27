@@ -11,9 +11,11 @@ import time
 import os
 from voice.speech import xf_speech
 from Server.server import ShowWebSocket
+import redis
 
+r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-# speaker = xf_speech('/dev/ttyUSB0')
+speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -52,14 +54,16 @@ def predict(model, data):
             out = outCache.getCache()
             # list->str
             str = "".join(out)
-            ShowWebSocket.put_data("2", str)
-            # print(str)  # 输出结果
+            r.publish("gesture", "1" + str)
+            # ShowWebSocket.put_data("2", str)
+            print(str)  # 输出结果
     elif (result == 400) or (result == 401):
         out = outCache.getCache()
         str = "".join(out)
-        # speaker.speech_sy(str)
-        ShowWebSocket.put_data("1", str)
-        # print(str)  # 输出结果
+        speaker.speech_sy(str)
+        # ShowWebSocket.put_data("1", str)
+        r.publish("gesture", "2" + str)
+        print(str)  # 输出结果
         outCache.clear()
     else:
         out = dataDict[result]
@@ -67,9 +71,10 @@ def predict(model, data):
         print(t2 - t1)  # 测试识别时间
         out = outCache.getCache()
         str = "".join(out)
-        # speaker.speech_sy(str)
-        ShowWebSocket.put_data("2", str)
-        #print(str)  # 输出结果
+        speaker.speech_sy(str)
+        # ShowWebSocket.put_data("1", str)
+        r.publish("gesture", "2" + str)
+        print(str)  # 输出结果
 
 
 if __name__ == '__main__':
@@ -79,6 +84,13 @@ if __name__ == '__main__':
     guestModel=['modelOne','modelTwo']
     parantPath=os.getcwd()
     isTwo = False
+    print('isNew?')
+    a=input()
+    if a=='y':
+       isNew = True
+    if a=='n':
+       isNew = False
+       
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
     isFinish = False     # isFinsh 是线程锁
@@ -88,13 +100,13 @@ if __name__ == '__main__':
     #如果存在客户自定义模型则导入，不然导入默认模型
     gusetModelPath='GetDataSet'
     guestModelContext= os.listdir(gusetModelPath)
-    if guestModel[0] in guestModelContext:
+    if guestModel[0] in guestModelContext and isNew:
         modelPath='GetDataSet/'+guestModel[0]
         modelOne = joblib.load(modelPath)
     else:
         modelOne = joblib.load('SVM3One')
 
-    if guestModel[1] in guestModelContext:
+    if guestModel[1] in guestModelContext and isNew:
         modelPath='GetDataSet/'+guestModel[1]
         modelTwo = joblib.load(modelPath)
     else:
