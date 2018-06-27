@@ -10,6 +10,7 @@ import queue
 import time
 import os
 from voice.speech import xf_speech
+from Server.server import ShowWebSocket
 
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
 # speaker = xf_speech('/dev/ttyUSB0')
@@ -51,12 +52,14 @@ def predict(model, data):
             out = outCache.getCache()
             # list->str
             str = "".join(out)
-            print(str)  # 输出结果
+            ShowWebSocket.put_data("2", str)
+            # print(str)  # 输出结果
     elif (result == 400) or (result == 401):
         out = outCache.getCache()
         str = "".join(out)
         # speaker.speech_sy(str)
-        print(str)  # 输出结果
+        ShowWebSocket.put_data("1", str)
+        # print(str)  # 输出结果
         outCache.clear()
     else:
         out = dataDict[result]
@@ -65,7 +68,9 @@ def predict(model, data):
         out = outCache.getCache()
         str = "".join(out)
         # speaker.speech_sy(str)
-        print(str)  # 输出结果
+        ShowWebSocket.put_data("2", str)
+        #print(str)  # 输出结果
+
 
 if __name__ == '__main__':
     #去做准确率测试
