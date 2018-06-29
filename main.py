@@ -1,8 +1,8 @@
 import getData.getData as myoData
-from myoAnalysis import featureGet ,featureGetTwo
+from myoAnalysis import featureGet, featureGetTwo
 from myoAnalysis import excelToDict
 from myoAnalysis import normalized
-from  myoAnalysis import  DataCache
+from myoAnalysis import DataCache
 from sklearn.externals import joblib
 import numpy as np
 import threading
@@ -54,60 +54,60 @@ def predict(model, data):
             out = outCache.getCache()
             # list->str
             str = "".join(out)
-            r.publish("gesture", "1" + str)
+            # r.publish("gesture", "1" + str)
             # ShowWebSocket.put_data("2", str)
             print(str)  # 输出结果
     elif (result == 400) or (result == 401):
         out = outCache.getCache()
         str = "".join(out)
-        speaker.speech_sy(str)
+        # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        r.publish("gesture", "2" + str)
+        # r.publish("gesture", "2" + str)
         print(str)  # 输出结果
         outCache.clear()
     else:
         out = dataDict[result]
         outCache.update(out)
         print(t2 - t1)  # 测试识别时间
-        out = outCache.getCache()
+        # out = outCache.getCache()
         str = "".join(out)
-        speaker.speech_sy(str)
+        # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        r.publish("gesture", "2" + str)
+        # r.publish("gesture", "2" + str)
         print(str)  # 输出结果
 
 
 if __name__ == '__main__':
-    #去做准确率测试
+    # 去做准确率测试
     m = myoData.init()
     threads = []
-    guestModel=['modelOne','modelTwo']
-    parantPath=os.getcwd()
+    guestModel = ['modelOne', 'modelTwo']
+    parantPath = os.getcwd()
     isTwo = False
     print('isNew?')
-    a=input()
-    if a=='y':
-       isNew = True
-    if a=='n':
-       isNew = False
-       
+    a = input()
+    if a == 'y':
+        isNew = True
+    if a == 'n':
+        isNew = False
+
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
     isFinish = False     # isFinsh 是线程锁
     outCache = DataCache()
     outCache.__init__()
     # 导入模型
-    #如果存在客户自定义模型则导入，不然导入默认模型
-    gusetModelPath='GetDataSet'
-    guestModelContext= os.listdir(gusetModelPath)
+    # 如果存在客户自定义模型则导入，不然导入默认模型
+    gusetModelPath = 'GetDataSet'
+    guestModelContext = os.listdir(gusetModelPath)
     if guestModel[0] in guestModelContext and isNew:
-        modelPath='GetDataSet/'+guestModel[0]
+        modelPath = 'GetDataSet/' + guestModel[0]
         modelOne = joblib.load(modelPath)
     else:
         modelOne = joblib.load('SVM3One')
 
     if guestModel[1] in guestModelContext and isNew:
-        modelPath='GetDataSet/'+guestModel[1]
+        modelPath = 'GetDataSet/' + guestModel[1]
         modelTwo = joblib.load(modelPath)
     else:
         modelTwo = joblib.load('SVM3Two')
@@ -123,7 +123,7 @@ if __name__ == '__main__':
             break
         if len(emgRight) < 30:
             continue
-        #判断是否为双手
+        # 判断是否为双手
         imuArray = np.array(imuLeft)
         gyo = imuArray[:, 3:6]
         # gyo=np.where(gyo>10)
@@ -135,10 +135,10 @@ if __name__ == '__main__':
             # print(gyoE)
             isTwo = True
         # 归一化
-        emgRight,imuRight=normalized(emgRight,imuRight)
+        emgRight, imuRight = normalized(emgRight, imuRight)
         # 左手
         if isTwo:
-            emgLeft,imuLeft=normalized(emgLeft,imuLeft)
+            emgLeft, imuLeft = normalized(emgLeft, imuLeft)
         # 特征提取
         if isTwo:
             feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisor=4)

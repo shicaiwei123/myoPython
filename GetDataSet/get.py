@@ -290,15 +290,16 @@ if __name__ == '__main__':
     gestureOneName = rootOne[1]
     gestureTwoName = rootTwo[1]
     # 操作单手数据
-    for i in range(gestureOneNumber):
-        gestureName = gestureOneName[i]
-        label = getKey(dataDict, gestureName)
-        gesturePath = guestOnePath + gestureName + '/'
-        gestureFeature = getxlsFeature(gesturePath)
-        features=features+gestureFeature
-        featureNumber = len(gestureFeature)
-        for _ in range(featureNumber):
-            labels.append([label])
+    if gestureOneNumber !=0:
+        for i in range(gestureOneNumber):
+            gestureName = gestureOneName[i]
+            label = getKey(dataDict, gestureName)
+            gesturePath = guestOnePath + gestureName + '/'
+            gestureFeature = getxlsFeature(gesturePath)
+            features=features+gestureFeature
+            featureNumber = len(gestureFeature)
+            for _ in range(featureNumber):
+                labels.append([label])
 
     # 获取系统初始化的单手的数据
     initOnePath = lastPath + '/allDataOne6/'
@@ -310,16 +311,17 @@ if __name__ == '__main__':
     print(accuracyOne)
 
     # 操作双手数据
-    for i in range(gestureTwoNumber):
-        gestureName = gestureTwoName[i]
-        gesturePath = guestOnePath + gestureName + '/'
-        gestureFeature = getxlsFeature(gesturePath)
-        features = features + gestureFeature
-        featureNumber = len(gestureFeature)
-        label = getKey(dataDict, gestureName)
-        label = list(label)
-        for _ in range(featureNumber):
-            labels.append(label)
+    if gestureTwoNumber!=0:
+        for i in range(gestureTwoNumber):
+            gestureName = gestureTwoName[i]
+            gesturePath = guestOnePath + gestureName + '/'
+            gestureFeature = getxlsFeature(gesturePath)
+            features = features + gestureFeature
+            featureNumber = len(gestureFeature)
+            label = getKey(dataDict, gestureName)
+            label = list(label)
+            for _ in range(featureNumber):
+                labels.append(label)
     # 获取初始化双特征并训练
     initTwoPath = lastPath + '/allDataTwo4/'
     initTwoFeature, initTwoLabel = getInitDaat(initTwoPath)

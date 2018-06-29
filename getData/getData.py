@@ -309,7 +309,7 @@ def getGestureData(m):
         else:
             accDiff=(acc[0]-accQuiet[0])**2+(acc[1]-accQuiet[1])**2+(acc[2]-accQuiet[2])**2
             gyoE = gyoEngery(gyo)
-            # print('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
+            # nprint('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
             # print(accDiff)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
@@ -358,7 +358,7 @@ def getGestureData(m):
 
                     activeTimes = activeTimes + 1
                     threshold = 100
-                    GyoRightQuietTimes = 1
+                    GyoRightQuietTimes = 2
                     if activeTimes == ActiveTimes:
                         isSave = False
                         # t3 = time.time()
