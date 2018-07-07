@@ -15,7 +15,7 @@ import redis
 
 r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-speaker = xf_speech('/dev/ttyUSB0')
+# speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑

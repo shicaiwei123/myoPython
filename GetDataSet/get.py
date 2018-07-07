@@ -1,5 +1,4 @@
-import sys
-sys.path.append('../')
+
 import getData.getData as myoData  # 数据接口
 from myoAnalysis import saveExcle  # 数据操作
 from myoAnalysis import excelToDict
@@ -10,6 +9,8 @@ from myoAnalysis import getModel
 from sklearn.externals import joblib
 import os
 import numpy as np
+import time
+
 
 def getKey(dict=None, gestureName=None):
     """
@@ -28,6 +29,7 @@ def getKey(dict=None, gestureName=None):
         valueIndex = valueList.index(gestureName)
         label = keyList[valueIndex]
     else:
+        label = None
         print("no gesture label")
     return label
 
@@ -138,21 +140,24 @@ def getxlsFeature(path=''):
     return features
 
 
-def getDataSet(HandNumber=1, FileName=None, DataNumber=12):
+def getDataSet(HandNumber=1, FileName=None, DataNumber=12,myo=None):
     """
     获取用户自定义的数据并且存储
     :param HandNumber:   采集的手势是单手的还是双手的
     :param FileName:     采集的手势的名字
     :param DataNumber:   采集的手势要采集多少个
+    :param myo:   代表一个手环对象
     :return: 没有返回值，直接是存储的数据
     """
 
     # 初始化
-    m = myoData.init()
-    if not os.path.exists('GuestData'):
-        os.makedirs('GuestData')
+    currutPath = os.getcwd()
+    lastPath = os.path.dirname(currutPath)
+    m = myo
+    if not os.path.exists(lastPath + '/GuestData'):
+        os.makedirs(lastPath + '/GuestData')
     # 右手
-    floderPath = 'GuestData/'
+    floderPath = lastPath + '/GuestData/'
     emgRightData = []  # 一次手势数据
     imuRightData = []  # 一次手势数据
     emgRightDataAll = []  # 所有数据
@@ -235,8 +240,8 @@ def getInitDaat(path=None):
     :param path: 初始化自带数据路径
     :return: 初始化数据的特征和标签，都是二维列表
     """
-    labels=[]
-    features=[]
+    labels = []
+    features = []
     dirData = os.listdir(path)
     length = len(dirData)  # 数据总数,
     for i in range(1, length):
@@ -252,8 +257,9 @@ if __name__ == '__main__':
     """
     获取数据
     """
-    lastPath = os.path.dirname(os.getcwd()) # 获取上一层目录路径
-    gestureDataPath=lastPath+'/dataSheet.xlsx'
+    myo=myoData.init()
+    lastPath = os.path.dirname(os.getcwd())  # 获取上一层目录路径
+    gestureDataPath = lastPath + '/dataSheet.xlsx'
     dataDict = excelToDict(gestureDataPath)
     features = []
     labels = []
@@ -263,11 +269,14 @@ if __name__ == '__main__':
         print("请输入要采集的手势名称：\t")
         fileName = input()
         print("请输入要采集手势的采集数目：\t")
+
         dataNumber = int(input())
-        getDataSet(handNumber, fileName, dataNumber)
+        time.sleep(1)
+        print("开始采集\t")
+        getDataSet(handNumber, fileName, dataNumber,myo)
         print('是否继续？继续请输入y，否则输入n')
-        flag=input()
-        if flag=='n':
+        flag = input()
+        if flag == 'n':
             break
 
     print('开始训练')
@@ -281,37 +290,38 @@ if __name__ == '__main__':
     # 接下来是文件操作，数据读取，训练，保存。
     # 天，那还不如就直接做一个app设置。
 
-    guestOnePath = lastPath+'/GuestData/one/'
-    guestTwoPath = lastPath+'/GuestData/two/'
+    guestOnePath = lastPath + '/GuestData/one/'
+    guestTwoPath = lastPath + '/GuestData/two/'
     gestureOneNumber = getFloderNumber(guestOnePath)
     gestureTwoNumber = getFloderNumber(guestTwoPath)
-    rootOne, oneFileName, file = os.walk(guestOnePath)
-    rootTwo, twoFileName, file = os.walk(guestOnePath)
-    gestureOneName = rootOne[1]
-    gestureTwoName = rootTwo[1]
+
     # 操作单手数据
-    if gestureOneNumber !=0:
+    if gestureOneNumber != 0:
+        gestureOneName= os.listdir(guestOnePath)
         for i in range(gestureOneNumber):
             gestureName = gestureOneName[i]
             label = getKey(dataDict, gestureName)
+            if label == None:
+                continue
             gesturePath = guestOnePath + gestureName + '/'
             gestureFeature = getxlsFeature(gesturePath)
-            features=features+gestureFeature
+            features = features + gestureFeature
             featureNumber = len(gestureFeature)
             for _ in range(featureNumber):
                 labels.append([label])
-
-    # 获取系统初始化的单手的数据
-    initOnePath = lastPath + '/allDataOne6/'
-    initOneFeature, initOneLabel = getInitDaat(initOnePath)
-    oneFeature = features + initOneFeature
-    oneLabel = labels + initOneLabel
-    modelOne,accuracyOne=getModel(oneFeature,oneLabel,0.2)
-    joblib.dump(modelOne, 'modelOne')
-    print(accuracyOne)
+        else:
+            # 获取系统初始化的单手的数据
+            initOnePath = lastPath + '/allDataOne6/'
+            initOneFeature, initOneLabel = getInitDaat(initOnePath)
+            oneFeature = features + initOneFeature
+            oneLabel = labels + initOneLabel
+            modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
+            joblib.dump(modelOne, 'modelOne')
+            print(accuracyOne)
 
     # 操作双手数据
-    if gestureTwoNumber!=0:
+    if gestureTwoNumber != 0:
+        gestureTwoName = os.listdir(guestTwoPath)
         for i in range(gestureTwoNumber):
             gestureName = gestureTwoName[i]
             gesturePath = guestOnePath + gestureName + '/'
@@ -319,15 +329,17 @@ if __name__ == '__main__':
             features = features + gestureFeature
             featureNumber = len(gestureFeature)
             label = getKey(dataDict, gestureName)
+            if label == None:
+                continue
             label = list(label)
             for _ in range(featureNumber):
                 labels.append(label)
-    # 获取初始化双特征并训练
-    initTwoPath = lastPath + '/allDataTwo4/'
-    initTwoFeature, initTwoLabel = getInitDaat(initTwoPath)
-    twoFeature = features + initTwoFeature
-    twoLabel = labels + initTwoLabel
-    modelTwo,accuracyTwo = getModel(twoFeature, twoLabel,0.2)
-    joblib.dump(modelTwo, 'modelTwo')
-    print(accuracyTwo)
+        # 获取初始化双特征并训练
+        initTwoPath = lastPath + '/allDataTwo4/'
+        initTwoFeature, initTwoLabel = getInitDaat(initTwoPath)
+        twoFeature = features + initTwoFeature
+        twoLabel = labels + initTwoLabel
+        modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
+        joblib.dump(modelTwo, 'modelTwo')
+        print(accuracyTwo)
     print('训练完成')
