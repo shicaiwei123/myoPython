@@ -12,6 +12,7 @@ import os
 from voice.speech import xf_speech
 from Server.server import ShowWebSocket
 import redis
+import json
 
 r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
@@ -54,15 +55,17 @@ def predict(model, data):
             out = outCache.getCache()
             # list->str
             str = "".join(out)
-            # r.publish("gesture", "1" + str)
+            r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
             # ShowWebSocket.put_data("2", str)
             print(str)  # 输出结果
+        else:
+            r.publish("gesture", json.dumps({"type":"incomplete", "data":""}))
     elif (result == 400) or (result == 401):
         out = outCache.getCache()
         str = "".join(out)
         # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        # r.publish("gesture", "2" + str)
+        r.publish("gesture", json.dumps({"type":"complete", "data":str}))
         print(str)  # 输出结果
         outCache.clear()
     else:
@@ -73,7 +76,7 @@ def predict(model, data):
         str = "".join(out)
         # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        # r.publish("gesture", "2" + str)
+        r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
         print(str)  # 输出结果
 
 

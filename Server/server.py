@@ -8,6 +8,7 @@ import tornado.ioloop
 import logging
 #import tornadoredis
 import redis
+import json
 
 data = list()
 lock = threading.Lock()
@@ -16,7 +17,7 @@ user_set = dict()
 def redis_listener():
     r = redis.Redis(host="127.0.0.1")
     ps=r.pubsub()
-    ps.subscribe("voice")
+    ps.subscribe(["voice", "gesture"])
     t_io_loop = tornado.ioloop.IOLoop.instance()
     for message in ps.listen():
         #print("get message", message)
@@ -87,7 +88,7 @@ class ShowWebSocket(WebSocketHandler):
         user_set[username] = self
         print("WebSocket opened")
         print(user_set)
-        self.write_message("0+连接成功")
+        self.write_message(json.dumps({"type": "voice", "data": "Connect"}))
 
     def on_message(self, message):
         self.write_message(u"0+" + message)
