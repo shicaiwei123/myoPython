@@ -263,7 +263,7 @@ def getGestureData(m):
     gyoLeft = []
     timeBegin = time.time()
     accQuiet=np.array([31,28,80])
-    qurtQuiet=np.array([153,21])
+    qurtQuiet=np.array([20,-24,-10])
     i = 1
     while True:
         if HAVE_PYGAME:
@@ -293,9 +293,11 @@ def getGestureData(m):
             dataTimes = dataTimes + 1
 
         else:
+            """"计算和禁止状态下的四元素和加速度的差值
+                和既定阈值相比，如果低于认为是回复了，不然继续循环"""
             accDiff=(acc[0]-accQuiet[0])**2+(acc[1]-accQuiet[1])**2+(acc[2]-accQuiet[2])**2
-            qurtDiff=((qurt[0]-qurtQuiet[0])**2+(qurt[1]-qurtQuiet[1])**2)
-            # print(qurtDiff)
+            qurtDiff=((qurt[1]-qurtQuiet[0])**2+(qurt[2]-qurtQuiet[1])**2+(qurt[3]-qurtQuiet[2])**2)
+            diffThreshold=qurtDiff+0.05*accDiff
             gyoE = gyoEngery(gyo)
             # nprint('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
             # print(accDiff)
@@ -338,15 +340,15 @@ def getGestureData(m):
                 if gyoRightActive < 2:  # 滤波
 
                     gyoRightQuiet = 0
-                # elif qurtDiff>400:
-                #    gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
+                elif diffThreshold>5000:
+                   gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
                 else:
 
                     gyoRightQuiet = 0
 
                     activeTimes = activeTimes + 1
                     threshold = 100
-                    GyoRightQuietTimes = 1
+                    GyoRightQuietTimes = 2
                     if activeTimes == ActiveTimes:
                         isSave = False
                         # t3 = time.time()

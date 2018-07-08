@@ -55,17 +55,17 @@ def predict(model, data):
             out = outCache.getCache()
             # list->str
             str = "".join(out)
-            r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
+            # r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
             # ShowWebSocket.put_data("2", str)
             print(str)  # 输出结果
-        else:
-            r.publish("gesture", json.dumps({"type":"incomplete", "data":""}))
+        # else:
+            # r.publish("gesture", json.dumps({"type":"incomplete", "data":""}))
     elif (result == 400) or (result == 401):
         out = outCache.getCache()
         str = "".join(out)
         # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        r.publish("gesture", json.dumps({"type":"complete", "data":str}))
+        # r.publish("gesture", json.dumps({"type":"complete", "data":str}))
         print(str)  # 输出结果
         outCache.clear()
     else:
@@ -76,7 +76,7 @@ def predict(model, data):
         str = "".join(out)
         # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
+        # r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
         print(str)  # 输出结果
 
 
