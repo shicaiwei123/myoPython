@@ -61,143 +61,128 @@ def __plot(scr, vals):
     last_vals = vals
 
 
-def __left_proc_emg(emg, times=[]):
-    global left_emg_list
-    global dataLeftFresh
-    dataLeftFresh = True
-    t = [1.1]
-    global emgCount
-    # if HAVE_PYGAME:
-    #     # update pygame display
-    #     plot(scr, [e / 2000. for e in emg])
-
-    # print frame rate of received data
-    times.append(time.time())
-    if len(times) > 20:
-        # print((len(times) - 1) / (times[-1] - times[0]))
-        times.pop(0)
-    if emg[0] > 0:
-        t1 = (time.time() - timeBegin)
-        # print(t1)
-        # print(emg)
-        emg = list(emg)
-        t[0] = t1
-        data = t + emg
-        left_emg_list = data
-
-
-def __right_proc_emg(emg, times=[]):
-    global right_emg_list
-    global dataRightFresh
-    dataRightFresh = True
-    t = [1.1]
-    global emgCount
-    # if HAVE_PYGAME:
-    #     # update pygame display
-    #     plot(scr, [e / 2000. for e in emg])
-
-    # print frame rate of received data
-    times.append(time.time())
-    if len(times) > 20:
-        # print((len(times) - 1) / (times[-1] - times[0]))
-        times.pop(0)
-
-    if emg[0] > 0:
-        t1 = (time.time() - timeBegin)
-        # print(t1)
-        # print(emg)
-        emg = list(emg)
-        t[0] = t1
-        data = t + emg
-        right_emg_list = data
-
-
-def __left_imu_proc(a, b, c):
-    global imuCount
-    global left_imu_list
-    # imuCount = imuCount + 1
-    t = [1.1]
-    a = list(a)
-    b = list(b)
-    c = list(c)
-    data = c
-    # if HAVE_PYGAME:
-    #     # update pygame display
-    #     plot(scr, [e / 2000. for e in data])
-    global timeBegin
-    t1 = (time.time() - timeBegin)
-    # print(t1)
-    # print(a, b, c)
-    t[0] = t1
-    c = t + a + b + c
-    left_imu_list = c
-
-
-def __right_imu_proc(a, b, c):
-    global imuCount
-    global right_imu_list
-    # imuCount = imuCount + 1
-    t = [1.1]
-    # t[0] = int(t1*10000)
-    a = list(a)
-    b = list(b)
-    c = list(c)
-    data = c
-    # if HAVE_PYGAME:
-    #     # update pygame display
-    #     plot(scr, [e / 2000. for e in data])
-    global timeBegin
-    t1 = (time.time() - timeBegin)
-    t[0] = t1
-    # print(t1)
-    # print(a, b, c)
-    c = t + a + b + c
-    right_imu_list = c
+# def __left_proc_emg(emg, times=[]):
+#     global left_emg_list
+#     global dataLeftFresh
+#     dataLeftFresh = True
+#     t = [1.1]
+#     global emgCount
+#     # if HAVE_PYGAME:
+#     #     # update pygame display
+#     #     plot(scr, [e / 2000. for e in emg])
+#
+#     # print frame rate of received data
+#     times.append(time.time())
+#     if len(times) > 20:
+#         # print((len(times) - 1) / (times[-1] - times[0]))
+#         times.pop(0)
+#     if emg[0] > 0:
+#         t1 = (time.time() - timeBegin)
+#         # print(t1)
+#         # print(emg)
+#         emg = list(emg)
+#         t[0] = t1
+#         data = t + emg
+#         left_emg_list = data
+#
+#
+# def __right_proc_emg(emg, times=[]):
+#     global right_emg_list
+#     global dataRightFresh
+#     dataRightFresh = True
+#     t = [1.1]
+#     global emgCount
+#     # if HAVE_PYGAME:
+#     #     # update pygame display
+#     #     plot(scr, [e / 2000. for e in emg])
+#
+#     # print frame rate of received data
+#     times.append(time.time())
+#     if len(times) > 20:
+#         # print((len(times) - 1) / (times[-1] - times[0]))
+#         times.pop(0)
+#
+#     if emg[0] > 0:
+#         t1 = (time.time() - timeBegin)
+#         # print(t1)
+#         # print(emg)
+#         emg = list(emg)
+#         t[0] = t1
+#         data = t + emg
+#         right_emg_list = data
+#
+#
+# def __left_imu_proc(a, b, c):
+#     global imuCount
+#     global left_imu_list
+#     # imuCount = imuCount + 1
+#     t = [1.1]
+#     a = list(a)
+#     b = list(b)
+#     c = list(c)
+#     data = c
+#     # if HAVE_PYGAME:
+#     #     # update pygame display
+#     #     plot(scr, [e / 2000. for e in data])
+#     global timeBegin
+#     t1 = (time.time() - timeBegin)
+#     # print(t1)
+#     # print(a, b, c)
+#     t[0] = t1
+#     c = t + a + b + c
+#     left_imu_list = c
+#
+#
+# def __right_imu_proc(a, b, c):
+#     global imuCount
+#     global right_imu_list
+#     # imuCount = imuCount + 1
+#     t = [1.1]
+#     # t[0] = int(t1*10000)
+#     a = list(a)
+#     b = list(b)
+#     c = list(c)
+#     data = c
+#     # if HAVE_PYGAME:
+#     #     # update pygame display
+#     #     plot(scr, [e / 2000. for e in data])
+#     global timeBegin
+#     t1 = (time.time() - timeBegin)
+#     t[0] = t1
+#     # print(t1)
+#     # print(a, b, c)
+#     c = t + a + b + c
+#     right_imu_list = c
 
 
 def init():
     # 初始化配置，并打开emg数据开关
     global timeBegin
     # 初始化myo实体
-    # m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None,
-    #            config=config)
     m = MyoHub(myo_num=2)
-
-    # 连接
-    # m.add_emg_handler(lambda emg: print(emg))
-    # m.add_imu_handler(lambda a, b, c: print(a, b, c))
-    # m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
-    # m.add_pose_handler(lambda p: print('pose', p))
-    # m.add_emg_raw_handler(proc_emg_raw)
     timeBegin = time.time()
     m.start()
     while not m.is_ready():
         continue
     return m
 
-
-#
 def _getOnceData(m):
     """
     Get One DataSet From Myo
     :param m: Myo
     :return: Emg DataSet and Imu DataSet( Only Accelerator Data and Gyro Data)
     """
-    global left_emg_list
-    global left_imu_list
     global dataCounter
     global dataLeftFresh
-    emgLeftCache = []
-    imuLeftCache = []
-    emgRightCache = []
-    imuRightCache = []
     while True:
         emgLeftData, emgRightData, imuLeftData, imuRightData = m.get_data()
         # print(emgLeftData, emgRightData, imuLeftData, imuRightData)
         # emgLeftData=list(emgLeftData)
         emgRightData = list(emgRightData)
-        imuLeftData = list(imuLeftData[0] + imuLeftData[1])
-        imuRightData = list(imuRightData[0] + imuRightData[1])
+        qurt=list(imuRightData[0])
+        qurt=np.array(qurt)/100
+        imuLeftData = list(imuLeftData[1] + imuLeftData[2])
+        imuRightData = list(imuRightData[1] + imuRightData[2])
 
         # print(emgLeftData, emgRightData, imuLeftData, imuRightData)
         emgLeftCache = list(np.array(emgLeftData) / 100)
@@ -206,11 +191,11 @@ def _getOnceData(m):
         imuRightCache = list(np.array(imuRightData) / 20)
         # print(emgLeftData, '\t', imuLeftCache[0:3], '\t', emgRightData, '\t', imuRightCache[0:3])
         timeNow = time.time() - timeBegin
-        # print(right_emg_list, right_imu_list, left_emg_list, left_imu_list)
         # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
         # print(imuRightCache)
+        # print(qurt)
         # TODO: 询问
-        return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache
+        return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache,qurt
 
 # 求emg数据能力用来判断阈值
 
@@ -277,7 +262,8 @@ def getGestureData(m):
     engerySeg = []
     gyoLeft = []
     timeBegin = time.time()
-    accQuiet=np.array([67,23,58])
+    accQuiet=np.array([31,28,80])
+    qurtQuiet=np.array([153,21])
     i = 1
     while True:
         if HAVE_PYGAME:
@@ -285,7 +271,7 @@ def getGestureData(m):
                 if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
                     return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
 
-        emgLeftCache, imuLeftCache, emgRightCache, imuRightCache = _getOnceData(m)
+        emgLeftCache, imuLeftCache, emgRightCache, imuRightCache,qurt = _getOnceData(m)
         # print(imuLeftCache[3:6], '\t', imuRightCache[3:6])
         gyo = gyo + imuRightCache[3:6]
         acc=np.array(imuRightCache[0:3])
@@ -308,6 +294,8 @@ def getGestureData(m):
 
         else:
             accDiff=(acc[0]-accQuiet[0])**2+(acc[1]-accQuiet[1])**2+(acc[2]-accQuiet[2])**2
+            qurtDiff=((qurt[0]-qurtQuiet[0])**2+(qurt[1]-qurtQuiet[1])**2)
+            # print(qurtDiff)
             gyoE = gyoEngery(gyo)
             # nprint('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
             # print(accDiff)
@@ -350,15 +338,15 @@ def getGestureData(m):
                 if gyoRightActive < 2:  # 滤波
 
                     gyoRightQuiet = 0
-               # elif accDiff>10000:
-                   # gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
+                elif qurtDiff>400:
+                   gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
                 else:
 
                     gyoRightQuiet = 0
 
                     activeTimes = activeTimes + 1
                     threshold = 100
-                    GyoRightQuietTimes = 2
+                    GyoRightQuietTimes = 1
                     if activeTimes == ActiveTimes:
                         isSave = False
                         # t3 = time.time()

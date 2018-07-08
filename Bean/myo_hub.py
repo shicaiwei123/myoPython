@@ -41,7 +41,7 @@ class MyoDataProcess(multiprocessing.Process):
             self.send_data(MyoDataType.EMG, emg)
 
         def imu_handler(self, quat, acc, gyro):
-            self.send_data(MyoDataType.IMU, (acc, gyro))
+            self.send_data(MyoDataType.IMU, (quat, acc, gyro))
 
         def send_data(self, data_type, data):
             data_packet = MyoDataPacket(
