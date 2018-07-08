@@ -13,6 +13,8 @@ from sklearn.externals import joblib
 import numpy as np
 import time
 import pickle
+import sys
+sys.path.append(os.path.pardir)
 def getKey(dict=None, gestureName=None):
     """
     根据value查找字典的key
