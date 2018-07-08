@@ -606,18 +606,29 @@
 """随机访问列表"""
 import random
 import numpy as np
-a = [[1, 2, 3, 4], [1, 3], [1, 2], [4, 5]]
-b= random.sample(a,2)
-index=[]
-remainingData=[]
-for i in b:
-    index.append(a.index(i))
-index=tuple(index)
-allIndex=tuple(range(len(a)))
-remaining=set(allIndex).difference(set(index))
-remaining=list(remaining)
-for i in remaining:
-    remainingData.append(a[i])
+# a = [[1, 2, 3, 4], [1, 3], [1, 2], [4, 5]]
+# b= random.sample(a,2)
+# index=[]
+# remainingData=[]
+# for i in b:
+#     index.append(a.index(i))
+# index=tuple(index)
+# allIndex=tuple(range(len(a)))
+# remaining=set(allIndex).difference(set(index))
+# remaining=list(remaining)
+# for i in remaining:
+#     remainingData.append(a[i])
+#
+# print(remainingData)
+# print(b)
+import pickle
+a=[[1,2,3],[4,6,5]]
+fw=open('dataTest.txt','wb')
+pickle.dump(a,fw,-1)
+fw.close()
 
-print(remainingData)
+fr=open('dataTest.txt','rb')
+b=pickle.load(fr)
 print(b)
+
+

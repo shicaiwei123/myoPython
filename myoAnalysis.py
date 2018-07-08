@@ -64,7 +64,6 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
         emg7 = emgData[:, 6]
         emg8 = emgData[:, 7]
         acc = np.sqrt(accX**2 + accY**2 + accZ**2)
-
         # 特征提取
         # 了解一下各个参数的物理意义呢？这样就可以转换
         # 是不是某一类的特征多，他就会占据主要地位，就算其他变量很有用，影响也会被消除
@@ -102,11 +101,19 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
         integralAccY = np.sum(accY) * 1 / frq
         integralAccZ = np.sum(accZ) * 1 / frq
         # 范围
-        rangeAccX = np.max(accX) - np.min(accX)
-        rangeAccY = np.max(accY) - np.min(accY)
-        rangeGcoX = np.max(gcoX) - np.min(gcoX)
-        rangeGcoY = np.max(gcoX) - np.min(gcoY)
-        rangeGcoZ = np.max(gcoX) - np.min(gcoZ)
+        if len(accX)==0:
+            rangeAccX=0
+            rangeAccY=0
+            rangeGcoX=0
+            rangeGcoY = 0
+            rangeGcoZ = 0
+            print('zero-size-acc')
+        else:
+            rangeAccX = np.max(accX) - np.min(accX)
+            rangeAccY = np.max(accY) - np.min(accY)
+            rangeGcoX = np.max(gcoX) - np.min(gcoX)
+            rangeGcoY = np.max(gcoX) - np.min(gcoY)
+            rangeGcoZ = np.max(gcoX) - np.min(gcoZ)
         # 过零率
         gcoXZCR = _ZCR(gcoX)
         gcoYZCR = _ZCR(gcoY)

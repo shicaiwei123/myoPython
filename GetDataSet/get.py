@@ -10,8 +10,9 @@ from sklearn.externals import joblib
 import os
 import numpy as np
 import time
-
-
+import pickle
+import sys
+sys.path.append(os.path.pardir)
 def getKey(dict=None, gestureName=None):
     """
     根据value查找字典的key
@@ -234,7 +235,7 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12,myo=None):
         engeryDataSeg = engeryDataSeg + engerySeg + [[0]]
 
 
-def getInitDaat(path=None):
+def getInitData(path=None):
     """
     获取初始系统初始话带有的数据
     :param path: 初始化自带数据路径
@@ -311,8 +312,19 @@ if __name__ == '__main__':
                 labels.append([label])
         else:
             # 获取系统初始化的单手的数据
-            initOnePath = lastPath + '/allDataOne6/'
-            initOneFeature, initOneLabel = getInitDaat(initOnePath)
+            # initOnePath = lastPath + '/allDataOne6/'
+            # initOneFeature, initOneLabel = getInitData(initOnePath)
+            # fileOneFeature=open('oneFeature.txt','wb')
+            # fileOneLabel=open('oneLabel.txt','wb')
+            # pickle.dump(initOneFeature,fileOneFeature,-1)
+            # pickle.dump(initOneLabel,fileOneLabel,-1)
+            # fileOneFeature.close()
+            # fileOneLabel.close()
+            #读取
+            fileOneFeature = open('oneFeature.txt', 'rb')
+            fileOneLabel = open('oneLabel.txt', 'rb')
+            initOneFeature=pickle.load(fileOneFeature)
+            initOneLabel=pickle.load(fileOneLabel)
             oneFeature = features + initOneFeature
             oneLabel = labels + initOneLabel
             modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
@@ -324,7 +336,7 @@ if __name__ == '__main__':
         gestureTwoName = os.listdir(guestTwoPath)
         for i in range(gestureTwoNumber):
             gestureName = gestureTwoName[i]
-            gesturePath = guestOnePath + gestureName + '/'
+            gesturePath = guestTwoPath + gestureName + '/'
             gestureFeature = getxlsFeature(gesturePath)
             features = features + gestureFeature
             featureNumber = len(gestureFeature)
@@ -335,8 +347,20 @@ if __name__ == '__main__':
             for _ in range(featureNumber):
                 labels.append(label)
         # 获取初始化双特征并训练
-        initTwoPath = lastPath + '/allDataTwo4/'
-        initTwoFeature, initTwoLabel = getInitDaat(initTwoPath)
+        # initTwoPath = lastPath + '/allDataTwo4/'
+        # initTwoFeature, initTwoLabel = getInitData(initTwoPath)
+        # fileTwoFeature = open('twoFeature.txt', 'wb')
+        # fileTwoLabel = open('twoLabel.txt', 'wb')
+        # pickle.dump(initTwoFeature, fileTwoFeature, -1)
+        # pickle.dump(initTwoLabel, fileTwoLabel, -1)
+        # fileTwoFeature.close()
+        # fileTwoLabel.close()
+
+        #读取
+        fileTwoFeature = open('oneFeature.txt', 'rb')
+        fileTwoLabel = open('oneLabel.txt', 'rb')
+        initTwoFeature=pickle.load(fileTwoFeature)
+        initTwoLabel=pickle.load(fileTwoLabel)
         twoFeature = features + initTwoFeature
         twoLabel = labels + initTwoLabel
         modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
