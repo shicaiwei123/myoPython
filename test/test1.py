@@ -622,13 +622,16 @@ import numpy as np
 # print(remainingData)
 # print(b)
 import pickle
-a=[[1,2,3],[4,6,5]]
-fw=open('dataTest.txt','wb')
-pickle.dump(a,fw,-1)
-fw.close()
+# a=[[1,2,3],[4,6,5]]
+# fw=open('dataTest.txt','wb')
+# pickle.dump(a,fw,-1)
+# fw.close()
+#
+# fr=open('dataTest.txt','rb')
+# b=pickle.load(fr)
+# print(b)
+#
 
-fr=open('dataTest.txt','rb')
-b=pickle.load(fr)
+a=10
+b=list(a)
 print(b)
-
-

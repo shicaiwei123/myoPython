@@ -15,6 +15,8 @@ import time
 import pickle
 import sys
 sys.path.append(os.path.pardir)
+
+
 def getKey(dict=None, gestureName=None):
     """
     根据value查找字典的key
@@ -80,7 +82,7 @@ def getxlsData(file='*.xls'):
         data = dataAll[:, indexLow:indexHigh - 1]
         data = np.array(data)
         data = np.transpose(data)
-        print(data)
+        # print(data)
         # data = np.delete(data, indexHigh - indexLow - 2, 0)
         data = list(data)
         dataCache.append(data)
@@ -143,7 +145,7 @@ def getxlsFeature(path=''):
     return features
 
 
-def getDataSet(HandNumber=1, FileName=None, DataNumber=12,myo=None):
+def getDataSet(HandNumber=1, FileName=None, DataNumber=12, myo=None):
     """
     获取用户自定义的数据并且存储
     :param HandNumber:   采集的手势是单手的还是双手的
@@ -258,40 +260,32 @@ def getInitData(path=None):
 
 if __name__ == '__main__':
     """
-    获取数据
+    用于用户进行自校正
+    输入是用户的自定义数据和初始数据，
     """
-    myo=myoData.init()
+    isSave = False
+    # myo = myoData.init()
     lastPath = os.path.dirname(os.getcwd())  # 获取上一层目录路径
     gestureDataPath = lastPath + '/dataSheet.xlsx'
     dataDict = excelToDict(gestureDataPath)
     features = []
     labels = []
-    while True:
-        print("采集单手手势输入1，双手手势输入2：\t")
-        handNumber = int(input())
-        print("请输入要采集的手势名称：\t")
-        fileName = input()
-        print("请输入要采集手势的采集数目：\t")
-
-        dataNumber = int(input())
-        time.sleep(1)
-        print("开始采集\t")
-        getDataSet(handNumber, fileName, dataNumber,myo)
-        print('是否继续？继续请输入y，否则输入n')
-        flag = input()
-        if flag == 'n':
-            break
+    # while True:
+    #     print("采集单手手势输入1，双手手势输入2：\t")
+    #     handNumber = int(input())
+    #     print("请输入要采集的手势名称：\t")
+    #     fileName = input()
+    #     print("请输入要采集手势的采集数目：\t")
+    #     dataNumber = int(input())
+    #     time.sleep(1)
+    #     print("开始采集\t")
+    #     getDataSet(handNumber, fileName, dataNumber, myo)
+    #     print('是否继续？继续请输入y，否则输入n')
+    #     flag = input()
+    #     if flag == 'n':
+    #         break
 
     print('开始训练')
-# lable单独保存，后面可能是存一次就训练，也可能采集多次再训练
-# 同一个手势采集了多次怎么办？
-    # 训练的时候遍历这些文件夹
-    # 用户可以选择删除这些文件夹，全部删除，选择删除，虽然我们应该提供更好哦的服务，让用户尽可能不去选择这个功能
-    # 训练的模型也可以保存，用户随意选择，加载的时候只从其中一个地方加载
-    # 可以恢复出厂设置
-    # 读数据，读取我们的和用户的，然后一起训练，我们的就是这样了，全部读入，用户也全部读入，然后训练，或者设置一个比例
-    # 接下来是文件操作，数据读取，训练，保存。
-    # 天，那还不如就直接做一个app设置。
 
     guestOnePath = lastPath + '/GuestData/one/'
     guestTwoPath = lastPath + '/GuestData/two/'
@@ -300,7 +294,7 @@ if __name__ == '__main__':
 
     # 操作单手数据
     if gestureOneNumber != 0:
-        gestureOneName= os.listdir(guestOnePath)
+        gestureOneName = os.listdir(guestOnePath)
         for i in range(gestureOneNumber):
             gestureName = gestureOneName[i]
             label = getKey(dataDict, gestureName)
@@ -312,26 +306,29 @@ if __name__ == '__main__':
             featureNumber = len(gestureFeature)
             for _ in range(featureNumber):
                 labels.append([label])
-        else:
-            # 获取系统初始化的单手的数据
-            # initOnePath = lastPath + '/allDataOne6/'
-            # initOneFeature, initOneLabel = getInitData(initOnePath)
-            # fileOneFeature=open('oneFeature.txt','wb')
-            # fileOneLabel=open('oneLabel.txt','wb')
-            # pickle.dump(initOneFeature,fileOneFeature,-1)
-            # pickle.dump(initOneLabel,fileOneLabel,-1)
-            # fileOneFeature.close()
-            # fileOneLabel.close()
-            #读取
+            '''如果已经存在则直接都去，不然从data文件读取并保存'''
+        if os.path.exists('oneFeature.txt'):
             fileOneFeature = open('oneFeature.txt', 'rb')
             fileOneLabel = open('oneLabel.txt', 'rb')
-            initOneFeature=pickle.load(fileOneFeature)
-            initOneLabel=pickle.load(fileOneLabel)
-            oneFeature = features + initOneFeature
-            oneLabel = labels + initOneLabel
-            modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
-            joblib.dump(modelOne, 'modelOne')
-            print(accuracyOne)
+            initOneFeature = pickle.load(fileOneFeature)
+            initOneLabel = pickle.load(fileOneLabel)
+            fileOneFeature.close()
+            fileOneLabel.close()
+            # 读取
+        else:
+            initOnePath = lastPath + '/Data/allDataOne7/'
+            initOneFeature, initOneLabel = getInitData(initOnePath)
+            fileOneFeature = open('oneFeature.txt', 'wb')
+            fileOneLabel = open('oneLabel.txt', 'wb')
+            pickle.dump(initOneFeature, fileOneFeature, -1)
+            pickle.dump(initOneLabel, fileOneLabel, -1)
+            fileOneFeature.close()
+            fileOneLabel.close()
+        oneFeature = features + initOneFeature
+        oneLabel = labels + initOneLabel
+        modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
+        joblib.dump(modelOne, 'modelOne')
+        print(accuracyOne)
 
     # 操作双手数据
     if gestureTwoNumber != 0:
@@ -345,24 +342,23 @@ if __name__ == '__main__':
             label = getKey(dataDict, gestureName)
             if label == None:
                 continue
-            label = list(label)
             for _ in range(featureNumber):
-                labels.append(label)
-        # 获取初始化双特征并训练
-        # initTwoPath = lastPath + '/allDataTwo4/'
-        # initTwoFeature, initTwoLabel = getInitData(initTwoPath)
-        # fileTwoFeature = open('twoFeature.txt', 'wb')
-        # fileTwoLabel = open('twoLabel.txt', 'wb')
-        # pickle.dump(initTwoFeature, fileTwoFeature, -1)
-        # pickle.dump(initTwoLabel, fileTwoLabel, -1)
-        # fileTwoFeature.close()
-        # fileTwoLabel.close()
-
-        #读取
-        fileTwoFeature = open('oneFeature.txt', 'rb')
-        fileTwoLabel = open('oneLabel.txt', 'rb')
-        initTwoFeature=pickle.load(fileTwoFeature)
-        initTwoLabel=pickle.load(fileTwoLabel)
+                labels.append([label])
+        '''如果已经存在则直接都去，不然从data文件读取并保存'''
+        if os.path.exists('twoFeature.txt'):
+            fileTwoFeature = open('oneFeature.txt', 'rb')
+            fileTwoLabel = open('oneLabel.txt', 'rb')
+            initTwoFeature = pickle.load(fileTwoFeature)
+            initTwoLabel = pickle.load(fileTwoLabel)
+        else:
+            initTwoPath = lastPath + '/Data/allDataTwo5/'
+            initTwoFeature, initTwoLabel = getInitData(initTwoPath)
+            fileTwoFeature = open('twoFeature.txt', 'wb')
+            fileTwoLabel = open('twoLabel.txt', 'wb')
+            pickle.dump(initTwoFeature, fileTwoFeature, -1)
+            pickle.dump(initTwoLabel, fileTwoLabel, -1)
+            fileTwoFeature.close()
+            fileTwoLabel.close()
         twoFeature = features + initTwoFeature
         twoLabel = labels + initTwoLabel
         modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)

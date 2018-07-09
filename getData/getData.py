@@ -301,6 +301,7 @@ def getGestureData(m):
             gyoE = gyoEngery(gyo)
             # nprint('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', gyoE)
             # print(accDiff)
+            # print(diffThreshold)
             gyo = []
             engeryData.append([gyoE])  # 存储所有的能量
             dataTimes = 1
@@ -340,8 +341,8 @@ def getGestureData(m):
                 if gyoRightActive < 2:  # 滤波
 
                     gyoRightQuiet = 0
-                elif diffThreshold>5000:
-                   gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
+                # elif diffThreshold>5000:
+                #    gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
                 else:
 
                     gyoRightQuiet = 0

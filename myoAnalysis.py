@@ -264,10 +264,12 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
     return feature
 
 
-def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisor=4):
-    featureRight = featureGet(emgDataRightAll, imuDataRightAll, divisor)
-    featureLeft = featureGet(emgDataLeftAll, imuDataLeftAll, divisor)
+def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisorRight=8,divisorLeft=4):
+    featureRight = featureGet(emgDataRightAll, imuDataRightAll, divisorRight)
+    featureLeft = featureGet(emgDataLeftAll, imuDataLeftAll, divisorLeft)
     featureAll = featureRight + featureLeft
+    if len(featureAll)==312:
+        print('featureGetTwoError')
     return featureAll
 
 
@@ -441,7 +443,7 @@ def getMatFeature(file):
         featureOne = featureGet(emgRight, imuRight, divisor=8)
 
     elif dataType == 2:
-        featureTwo = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisor=4)
+        featureTwo = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisorRight=8,divisorLeft=4)
     if featureOne == []:
         return featureTwo, labels
     else:

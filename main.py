@@ -144,7 +144,7 @@ if __name__ == '__main__':
             emgLeft, imuLeft = normalized(emgLeft, imuLeft)
         # 特征提取
         if isTwo:
-            feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisor=4)
+            feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisorRight=8,divisorLeft=4)
             # 数据缓存
             fetureCache.put([feture])
             t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))
