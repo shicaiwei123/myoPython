@@ -86,13 +86,17 @@ if __name__ == '__main__':
     threads = []
     guestModel = ['modelOne', 'modelTwo']
     parantPath = os.getcwd()
+    '''判断是否是双手的flag'''
     isTwo = False
-    print('isNew?')
-    a = input()
-    if a == 'y':
-        isNew = True
-    if a == 'n':
-        isNew = False
+    isNew = False
+    '''如果存在校正模型则询问是否采用校正模型'''
+    if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
+        print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
+        a = input()
+        if a == 'y':
+            isNew = True
+        if a == 'n':
+            isNew = False
 
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
@@ -144,7 +148,7 @@ if __name__ == '__main__':
             emgLeft, imuLeft = normalized(emgLeft, imuLeft)
         # 特征提取
         if isTwo:
-            feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisorRight=8,divisorLeft=4)
+            feture = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisorRight=8, divisorLeft=4)
             # 数据缓存
             fetureCache.put([feture])
             t1 = threading.Thread(target=predict, args=(modelTwo, fetureCache.get(),))

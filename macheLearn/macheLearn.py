@@ -11,7 +11,7 @@ if __name__ == '__main__':
     '''输入是全部新的数据，输出是新的模型'''
     # 初始化
     '''如果置为真则训练'''
-    isOne=False
+    isOne=True
     isTwo=True
     featuresOne = []
     labelsOne = []

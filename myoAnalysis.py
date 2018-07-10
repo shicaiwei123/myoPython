@@ -7,8 +7,7 @@ import numpy as np
 import xlwt
 import scipy.io as scio
 import random
-
-
+debug=1
 # xlwt只能储存float数据
 
 def _ZCR(data):
@@ -24,6 +23,7 @@ def _ZCR(data):
 
 
 def featureGet(emgDataAll, imuDataAll, divisor=8):
+    global debug
     # 初始参数
     """
     获取数据的特征
@@ -32,6 +32,7 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
     :param divisor: 分片数
     :return: 返回特征
     """
+    debug=debug+1
     emgDataAll = np.array(emgDataAll)
     imuDataAll = np.array(imuDataAll)
     frq = 50  # 频率50Hz
@@ -40,13 +41,11 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
     lenData = lenData - reminder
     windows = int(lenData / divisor)
     feature = []
-    global ddddddd
     for j in range(divisor):
         # 数据预处理，归一化，无量纲化
         # 转成数组
-        if j == 2:
-            a = 1
-
+        # if j == 2:
+        #     a = 1
         emgData = emgDataAll[0 + j * windows:windows + j * windows, :]
         imuData = imuDataAll[0 + j * windows:windows + j * windows, :]
         accX = imuData[:, 0]
@@ -102,6 +101,7 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
         integralAccZ = np.sum(accZ) * 1 / frq
         # 范围
         if len(accX)==0:
+            print(debug)
             rangeAccX=0
             rangeAccY=0
             rangeGcoX=0
@@ -510,6 +510,79 @@ def getModel(feature, label, ratio):
             right = right + 1
     accuracy = right / len(testIndex)
     return model, accuracy
+
+
+
+def getNpyData(featureName='', labelName=''):
+    '''
+    :param feature: 存储特征值的文件
+    :param label: 存储标签的文件
+    :return: 返回特征值和标签的list
+    '''
+
+    feature = np.load(featureName)
+    feature = list(feature)
+    feature.pop(len(feature) - 1)
+
+    label = np.load(labelName)
+    label = list(label)
+    label.pop(len(label) - 1)
+    return feature, label
+
+
+
+
+def saveNpyDataOne(featureData=None, labelData=None, flag=2):
+    '''
+
+    :param featureData: 传入特征值list
+    :param labelData: 传入标签list
+    :param flag: 标签值，1是存储原始数据，2是存储缓存数据，默认为2
+    :return: 无返回值，直接存储数据
+    '''
+    featureData = featureData + [0]
+    np.array(featureData)
+    if flag == 1:
+        np.save('oneFeature', featureData)
+    elif flag == 2:
+        np.save('oneFeatureCache', featureData)
+    else:
+        print('error save flag')
+    labelData = labelData + [0]
+    np.array(labelData)
+    if flag == 1:
+        np.save('oneLabel', labelData)
+    elif flag == 2:
+        np.save('oneLabelCache', labelData)
+    else:
+        print('error save flag')
+
+
+def saveNpyDataTwo(featureData=None, labelData=None, flag=2):
+    '''
+
+    :param featureData: 传入特征值list
+    :param labelData: 传入标签list
+    :param flag: 标签值，1是存储原始数据，2是存储缓存数据，默认为2
+    :return: 无返回值，直接存储数据
+    '''
+    featureData = featureData + [0]
+    np.array(featureData)
+    if flag == 1:
+        np.save('twoFeature', featureData)
+    elif flag == 2:
+        np.save('twoFeatureCache', featureData)
+    else:
+        print('error save flag')
+    labelData = labelData + [0]
+    np.array(labelData)
+    if flag == 1:
+        np.save('twoLabel', labelData)
+    elif flag == 2:
+        np.save('twoLabelCache', labelData)
+    else:
+        print('error save flag')
+
 
 if __name__ == '__main__':
     cache = DataCache()

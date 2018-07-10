@@ -8,13 +8,13 @@ from myoAnalysis import featureGetTwo, featureGet
 from myoAnalysis import normalized
 from myoAnalysis import getMatFeature
 from myoAnalysis import getModel
+from myoAnalysis import saveNpyDataOne
+from myoAnalysis import saveNpyDataTwo
+from myoAnalysis import getNpyData
 from sklearn.externals import joblib
 
 import numpy as np
 import time
-import pickle
-import sys
-sys.path.append(os.path.pardir)
 
 
 def getKey(dict=None, gestureName=None):
@@ -138,7 +138,7 @@ def getxlsFeature(path=''):
             imuLeftData = np.array(imuLeftData, dtype='float_')
             emgRightData, imuRightData = normalized(emgRightData, imuRightData)
             emgLeftData, imuLeftData = normalized(emgLeftData, imuLeftData)
-            featureTwo = featureGetTwo(emgRightData, imuRightData, emgLeftData, imuLeftData, divisor=4)
+            featureTwo = featureGetTwo(emgRightData, imuRightData, emgLeftData, imuLeftData, divisorRight=8, divisorLeft=4)
             features.append(featureTwo)
     else:
         print('error')
@@ -258,75 +258,6 @@ def getInitData(path=None):
     return features, labels
 
 
-def getNpyData(featureName='', labelName=''):
-    '''
-    :param feature: 存储特征值的文件
-    :param label: 存储标签的文件
-    :return: 返回特征值和标签的list
-    '''
-
-    feature = np.load(featureName)
-    feature = list(feature)
-    feature.pop(len(feature) - 1)
-
-    label = np.load(labelName)
-    label = list(label)
-    label.pop(len(label) - 1)
-    return feature, label
-
-
-def saveNpyDataOne(featureData=None, labelData=None, flag=2):
-    '''
-
-    :param featureData: 传入特征值list
-    :param labelData: 传入标签list
-    :param flag: 标签值，1是存储原始数据，2是存储缓存数据，默认为2
-    :return: 无返回值，直接存储数据
-    '''
-    featureData = featureData + [0]
-    np.array(featureData)
-    if flag == 1:
-        np.save('oneFeature', featureData)
-    elif flag == 2:
-        np.save('oneFeatureCache', featureData)
-    else:
-        print('error save flag')
-    labelData = labelData + [0]
-    np.array(labelData)
-    if flag == 1:
-        np.save('oneLabel', labelData)
-    elif flag == 2:
-        np.save('oneLabelCache', labelData)
-    else:
-        print('error save flag')
-
-
-def saveNpyDataTwo(featureData=None, labelData=None, flag=2):
-    '''
-
-    :param featureData: 传入特征值list
-    :param labelData: 传入标签list
-    :param flag: 标签值，1是存储原始数据，2是存储缓存数据，默认为2
-    :return: 无返回值，直接存储数据
-    '''
-    featureData = featureData + [0]
-    np.array(featureData)
-    if flag == 1:
-        np.save('twoFeature', featureData)
-    elif flag == 2:
-        np.save('twoFeatureCache', featureData)
-    else:
-        print('error save flag')
-    labelData = labelData + [0]
-    np.array(labelData)
-    if flag == 1:
-        np.save('twoLabel', labelData)
-    elif flag == 2:
-        np.save('twoLabelCache', labelData)
-    else:
-        print('error save flag')
-
-
 if __name__ == '__main__':
     """
     用于用户进行自校正
@@ -336,7 +267,6 @@ if __name__ == '__main__':
     lastPath = os.path.dirname(os.getcwd())  # 获取上一层目录路径
     gestureDataPath = lastPath + '/dataSheet.xlsx'
     dataDict = excelToDict(gestureDataPath)
-    isSave = False
     # while True:
     #     print("采集单手手势输入1，双手手势输入2：\t")
     #     handNumber = int(input())
@@ -351,19 +281,8 @@ if __name__ == '__main__':
     #     flag = input()
     #     if flag == 'n':
     #         break
-    '''上次是否采集数据，采集了则询问是否保存'''
-    if os.path.exists('oneFeatureCache.npy') or os.path.exists('twoFeatureCache.npy'):
-        print('是否保存上次采集数据？保存请输入y，否则输入n')
-        isSaveFlag = input()
-        if isSaveFlag == 'y':
-            isSave = True
-        elif isSaveFlag == 'n':
-            isSave = False
-        else:
-            print('error input')
-            isSave = False
-    print('开始训练')
 
+    print('开始训练')
     guestOnePath = lastPath + '/GuestData/one/'
     guestTwoPath = lastPath + '/GuestData/two/'
     gestureOneNumber = getFloderNumber(guestOnePath)
@@ -395,20 +314,14 @@ if __name__ == '__main__':
             initOneFeature, initOneLabel = getInitData(initOnePath)
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataOne(initOneFeature, initOneLabel, flag=1)
-        '''如果存储数据且有缓存，则把上次缓存读出，加入到数据集中，否则直接覆盖'''
-        if isSave and os.path.exists('oneFeatureCache.npy'):
-            fileOneFeatureCache, fileOneLabelCache = getNpyData('oneFeatureCache.npy', 'oneLabelCache.npy')
-            oneFeatureNew = initOneFeature + fileOneFeatureCache
-            oneLabelNew = initOneLabel + fileOneLabelCache
-            saveNpyDataTwo(oneFeatureNew, oneLabelNew, flag=1)
-        else:
-            saveNpyDataOne(features, labels)
+        saveNpyDataOne(features, labels)
         oneFeature = features + initOneFeature
         oneLabel = labels + initOneLabel
+        if len(features)<20:
+            print('error')
         modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
         joblib.dump(modelOne, 'modelOne')
         print(accuracyOne)
-
 
     if gestureTwoNumber != 0:
         features = []
@@ -435,14 +348,8 @@ if __name__ == '__main__':
             initTwoFeature, initTwoLabel = getInitData(initTwoPath)
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataTwo(initTwoFeature, initTwoLabel, flag=1)
-        '''如果存储数据且有缓存，则把上次缓存读出，加入到数据集中，否则直接覆盖'''
-        if isSave and os.path.exists('twoFeatureCache.npy'):
-            fileTwoFeatureCache, fileTwoLabelCache = getNpyData('twoFeatureCache.npy', 'twoLabelCache.npy')
-            twoFeatureNew = initTwoFeature + fileTwoFeatureCache
-            twoLabelNew = initTwoLabel + fileTwoLabelCache
-            saveNpyDataTwo(twoFeatureNew,twoLabelNew,flag=1)
-        else:
-            saveNpyDataTwo(features, labels)
+
+        saveNpyDataTwo(features, labels)
         twoFeature = features + initTwoFeature
         twoLabel = labels + initTwoLabel
         modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
