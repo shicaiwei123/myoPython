@@ -66,12 +66,12 @@ def getxlsData(file='*.xls'):
     dataAll = []
     zeroIndex = []
     dataCache = []
-    firstCol = table.col_values(0)
+    firstCol = table.col_values(1)
     for i in range(colNumber):
         dataAll.append(table.col_values(i))
-    firstCol = [0] + firstCol
+    firstCol = [''] + firstCol
     for i, x in enumerate(firstCol):
-        if x == 0:
+        if x == '':
             zeroIndex.append(i)
     zeroNumber = len(zeroIndex)
     for i in range(zeroNumber - 1):
