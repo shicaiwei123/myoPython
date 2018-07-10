@@ -20,7 +20,7 @@ r = redis.Redis(host="127.0.0.1")
 
 def push_recognize_data(err_no, result):
     #print(result)
-    r.publish("voice", "0+" + result[0])
+    r.publish("voice", json.dumps({"type":"voice", "data": result[0]}))
     print("push data to redis")
     #print(result[0])
 

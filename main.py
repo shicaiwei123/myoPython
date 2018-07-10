@@ -13,10 +13,11 @@ from voice.speech import xf_speech
 from Server.server import ShowWebSocket
 import redis
 import json
+import argparse
 
 r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-# speaker = xf_speech('/dev/ttyUSB0')
+speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -63,7 +64,7 @@ def predict(model, data):
     elif (result == 400) or (result == 401):
         out = outCache.getCache()
         str = "".join(out)
-        # speaker.speech_sy(str)
+        speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
         # r.publish("gesture", json.dumps({"type":"complete", "data":str}))
         print(str)  # 输出结果
@@ -74,13 +75,20 @@ def predict(model, data):
         print(t2 - t1)  # 测试识别时间
         # out = outCache.getCache()
         str = "".join(out)
-        # speaker.speech_sy(str)
+        speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
         # r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
         print(str)  # 输出结果
 
 
+def parse_arg():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--new", help="use new model", action="store_false")
+    return parser.parse_args()
+
 if __name__ == '__main__':
+    # 解析命令行参数
+    options = parse_arg()
     # 去做准确率测试
     m = myoData.init()
     threads = []
@@ -91,13 +99,11 @@ if __name__ == '__main__':
     isNew = False
     '''如果存在校正模型则询问是否采用校正模型'''
     if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
-        print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
-        a = input()
-        if a == 'y':
+        # print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
+        if options.new:
             isNew = True
-        if a == 'n':
+        else:
             isNew = False
-
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
     isFinish = False     # isFinsh 是线程锁
