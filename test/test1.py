@@ -621,17 +621,30 @@ import numpy as np
 #
 # print(remainingData)
 # print(b)
-import pickle
-# a=[[1,2,3],[4,6,5]]
-# fw=open('dataTest.txt','wb')
-# pickle.dump(a,fw,-1)
+# import pickle
+# a = [[1, 2, 3], [4, 6, 5]]
+# b = [[11, 22, 44], [22, 33, 55]]
+# fw = open('dataTest.txt', 'wb')
+# pickle.dump(a, fw, -1)
 # fw.close()
 #
-# fr=open('dataTest.txt','rb')
-# b=pickle.load(fr)
-# print(b)
+# with open('dataTest.txt', 'r+b') as fr:
+#     c = pickle.load(fr)
+#     d=c+b
 #
-
-a=10
-b=list(a)
-print(b)
+# # fw2 = open('dataTest.txt', 'wb')
+#     pickle.dump(c, fr, 2)
+#     fr.close()
+#
+# fr2 = open('dataTest.txt', 'rb')
+# e = pickle.load(fr2)
+# print(e)
+import numpy as np
+a=[[1,2,3],[4,5,6],[4,5,6]]
+a=a+[0]
+b=np.array(a)
+np.save('d',b)
+c=np.load('d.npy')
+e=list(c)
+e.pop(len(e)-1)
+print(e)

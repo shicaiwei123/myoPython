@@ -258,18 +258,85 @@ def getInitData(path=None):
     return features, labels
 
 
+def getNpyData(featureName='', labelName=''):
+    '''
+    :param feature: 存储特征值的文件
+    :param label: 存储标签的文件
+    :return: 返回特征值和标签的list
+    '''
+
+    feature = np.load(featureName)
+    feature = list(feature)
+    feature.pop(len(feature) - 1)
+
+    label = np.load(labelName)
+    label = list(label)
+    label.pop(len(label) - 1)
+    return feature, label
+
+
+def saveNpyDataOne(featureData=None, labelData=None, flag=2):
+    '''
+
+    :param featureData: 传入特征值list
+    :param labelData: 传入标签list
+    :param flag: 标签值，1是存储原始数据，2是存储缓存数据，默认为2
+    :return: 无返回值，直接存储数据
+    '''
+    featureData = featureData + [0]
+    np.array(featureData)
+    if flag == 1:
+        np.save('oneFeature', featureData)
+    elif flag == 2:
+        np.save('oneFeatureCache', featureData)
+    else:
+        print('error save flag')
+    labelData = labelData + [0]
+    np.array(labelData)
+    if flag == 1:
+        np.save('oneLabel', labelData)
+    elif flag == 2:
+        np.save('oneLabelCache', labelData)
+    else:
+        print('error save flag')
+
+
+def saveNpyDataTwo(featureData=None, labelData=None, flag=2):
+    '''
+
+    :param featureData: 传入特征值list
+    :param labelData: 传入标签list
+    :param flag: 标签值，1是存储原始数据，2是存储缓存数据，默认为2
+    :return: 无返回值，直接存储数据
+    '''
+    featureData = featureData + [0]
+    np.array(featureData)
+    if flag == 1:
+        np.save('twoFeature', featureData)
+    elif flag == 2:
+        np.save('twoFeatureCache', featureData)
+    else:
+        print('error save flag')
+    labelData = labelData + [0]
+    np.array(labelData)
+    if flag == 1:
+        np.save('twoLabel', labelData)
+    elif flag == 2:
+        np.save('twoLabelCache', labelData)
+    else:
+        print('error save flag')
+
+
 if __name__ == '__main__':
     """
     用于用户进行自校正
     输入是用户的自定义数据和初始数据，
     """
-    isSave = False
     # myo = myoData.init()
     lastPath = os.path.dirname(os.getcwd())  # 获取上一层目录路径
     gestureDataPath = lastPath + '/dataSheet.xlsx'
     dataDict = excelToDict(gestureDataPath)
-    features = []
-    labels = []
+    isSave = False
     # while True:
     #     print("采集单手手势输入1，双手手势输入2：\t")
     #     handNumber = int(input())
@@ -284,7 +351,17 @@ if __name__ == '__main__':
     #     flag = input()
     #     if flag == 'n':
     #         break
-
+    '''上次是否采集数据，采集了则询问是否保存'''
+    if os.path.exists('oneFeatureCache.npy') or os.path.exists('twoFeatureCache.npy'):
+        print('是否保存上次采集数据？保存请输入y，否则输入n')
+        isSaveFlag = input()
+        if isSaveFlag == 'y':
+            isSave = True
+        elif isSaveFlag == 'n':
+            isSave = False
+        else:
+            print('error input')
+            isSave = False
     print('开始训练')
 
     guestOnePath = lastPath + '/GuestData/one/'
@@ -294,6 +371,8 @@ if __name__ == '__main__':
 
     # 操作单手数据
     if gestureOneNumber != 0:
+        features = []
+        labels = []
         gestureOneName = os.listdir(guestOnePath)
         for i in range(gestureOneNumber):
             gestureName = gestureOneName[i]
@@ -306,62 +385,104 @@ if __name__ == '__main__':
             featureNumber = len(gestureFeature)
             for _ in range(featureNumber):
                 labels.append([label])
-            '''如果已经存在则直接都去，不然从data文件读取并保存'''
-        if os.path.exists('oneFeature.txt'):
-            fileOneFeature = open('oneFeature.txt', 'rb')
-            fileOneLabel = open('oneLabel.txt', 'rb')
-            initOneFeature = pickle.load(fileOneFeature)
-            initOneLabel = pickle.load(fileOneLabel)
-            fileOneFeature.close()
-            fileOneLabel.close()
+        '''如果已经存在则直接都去，不然从data文件读取并保存'''
+        if os.path.exists('oneFeature.npy'):
+
+            initOneFeature, initOneLabel = getNpyData('oneFeature.npy', 'oneLabel.npy')
             # 读取
         else:
             initOnePath = lastPath + '/Data/allDataOne7/'
             initOneFeature, initOneLabel = getInitData(initOnePath)
-            fileOneFeature = open('oneFeature.txt', 'wb')
-            fileOneLabel = open('oneLabel.txt', 'wb')
-            pickle.dump(initOneFeature, fileOneFeature, -1)
-            pickle.dump(initOneLabel, fileOneLabel, -1)
-            fileOneFeature.close()
-            fileOneLabel.close()
+            '''加0是方便读取，使用时候不带0'''
+            saveNpyDataOne(initOneFeature, initOneLabel, flag=1)
+        '''如果存储数据且有缓存，则把上次缓存读出，加入到数据集中，否则直接覆盖'''
+        if isSave and os.path.exists('oneFeatureCache.npy'):
+            fileOneFeatureCache, fileOneLabelCache = getNpyData('oneFeatureCache.npy', 'oneLabelCache.npy')
+            oneFeatureNew = initOneFeature + fileOneFeatureCache
+            oneLabelNew = initOneLabel + fileOneLabelCache
+            saveNpyDataTwo(oneFeatureNew, oneLabelNew, flag=1)
+        else:
+            saveNpyDataOne(features, labels)
         oneFeature = features + initOneFeature
         oneLabel = labels + initOneLabel
         modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
         joblib.dump(modelOne, 'modelOne')
         print(accuracyOne)
 
-    # 操作双手数据
+
     if gestureTwoNumber != 0:
+        features = []
+        labels = []
         gestureTwoName = os.listdir(guestTwoPath)
         for i in range(gestureTwoNumber):
             gestureName = gestureTwoName[i]
+            label = getKey(dataDict, gestureName)
+            if label == None:
+                continue
             gesturePath = guestTwoPath + gestureName + '/'
             gestureFeature = getxlsFeature(gesturePath)
             features = features + gestureFeature
             featureNumber = len(gestureFeature)
-            label = getKey(dataDict, gestureName)
-            if label == None:
-                continue
             for _ in range(featureNumber):
                 labels.append([label])
         '''如果已经存在则直接都去，不然从data文件读取并保存'''
-        if os.path.exists('twoFeature.txt'):
-            fileTwoFeature = open('oneFeature.txt', 'rb')
-            fileTwoLabel = open('oneLabel.txt', 'rb')
-            initTwoFeature = pickle.load(fileTwoFeature)
-            initTwoLabel = pickle.load(fileTwoLabel)
+        if os.path.exists('twoFeature.npy'):
+
+            initTwoFeature, initTwoLabel = getNpyData('twoFeature.npy', 'twoLabel.npy')
+            # 读取
         else:
             initTwoPath = lastPath + '/Data/allDataTwo5/'
             initTwoFeature, initTwoLabel = getInitData(initTwoPath)
-            fileTwoFeature = open('twoFeature.txt', 'wb')
-            fileTwoLabel = open('twoLabel.txt', 'wb')
-            pickle.dump(initTwoFeature, fileTwoFeature, -1)
-            pickle.dump(initTwoLabel, fileTwoLabel, -1)
-            fileTwoFeature.close()
-            fileTwoLabel.close()
+            '''加0是方便读取，使用时候不带0'''
+            saveNpyDataTwo(initTwoFeature, initTwoLabel, flag=1)
+        '''如果存储数据且有缓存，则把上次缓存读出，加入到数据集中，否则直接覆盖'''
+        if isSave and os.path.exists('twoFeatureCache.npy'):
+            fileTwoFeatureCache, fileTwoLabelCache = getNpyData('twoFeatureCache.npy', 'twoLabelCache.npy')
+            twoFeatureNew = initTwoFeature + fileTwoFeatureCache
+            twoLabelNew = initTwoLabel + fileTwoLabelCache
+            saveNpyDataTwo(twoFeatureNew,twoLabelNew,flag=1)
+        else:
+            saveNpyDataTwo(features, labels)
         twoFeature = features + initTwoFeature
         twoLabel = labels + initTwoLabel
         modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
         joblib.dump(modelTwo, 'modelTwo')
         print(accuracyTwo)
-    print('训练完成')
+
+    #
+    # # 操作双手数据
+    # if gestureTwoNumber != 0:
+    #     gestureTwoName = os.listdir(guestTwoPath)
+    #     for i in range(gestureTwoNumber):
+    #         gestureName = gestureTwoName[i]
+    #         gesturePath = guestTwoPath + gestureName + '/'
+    #         gestureFeature = getxlsFeature(gesturePath)
+    #         features = features + gestureFeature
+    #         featureNumber = len(gestureFeature)
+    #         label = getKey(dataDict, gestureName)
+    #         if label == None:
+    #             continue
+    #         for _ in range(featureNumber):
+    #             labels.append([label])
+    #     '''如果已经存在则直接都去，不然从data文件读取并保存'''
+    #     if os.path.exists('twoFeature.txt'):
+    #         fileTwoFeature = open('oneFeature.txt', 'rb')
+    #         fileTwoLabel = open('oneLabel.txt', 'rb')
+    #         initTwoFeature = pickle.load(fileTwoFeature)
+    #         initTwoLabel = pickle.load(fileTwoLabel)
+    #     else:
+    #         initTwoPath = lastPath + '/Data/allDataTwo5/'
+    #         initTwoFeature, initTwoLabel = getInitData(initTwoPath)
+    #         fileTwoFeature = open('twoFeature.txt', 'wb')
+    #         fileTwoLabel = open('twoLabel.txt', 'wb')
+    #         pickle.dump(initTwoFeature, fileTwoFeature, -1)
+    #         pickle.dump(initTwoLabel, fileTwoLabel, -1)
+    #
+    #     fileTwoFeature.close()
+    #     fileTwoLabel.close()
+    #     twoFeature = features + initTwoFeature
+    #     twoLabel = labels + initTwoLabel
+    #     modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
+    #     joblib.dump(modelTwo, 'modelTwo')
+    #     print(accuracyTwo)
+    # print('训练完成')
