@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parentPath = os.path.dirname(os.getcwd())
     '''单手数据训练'''
     if isOne:
-        pathOne = parentPath + '/Data/allDataOne8/'
+        pathOne = parentPath + '/Data/allDataOne10/'
         dirDataOne = os.listdir(pathOne)
         length = len(dirDataOne)  # 数据总数,
         for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     '''双手数据训练'''
     if isTwo:
-        pathTwo = parentPath + '/Data/allDataTwo5/'
+        pathTwo = parentPath + '/Data/allDataTwo7/'
         dirDataTwo = os.listdir(pathTwo)
         length = len(dirDataTwo)  # 数据总数,
         for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试

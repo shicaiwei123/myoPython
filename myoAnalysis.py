@@ -8,8 +8,9 @@ import xlwt
 import scipy.io as scio
 import random
 import os
-debug=1
+debug = 1
 # xlwt只能储存float数据
+
 
 def _ZCR(data):
     # 输入是numpy的一维数组
@@ -33,7 +34,7 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
     :param divisor: 分片数
     :return: 返回特征
     """
-    debug=debug+1
+    debug = debug + 1
     emgDataAll = np.array(emgDataAll)
     imuDataAll = np.array(imuDataAll)
     frq = 50  # 频率50Hz
@@ -101,11 +102,11 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
         integralAccY = np.sum(accY) * 1 / frq
         integralAccZ = np.sum(accZ) * 1 / frq
         # 范围
-        if len(accX)==0:
+        if len(accX) == 0:
             print(debug)
-            rangeAccX=0
-            rangeAccY=0
-            rangeGcoX=0
+            rangeAccX = 0
+            rangeAccY = 0
+            rangeGcoX = 0
             rangeGcoY = 0
             rangeGcoZ = 0
             print('zero-size-acc')
@@ -265,11 +266,11 @@ def featureGet(emgDataAll, imuDataAll, divisor=8):
     return feature
 
 
-def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisorRight=8,divisorLeft=4):
+def featureGetTwo(emgDataRightAll, imuDataRightAll, emgDataLeftAll, imuDataLeftAll, divisorRight=8, divisorLeft=4):
     featureRight = featureGet(emgDataRightAll, imuDataRightAll, divisorRight)
     featureLeft = featureGet(emgDataLeftAll, imuDataLeftAll, divisorLeft)
     featureAll = featureRight + featureLeft
-    if len(featureAll)==312:
+    if len(featureAll) == 312:
         print('featureGetTwoError')
     return featureAll
 
@@ -375,8 +376,8 @@ def normalized(gestureEmg, gestureImu):
     :param gestureEmg:  手语运动的惯性传感器数据
     :return:  归一化数据的肌电流，惯性传感器数据
     """
-    gestureEmg=np.array(gestureEmg)
-    gestureImu=np.array(gestureImu)
+    gestureEmg = np.array(gestureEmg)
+    gestureImu = np.array(gestureImu)
     emgMax = np.max(np.max(gestureEmg))
     imuMax = np.max(np.max(gestureImu))
     imuMin = np.min(np.min(gestureImu))
@@ -444,15 +445,11 @@ def getMatFeature(file):
         featureOne = featureGet(emgRight, imuRight, divisor=8)
 
     elif dataType == 2:
-        featureTwo = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisorRight=8,divisorLeft=4)
+        featureTwo = featureGetTwo(emgRight, imuRight, emgLeft, imuLeft, divisorRight=8, divisorLeft=4)
     if featureOne == []:
         return featureTwo, labels
     else:
         return featureOne, labels
-
-
-
-
 
 
 def getKNN(trainX, trainY):
@@ -513,7 +510,6 @@ def getModel(feature, label, ratio):
     return model, accuracy
 
 
-
 def getNpyData(featureName='', labelName=''):
     '''
     :param feature: 存储特征值的文件
@@ -529,8 +525,6 @@ def getNpyData(featureName='', labelName=''):
     label = list(label)
     label.pop(len(label) - 1)
     return feature, label
-
-
 
 
 def saveNpyDataOne(featureData=None, labelData=None, flag=2):
@@ -584,6 +578,7 @@ def saveNpyDataTwo(featureData=None, labelData=None, flag=2):
     else:
         print('error save flag')
 
+
 def getFloderNumber(path=None):
     """
     获取文件夹下文件夹数目
@@ -596,7 +591,6 @@ def getFloderNumber(path=None):
         for fn in os.listdir(path):  # fn 表示的是文件名
             count = count + 1
     return count
-
 
 
 if __name__ == '__main__':

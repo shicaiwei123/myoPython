@@ -49,6 +49,7 @@ def predict(model, data):
     global deleteNumber
     result = model.predict(data)
     result = int(result)
+    print(result)
     t2 = time.time()
     isFinish = True
     '''判定手语识别的开始和结束'''
@@ -69,6 +70,7 @@ def predict(model, data):
     if deleteNumber == 2:
         isRecognize = True
         deleteNumber = 0
+        outCache.clear()
         print('开始识别')
     if finishNumber == 2:
         isRecognize = False

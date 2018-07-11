@@ -32,12 +32,13 @@ backup = 'Backup/' + str(backupCount)
 shutil.copytree('GetDataSet', backupGetDataSet)
 os.makedirs(backupGuestData)
 
-# '''如果有新数据，则更新'''
+'''如果有新数据，则更新'''
 if os.path.exists(newOneFeaturePath):
     oldOneFeature, oldOneLabel = getNpyData(oldOneFeaturePath, oldOneLabelPath)
     newOneFeature, newOneLabel = getNpyData(newOneFeaturePath, newOneLabelPath)
     oneFeature = oldOneFeature + newOneFeature
     oneLabel = oldOneLabel + newOneLabel
+    '''用户自定义数据的处理，不再是删除，而是也作为原始缓存'''
     os.remove(newOneFeaturePath)
     os.remove(newOneLabelPath)
 
