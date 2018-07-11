@@ -17,10 +17,17 @@ oldOneLabelPath = 'GetDataSet/oneLabel.npy'
 newOneFeaturePath = 'GetDataSet/oneFeatureCache.npy'
 newOneLabelPath = 'GetDataSet/oneLabelCache.npy'
 '''建立缓存文件夹'''
-backupCount=getFloderNumber('Backup/')+1
-backupGetDataSet='Backup/'+str(backupCount)+'/GetDataSet'
-backupGuestData='Backup/'+str(backupCount)+'/GuestData'
-backup='Backup/'+str(backupCount)
+'''只缓存20个版本'''
+if not os.path.exists('Backup'):
+    os.makedirs('Backup')
+backupCount = getFloderNumber('Backup/')
+if backupCount < 20:
+    backupCount = backupCount + 1
+else:
+    backupCount = 20
+backupGetDataSet = 'Backup/' + str(backupCount) + '/GetDataSet'
+backupGuestData = 'Backup/' + str(backupCount) + '/GuestData'
+backup = 'Backup/' + str(backupCount)
 '''会自动创建目标目录'''
 shutil.copytree('GetDataSet', backupGetDataSet)
 os.makedirs(backupGuestData)
@@ -35,15 +42,15 @@ if os.path.exists(newOneFeaturePath):
     os.remove(newOneLabelPath)
 
     if os.path.exists('GuestData/one'):
-        shutil.move('GuestData/one',backupGuestData)
-    shutil.move('SVM3One',backup)
+        shutil.move('GuestData/one', backupGuestData)
+    shutil.move('SVM3One', backup)
 
     modelOne = getSVM(oneFeature, oneLabel)
 
     joblib.dump(modelOne, 'SVM3One')
     os.chdir('GetDataSet/')
     saveNpyDataOne(oneFeature, oneLabel, flag=1)
-    lastPath=os.path.pardir
+    lastPath = os.path.pardir
     os.chdir(lastPath)
 
 '''双手数据'''
@@ -62,13 +69,13 @@ if os.path.exists(newTwoFeaturePath):
     os.remove(newTwoLabelPath)
 
     if os.path.exists('GuestData/two'):
-        shutil.move('GuestData/two',backupGuestData)
-    shutil.move('SVM3Two',backup)
+        shutil.move('GuestData/two', backupGuestData)
+    shutil.move('SVM3Two', backup)
 
     modelTwo = getSVM(twoFeature, twoLabel)
     joblib.dump(modelTwo, 'SVM3Two')
     os.chdir('GetDataSet/')
     saveNpyDataTwo(twoFeature, twoLabel, flag=1)
-    lastPath=os.path.pardir
+    lastPath = os.path.pardir
     os.chdir(lastPath)
 print('模型更新完成')

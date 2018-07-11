@@ -33,6 +33,9 @@ r = redis.Redis(host="127.0.0.1")
 def predict(model, data):
     """
     利用模型进行识别，以及进行一些基本的控制
+    控制开始识别和结束识别
+    控制句子表达的完成
+    控制一句话中单词的删除
     :param model: 模型
     :param data: 特征
     :return:
@@ -41,51 +44,79 @@ def predict(model, data):
     t1 = time.time()
     global isFinish
     global dataDict
+    global isRecognize
+    global finishNumber
+    global deleteNumber
     result = model.predict(data)
     result = int(result)
     t2 = time.time()
     isFinish = True
+    '''判定手语识别的开始和结束'''
+    '''如果还没有开始识别那么就检测识别标志，开始识别后就检测结束标志'''
+    if not isRecognize:
+        if result == 402:
+            deleteNumber = deleteNumber + 1
+        else:
+            deleteNumber = 0
+    else:
+        if result==401:
+            finishNumber=finishNumber+1
+        else:
+            deleteNumber=0
+
+    '''判断，因为不可能同时发生，所以可以独立进行判断'''
+    '''状态更新后，数据清零'''
+    if deleteNumber == 2:
+        isRecognize = True
+        deleteNumber = 0
+        print('开始识别')
+    if finishNumber == 2:
+        isRecognize = False
+        finishNumber = 0
+        print('结束识别')
     """
-    400和401是完成
+    401是完成
     402是删除
     其余是数据缓存
     """
-    if (result == 402):
-        outCache.delete()
-        if outCache.size != 0:
+    if isRecognize:
+        if (result == 402):
+            outCache.delete()
+            if outCache.size != 0:
+                out = outCache.getCache()
+                # list->str
+                str = "".join(out)
+                # speaker.speech_sy(str)
+                # r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
+                # ShowWebSocket.put_data("2", str)
+                print(str)  # 输出结果
+            # else:
+                # r.publish("gesture", json.dumps({"type": "incomplete", "data": ""}))
+        elif result == 401:
             out = outCache.getCache()
-            # list->str
             str = "".join(out)
             # speaker.speech_sy(str)
-            # r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
-            # ShowWebSocket.put_data("2", str)
+            # ShowWebSocket.put_data("1", str)
+            # r.publish("gesture", json.dumps({"type":"complete", "data":str}))
             print(str)  # 输出结果
+            outCache.clear()
         else:
-            r.publish("gesture", json.dumps({"type":"incomplete", "data":""}))
-    elif (result == 400) or (result == 401):
-        out = outCache.getCache()
-        str = "".join(out)
-        # speaker.speech_sy(str)
-        # ShowWebSocket.put_data("1", str)
-        # r.publish("gesture", json.dumps({"type":"complete", "data":str}))
-        print(str)  # 输出结果
-        outCache.clear()
-    else:
-        out = dataDict[result]
-        outCache.update(out)
-        print(t2 - t1)  # 测试识别时间
-        # out = outCache.getCache()
-        str = "".join(out)
-        # speaker.speech_sy(str)
-        # ShowWebSocket.put_data("1", str)
-        # r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
-        print(str)  # 输出结果
+            out = dataDict[result]
+            outCache.update(out)
+            print(t2 - t1)  # 测试识别时间
+            # out = outCache.getCache()
+            str = "".join(out)
+            # speaker.speech_sy(str)
+            # ShowWebSocket.put_data("1", str)
+            # r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
+            print(str)  # 输出结果
 
 
 def parse_arg():
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--new", help="use new model", action="store_false")
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     # 解析命令行参数
@@ -97,21 +128,28 @@ if __name__ == '__main__':
     parantPath = os.getcwd()
     '''判断是否是双手的flag'''
     isTwo = False
+    '''判断是否使用新模型'''
     isNew = False
+    '''判断是否使用开始手语识别'''
+    '''连续统计到两次删除就是开始一次手语识别，否则就是休息模式'''
+    '''在手语识别过程中连续统计到两次完成就是退出当前的手语识别'''
+    deleteNumber = 0
+    finishNumber = 0
+    isRecognize = False
     '''如果存在校正模型则询问是否采用校正模型'''
-    #if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
-       # print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
-       # if options.new:
-            #isNew = True
-       # else:
-           # isNew = False
+    # if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
+    # print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
+    # if options.new:
+    #isNew = True
+    # else:
+    # isNew = False
     if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
         print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
-        flag=input()
-        if flag=='n':
-            isNew=False
-        elif flag=='y':
-            isNew=True
+        flag = input()
+        if flag == 'n':
+            isNew = False
+        elif flag == 'y':
+            isNew = True
         else:
             print('error input')
     # 导入字典数据，后期译码使用

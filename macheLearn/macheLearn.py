@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # 初始化
     '''如果置为真则训练'''
     isOne=True
-    isTwo=True
+    isTwo=False
     featuresOne = []
     labelsOne = []
     featuresTwo = []
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parentPath = os.path.dirname(os.getcwd())
     '''单手数据训练'''
     if isOne:
-        pathOne = parentPath + '/Data/allDataOne7/'
+        pathOne = parentPath + '/Data/allDataOne8/'
         dirDataOne = os.listdir(pathOne)
         length = len(dirDataOne)  # 数据总数,
         for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试

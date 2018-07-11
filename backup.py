@@ -2,7 +2,6 @@
    回退之后，当前的数据会被完全清空'''
 from myoAnalysis import getFloderNumber
 import os
-import sys
 import shutil
 currentPath = os.getcwd()
 versionCount = getFloderNumber('Backup')

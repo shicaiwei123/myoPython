@@ -298,7 +298,7 @@ if __name__ == '__main__':
             initOneFeature, initOneLabel = getNpyData('oneFeature.npy', 'oneLabel.npy')
             # 读取
         else:
-            initOnePath = lastPath + '/Data/allDataOne7/'
+            initOnePath = lastPath + '/Data/allDataOne8/'
             initOneFeature, initOneLabel = getInitData(initOnePath)
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataOne(initOneFeature, initOneLabel, flag=1)
