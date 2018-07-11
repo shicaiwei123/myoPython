@@ -263,24 +263,24 @@ if __name__ == '__main__':
     用于用户进行自校正
     输入是用户的自定义数据和初始数据，
     """
-    # myo = myoData.init()
+    myo = myoData.init()
     lastPath = os.path.dirname(os.getcwd())  # 获取上一层目录路径
     gestureDataPath = lastPath + '/dataSheet.xlsx'
     dataDict = excelToDict(gestureDataPath)
-    # while True:
-    #     print("采集单手手势输入1，双手手势输入2：\t")
-    #     handNumber = int(input())
-    #     print("请输入要采集的手势名称：\t")
-    #     fileName = input()
-    #     print("请输入要采集手势的采集数目：\t")
-    #     dataNumber = int(input())
-    #     time.sleep(1)
-    #     print("开始采集\t")
-    #     getDataSet(handNumber, fileName, dataNumber, myo)
-    #     print('是否继续？继续请输入y，否则输入n')
-    #     flag = input()
-    #     if flag == 'n':
-    #         break
+    while True:
+        print("采集单手手势输入1，双手手势输入2：\t")
+        handNumber = int(input())
+        print("请输入要采集的手势名称：\t")
+        fileName = input()
+        print("请输入要采集手势的采集数目：\t")
+        dataNumber = int(input())
+        time.sleep(1)
+        print("开始采集\t")
+        getDataSet(handNumber, fileName, dataNumber, myo)
+        print('是否继续？继续请输入y，否则输入n')
+        flag = input()
+        if flag == 'n':
+            break
 
     print('开始训练')
     guestOnePath = lastPath + '/GuestData/one/'
