@@ -11,6 +11,7 @@ from myoAnalysis import getModel
 from myoAnalysis import saveNpyDataOne
 from myoAnalysis import saveNpyDataTwo
 from myoAnalysis import getNpyData
+from myoAnalysis import getFloderNumber
 from sklearn.externals import joblib
 
 import numpy as np
@@ -38,19 +39,6 @@ def getKey(dict=None, gestureName=None):
         print("no gesture label")
     return label
 
-
-def getFloderNumber(path=None):
-    """
-    获取文件夹下文件夹数目
-    :param path: 文件夹路径
-    :return: 当前路径下文件夹数目
-    """
-    count = 0
-    floderExist = os.path.exists(path)
-    if floderExist:
-        for fn in os.listdir(path):  # fn 表示的是文件名
-            count = count + 1
-    return count
 
 
 def getxlsData(file='*.xls'):
@@ -263,24 +251,24 @@ if __name__ == '__main__':
     用于用户进行自校正
     输入是用户的自定义数据和初始数据，
     """
-    myo = myoData.init()
+    # myo = myoData.init()
     lastPath = os.path.dirname(os.getcwd())  # 获取上一层目录路径
     gestureDataPath = lastPath + '/dataSheet.xlsx'
     dataDict = excelToDict(gestureDataPath)
-    while True:
-        print("采集单手手势输入1，双手手势输入2：\t")
-        handNumber = int(input())
-        print("请输入要采集的手势名称：\t")
-        fileName = input()
-        print("请输入要采集手势的采集数目：\t")
-        dataNumber = int(input())
-        time.sleep(1)
-        print("开始采集\t")
-        getDataSet(handNumber, fileName, dataNumber, myo)
-        print('是否继续？继续请输入y，否则输入n')
-        flag = input()
-        if flag == 'n':
-            break
+    # while True:
+    #     print("采集单手手势输入1，双手手势输入2：\t")
+    #     handNumber = int(input())
+    #     print("请输入要采集的手势名称：\t")
+    #     fileName = input()
+    #     print("请输入要采集手势的采集数目：\t")
+    #     dataNumber = int(input())
+    #     time.sleep(1)
+    #     print("开始采集\t")
+    #     getDataSet(handNumber, fileName, dataNumber, myo)
+    #     print('是否继续？继续请输入y，否则输入n')
+    #     flag = input()
+    #     if flag == 'n':
+    #         break
 
     print('开始训练')
     guestOnePath = lastPath + '/GuestData/one/'
@@ -355,41 +343,3 @@ if __name__ == '__main__':
         modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
         joblib.dump(modelTwo, 'modelTwo')
         print(accuracyTwo)
-
-    #
-    # # 操作双手数据
-    # if gestureTwoNumber != 0:
-    #     gestureTwoName = os.listdir(guestTwoPath)
-    #     for i in range(gestureTwoNumber):
-    #         gestureName = gestureTwoName[i]
-    #         gesturePath = guestTwoPath + gestureName + '/'
-    #         gestureFeature = getxlsFeature(gesturePath)
-    #         features = features + gestureFeature
-    #         featureNumber = len(gestureFeature)
-    #         label = getKey(dataDict, gestureName)
-    #         if label == None:
-    #             continue
-    #         for _ in range(featureNumber):
-    #             labels.append([label])
-    #     '''如果已经存在则直接都去，不然从data文件读取并保存'''
-    #     if os.path.exists('twoFeature.txt'):
-    #         fileTwoFeature = open('oneFeature.txt', 'rb')
-    #         fileTwoLabel = open('oneLabel.txt', 'rb')
-    #         initTwoFeature = pickle.load(fileTwoFeature)
-    #         initTwoLabel = pickle.load(fileTwoLabel)
-    #     else:
-    #         initTwoPath = lastPath + '/Data/allDataTwo5/'
-    #         initTwoFeature, initTwoLabel = getInitData(initTwoPath)
-    #         fileTwoFeature = open('twoFeature.txt', 'wb')
-    #         fileTwoLabel = open('twoLabel.txt', 'wb')
-    #         pickle.dump(initTwoFeature, fileTwoFeature, -1)
-    #         pickle.dump(initTwoLabel, fileTwoLabel, -1)
-    #
-    #     fileTwoFeature.close()
-    #     fileTwoLabel.close()
-    #     twoFeature = features + initTwoFeature
-    #     twoLabel = labels + initTwoLabel
-    #     modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
-    #     joblib.dump(modelTwo, 'modelTwo')
-    #     print(accuracyTwo)
-    # print('训练完成')

@@ -2,6 +2,11 @@
 #description =""
 #author = "shicaiwei"
 # -*- coding: <encoding name> -*-
+import os
+import sys
+import numpy as np
+
+
 
 # import matlab.engine
 #
@@ -604,47 +609,56 @@
 
 
 """随机访问列表"""
-import random
-import numpy as np
-# a = [[1, 2, 3, 4], [1, 3], [1, 2], [4, 5]]
-# b= random.sample(a,2)
-# index=[]
-# remainingData=[]
-# for i in b:
-#     index.append(a.index(i))
-# index=tuple(index)
-# allIndex=tuple(range(len(a)))
-# remaining=set(allIndex).difference(set(index))
-# remaining=list(remaining)
-# for i in remaining:
-#     remainingData.append(a[i])
-#
-# print(remainingData)
-# print(b)
-# import pickle
-# a = [[1, 2, 3], [4, 6, 5]]
-# b = [[11, 22, 44], [22, 33, 55]]
-# fw = open('dataTest.txt', 'wb')
-# pickle.dump(a, fw, -1)
-# fw.close()
-#
-# with open('dataTest.txt', 'r+b') as fr:
-#     c = pickle.load(fr)
-#     d=c+b
-#
-# # fw2 = open('dataTest.txt', 'wb')
-#     pickle.dump(c, fr, 2)
-#     fr.close()
-#
-# fr2 = open('dataTest.txt', 'rb')
-# e = pickle.load(fr2)
+# import random
+# import numpy as np
+# # a = [[1, 2, 3, 4], [1, 3], [1, 2], [4, 5]]
+# # b= random.sample(a,2)
+# # index=[]
+# # remainingData=[]
+# # for i in b:
+# #     index.append(a.index(i))
+# # index=tuple(index)
+# # allIndex=tuple(range(len(a)))
+# # remaining=set(allIndex).difference(set(index))
+# # remaining=list(remaining)
+# # for i in remaining:
+# #     remainingData.append(a[i])
+# #
+# # print(remainingData)
+# # print(b)
+# # import pickle
+# # a = [[1, 2, 3], [4, 6, 5]]
+# # b = [[11, 22, 44], [22, 33, 55]]
+# # fw = open('dataTest.txt', 'wb')
+# # pickle.dump(a, fw, -1)
+# # fw.close()
+# #
+# # with open('dataTest.txt', 'r+b') as fr:
+# #     c = pickle.load(fr)
+# #     d=c+b
+# #
+# # # fw2 = open('dataTest.txt', 'wb')
+# #     pickle.dump(c, fr, 2)
+# #     fr.close()
+# #
+# # fr2 = open('dataTest.txt', 'rb')
+# # e = pickle.load(fr2)
+# # print(e)
+# import numpy as np
+# a=[[1,2,3],[4,5,6],[4,5,6]]
+# a=a+[0]
+# b=np.array(a)
+# np.save('d',b)
+# c=np.load('d.npy')
+# e=list(c)
+# e.pop(len(e)-1)
 # print(e)
-import numpy as np
-a=[[1,2,3],[4,5,6],[4,5,6]]
-a=a+[0]
-b=np.array(a)
-np.save('d',b)
-c=np.load('d.npy')
-e=list(c)
-e.pop(len(e)-1)
-print(e)
+
+
+sys.path.append(os.path.pardir)
+
+oldOneFeaturePath = 'GetDataSet/oneFeature.npy'
+oldOneLabelPath = 'GetDataSet/oneLabel.npy'
+feature = np.load(featureName)
+feature = list(feature)
+feature.pop(len(feature) - 1)

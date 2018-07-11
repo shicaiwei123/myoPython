@@ -7,6 +7,7 @@ import numpy as np
 import xlwt
 import scipy.io as scio
 import random
+import os
 debug=1
 # xlwt只能储存float数据
 
@@ -582,6 +583,20 @@ def saveNpyDataTwo(featureData=None, labelData=None, flag=2):
         np.save('twoLabelCache', labelData)
     else:
         print('error save flag')
+
+def getFloderNumber(path=None):
+    """
+    获取文件夹下文件夹数目
+    :param path: 文件夹路径
+    :return: 当前路径下文件夹数目
+    """
+    count = 0
+    floderExist = os.path.exists(path)
+    if floderExist:
+        for fn in os.listdir(path):  # fn 表示的是文件名
+            count = count + 1
+    return count
+
 
 
 if __name__ == '__main__':

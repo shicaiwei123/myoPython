@@ -17,7 +17,7 @@ import argparse
 
 r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-speaker = xf_speech('/dev/ttyUSB0')
+# speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -57,7 +57,7 @@ def predict(model, data):
             # list->str
             str = "".join(out)
             # speaker.speech_sy(str)
-            r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
+            # r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
             # ShowWebSocket.put_data("2", str)
             print(str)  # 输出结果
         else:
@@ -65,9 +65,9 @@ def predict(model, data):
     elif (result == 400) or (result == 401):
         out = outCache.getCache()
         str = "".join(out)
-        speaker.speech_sy(str)
+        # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        r.publish("gesture", json.dumps({"type":"complete", "data":str}))
+        # r.publish("gesture", json.dumps({"type":"complete", "data":str}))
         print(str)  # 输出结果
         outCache.clear()
     else:
@@ -78,7 +78,7 @@ def predict(model, data):
         str = "".join(out)
         # speaker.speech_sy(str)
         # ShowWebSocket.put_data("1", str)
-        r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
+        # r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
         print(str)  # 输出结果
 
 
