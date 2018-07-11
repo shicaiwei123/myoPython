@@ -1,5 +1,5 @@
 import threading
-
+import os
 from tornado.websocket import WebSocketHandler
 from tornado import gen
 from functools import partial
@@ -9,10 +9,17 @@ import logging
 #import tornadoredis
 import redis
 import json
+from tornado.process import Subprocess
+import signal
+import traceback
+import psutil
 
 data = list()
 lock = threading.Lock()
 user_set = dict()
+
+COMMAND_TYPE ="command"
+KILL_TYPE = "kill"
 
 def redis_listener():
     r = redis.Redis(host="127.0.0.1")
@@ -24,64 +31,19 @@ def redis_listener():
         for key, user in user_set.items():
             t_io_loop.add_callback(user.write_message,str(message['data'], encoding="utf-8"))
 
-@gen.coroutine
-def second_loop():
-    while True:
-        ShowWebSocket.find_data()
-        yield gen.sleep(1)
-
 
 class ShowWebSocket(WebSocketHandler):
-
-    user_set = dict()
-    data = list()
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #self.listen()
-
-    @classmethod
-    def put_data(cls, msg_type, msg):
-        lock.acquire()
-        cls.data.append({"type": msg_type, "msg": msg})
-        print("put_data success")
-        print(cls.data)
-        lock.release()
-    
-    def connect(self):
-        self.redis_client = tornadoredis.Client(host="127.0.0.1", port=6379)
-        self.redis_client.connect()
-
-    @tornado.gen.engine
-    def listen(self):
-        self.redis_client = tornadoredis.Client()
-        self.redis_client.connect()
-        yield tornado.gen.Task(self.redis_client.subscribe, "voice")
-        self.redis_client.listen(self.on_update)
-    
-    @gen.coroutine
-    def on_update(self, message):
-        for key, user in user_set.items():
-            user.write_message(message["type"] + "+" + message["data"])
-
-    @classmethod
-    def find_data(cls):
-        lock.acquire()
-        print("find_data: ", cls.data)
-        if len(cls.data) != 0:
-            msg_info = cls.data[0]
-            print("find data success", msg_info)
-            del cls.data[0]
-            cls.push_data(msg_info["type"], msg_info["msg"])
-        lock.release()
-        # print("find_data_success")
+        self.cmd_subprocess_dict = dict()
 
     def check_origin(self, origin):
         return True
 
     def open(self):
         try:
-            username = self.get_query_argument("username")
+            username = self.get_argument("username")
         except tornado.web.MissingArgumentError:
             username = "default"
 
@@ -89,12 +51,49 @@ class ShowWebSocket(WebSocketHandler):
         print("WebSocket opened")
         print(user_set)
         self.write_message(json.dumps({"type": "voice", "data": "Connect"}))
-
-    def on_message(self, message):
-        self.write_message(u"0+" + message)
+    
+    @gen.coroutine
+    def on_message(self, message_json):
+        try:
+            message = json.loads(message_json)
+            if message["type"] == COMMAND_TYPE:
+                # 执行命令
+                self.run_subprocess(message["name"], message["data"])
+                self.write_message({"type": "log", "data": "run command success"}) 
+            elif message["type"] == KILL_TYPE:
+                # 停止命令
+                self.kill_subprocess(message["name"])
+        except:
+            self.write_message({"type": "log", "data": "command failed"})
+            traceback.print_exc()
+            return
 
     def on_close(self):
         print("Websocket closed")
+
+    @gen.coroutine
+    def run_subprocess(self, name, cmd):
+        cmd_proc = Subprocess(cmd, shell=True, preexec_fn=os.setsid, stdout=Subprocess.STREAM)
+        self.cmd_subprocess_dict[name] = cmd_proc
+        yield cmd_proc.stdout.read_until_close()
+        raise gen.Return(None)
+    
+    @gen.coroutine
+    def kill_subprocess(self, name):
+        try:
+            p = psutil.Process(self.cmd_subprocess_dict[name].pid)
+            child_pid = p.children(recursive=True)
+            for pid in child_pid:
+                os.kill(pid.pid, signal.SIGTERM)
+            p.terminate()
+            self.write_message({"type": "log", "data": "kill command success"})
+            # os.killpg(os.getpid(cmd_subprocess_dict[name]), signal.SIGTERM)
+        except KeyError as e:
+            self.write_message({"type": "log", "data": "no command with this name"})
+        except Exception as e:
+            traceback.print_exc()
+            self.write_message(json.dumps({"type":"log", "data":"kill command failed"}))
+            return
 
     @classmethod
     def push_data(cls, type, msg):
@@ -113,10 +112,6 @@ class Application(tornado.web.Application):
             (r"/", ShowWebSocket)
         ]
         super(Application, self).__init__(handlers)
-
-
-def start():
-    tornado.ioloop.IOLoop.current().start()
 
 
 def main():

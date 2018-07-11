@@ -191,9 +191,9 @@ def _getOnceData(m):
         imuRightCache = list(np.array(imuRightData) / 20)
         # print(emgLeftData, '\t', imuLeftCache[0:3], '\t', emgRightData, '\t', imuRightCache[0:3])
         timeNow = time.time() - timeBegin
-        # print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
+        #print(emgLeftCache, imuLeftCache, emgRightCache, imuRightCache)
         # print(imuRightCache)
-        # print(qurt)
+        #print(qurt)
         # TODO: 询问
         return emgLeftCache, imuLeftCache, emgRightCache, imuRightCache,qurt
 
