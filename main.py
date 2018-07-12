@@ -11,11 +11,17 @@ import time
 import os
 from voice.speech import xf_speech
 from Server.server import ShowWebSocket
-import redis
 import json
 import argparse
+import logging
 
-r = redis.Redis(host="127.0.0.1")
+debug = False
+
+logging.basicConfig(level=logging.INFO)
+
+if not debug:
+    import redis
+    r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
 # speaker = xf_speech('/dev/ttyUSB0')
 
@@ -49,7 +55,11 @@ def predict(model, data):
     global deleteNumber
     result = model.predict(data)
     result = int(result)
+
     print(result)
+
+    logging.info(result)
+
     t2 = time.time()
     isFinish = True
     '''判定手语识别的开始和结束'''
@@ -70,12 +80,16 @@ def predict(model, data):
     if deleteNumber == 2:
         isRecognize = True
         deleteNumber = 0
+
         outCache.clear()
         print('开始识别')
+
+        logging.info('开始识别')
+
     if finishNumber == 2:
         isRecognize = False
         finishNumber = 0
-        print('结束识别')
+        logging.info('结束识别')
     """
     401是完成
     402是删除
@@ -89,9 +103,10 @@ def predict(model, data):
                 # list->str
                 str = "".join(out)
                 # speaker.speech_sy(str)
-                # r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
+                if not debug:
+                    r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
                 # ShowWebSocket.put_data("2", str)
-                print(str)  # 输出结果
+                logging.info(str)  # 输出结果
             # else:
                 # r.publish("gesture", json.dumps({"type": "incomplete", "data": ""}))
         elif result == 401:
@@ -99,19 +114,21 @@ def predict(model, data):
             str = "".join(out)
             # speaker.speech_sy(str)
             # ShowWebSocket.put_data("1", str)
-            # r.publish("gesture", json.dumps({"type":"complete", "data":str}))
-            print(str)  # 输出结果
+            if not debug:
+                r.publish("gesture", json.dumps({"type":"complete", "data":str}))
+            logging.info(str)  # 输出结果
             outCache.clear()
         else:
             out = dataDict[result]
             outCache.update(out)
-            print(t2 - t1)  # 测试识别时间
+            logging.info(t2 - t1)  # 测试识别时间
             # out = outCache.getCache()
             str = "".join(out)
             # speaker.speech_sy(str)
             # ShowWebSocket.put_data("1", str)
-            # r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
-            print(str)  # 输出结果
+            if not debug:
+                r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
+            logging.info(str)  # 输出结果
 
 
 def parse_arg():
@@ -122,7 +139,8 @@ def parse_arg():
 
 if __name__ == '__main__':
     # 解析命令行参数
-    options = parse_arg()
+    if not debug:
+        options = parse_arg()
 
     m = myoData.init()
     threads = []
@@ -139,21 +157,22 @@ if __name__ == '__main__':
     finishNumber = 0
     isRecognize = False
     '''如果存在校正模型则询问是否采用校正模型'''
-    # if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
-    # print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
-    # if options.new:
-    #isNew = True
-    # else:
-    # isNew = False
-    if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
-        print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
-        flag = input()
-        if flag == 'n':
-            isNew = False
-        elif flag == 'y':
-            isNew = True
-        else:
-            print('error input')
+    if not debug:
+        if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
+            if options.new:
+                isNew = True
+            else:
+                isNew = False
+    else:
+        if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
+            print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
+            flag = input()
+            if flag == 'n':
+                isNew = False
+            elif flag == 'y':
+                isNew = True
+            else:
+                print('error input')
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
     isFinish = False     # isFinsh 是线程锁

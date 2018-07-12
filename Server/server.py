@@ -10,6 +10,7 @@ import logging
 import redis
 import json
 from tornado.process import Subprocess
+from tornado.iostream import StreamClosedError
 import signal
 import traceback
 import psutil
@@ -21,10 +22,12 @@ user_set = dict()
 COMMAND_TYPE ="command"
 KILL_TYPE = "kill"
 
+logging.basicConfig(level=logging.INFO)
+
 def redis_listener():
     r = redis.Redis(host="127.0.0.1")
     ps=r.pubsub()
-    ps.subscribe(["voice", "gesture"])
+    ps.subscribe(["voice", "gesture", "adjust"])
     t_io_loop = tornado.ioloop.IOLoop.instance()
     for message in ps.listen():
         #print("get message", message)
@@ -75,8 +78,20 @@ class ShowWebSocket(WebSocketHandler):
     def run_subprocess(self, name, cmd):
         cmd_proc = Subprocess(cmd, shell=True, preexec_fn=os.setsid, stdout=Subprocess.STREAM)
         self.cmd_subprocess_dict[name] = cmd_proc
-        yield cmd_proc.stdout.read_until_close()
+        yield self.redirect_stream(cmd_proc.stdout)
+        # yield cmd_proc.stdout.read_until_close()
         raise gen.Return(None)
+
+    @gen.coroutine
+    def redirect_stream(self, stream):
+        while True:
+            try:
+                data = yield stream.read_bytes(128, partial=True)
+                logging.info(data)
+            except StreamClosedError:
+                break
+            else:
+                self.write_message({"type": "process_result", "data": data})
     
     @gen.coroutine
     def kill_subprocess(self, name):
