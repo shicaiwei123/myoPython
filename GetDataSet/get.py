@@ -18,6 +18,10 @@ from sklearn.externals import joblib
 import numpy as np
 import time
 import argparse
+import redis
+import json
+
+r = redis.Redis(host="127.0.0.1")
 
 def getKey(dict=None, gestureName=None):
     """
@@ -171,6 +175,7 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12, myo=None):
             engeryAll, engerySeg = myoData.getGestureData(m)
 
         gestureCounter = gestureCounter + 1
+        r.publish("adjust", json.dumps({"type": "adjust", "data": gestureCounter}))
         print(gestureCounter)
         # if emgRight == 10000:
         if gestureCounter > DataNumber:
@@ -270,9 +275,12 @@ if __name__ == '__main__':
         handNumber = args.hand
         fileName = args.word
         dataNumber = args.n
+        r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
         myo = myoData.init()
+        r.publish("adjust", json.dumps({"type": "adjust", "data": "开始采集"}))
         getDataSet(handNumber, fileName, dataNumber, myo)
     else:
+        r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
         myo = myoData.init()
         while True:
             print("采集单手手势输入1，双手手势输入2：\t")
@@ -288,6 +296,7 @@ if __name__ == '__main__':
             flag = input()
             if flag == 'n':
                 break
+    r.publish("adjust", json.dumps({"type": "adjust", "data": "开始训练"}))
     print('开始训练')
     guestOnePath = lastPath + '/GuestData/one/'
     guestTwoPath = lastPath + '/GuestData/two/'
