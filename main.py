@@ -65,15 +65,18 @@ def predict(model, data):
     '''判定手语识别的开始和结束'''
     '''如果还没有开始识别那么就检测识别标志，开始识别后就检测结束标志'''
     if not isRecognize:
+        r.publish("log", json.dumps({"type": "mainLog", "data": "等待开始信号, 当前识别手势编号：" + str(result)}))
+    if not isRecognize:
         if result == 402:
             deleteNumber = deleteNumber + 1
         else:
             deleteNumber = 0
+        r.publish("log", json.dumps({"type": "mainLog", "data": "已接收到" + str(deleteNumber) + "/2" + "个开始信号"}))
     else:
         if result==401:
             finishNumber=finishNumber+1
         else:
-            deleteNumber=0
+            finishNumber=0
 
     '''判断，因为不可能同时发生，所以可以独立进行判断'''
     '''状态更新后，数据清零'''
@@ -83,13 +86,14 @@ def predict(model, data):
 
         outCache.clear()
         print('开始识别')
-
+        r.publish("log", json.dumps({"type": "mainLog", "data": "开始识别"}))
         logging.info('开始识别')
 
     if finishNumber == 2:
         isRecognize = False
         finishNumber = 0
         logging.info('结束识别')
+        r.publish("log", json.dumps({"type": "mainLog", "data": "结束识别"}))
     """
     401是完成
     402是删除
@@ -101,39 +105,43 @@ def predict(model, data):
             if outCache.size != 0:
                 out = outCache.getCache()
                 # list->str
-                str = "".join(out)
+                output_str = "".join(out)
                 # speaker.speech_sy(str)
                 if not debug:
-                    r.publish("gesture", json.dumps({"type":"incomplete", "data":str}))
+                    r.publish("gesture", json.dumps({"type":"incomplete", "data":output_str}))
+                    r.publish("log", json.dumps({"type": "mainLog", "data": "识别结果: " + output_str}))
                 # ShowWebSocket.put_data("2", str)
-                logging.info(str)  # 输出结果
+                logging.info(output_str)  # 输出结果
             # else:
                 # r.publish("gesture", json.dumps({"type": "incomplete", "data": ""}))
         elif result == 401:
             out = outCache.getCache()
-            str = "".join(out)
+            output_str = "".join(out)
             # speaker.speech_sy(str)
             # ShowWebSocket.put_data("1", str)
             if not debug:
-                r.publish("gesture", json.dumps({"type":"complete", "data":str}))
-            logging.info(str)  # 输出结果
+                r.publish("gesture", json.dumps({"type":"complete", "data":output_str}))
+                r.publish("log", json.dumps({"type": "mainLog", "data": "识别结果: " + output_str}))
+            logging.info(output_str)  # 输出结果
             outCache.clear()
         else:
             out = dataDict[result]
             outCache.update(out)
             logging.info(t2 - t1)  # 测试识别时间
             # out = outCache.getCache()
-            str = "".join(out)
+            output_str = "".join(out)
             # speaker.speech_sy(str)
             # ShowWebSocket.put_data("1", str)
             if not debug:
                 r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
-            logging.info(str)  # 输出结果
+                r.publish("log", json.dumps({"type": "mainLog", "data": "识别结果: " + output_str}))
+            logging.info(output_str)  # 输出结果
 
 
 def parse_arg():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--new", help="use new model", action="store_false")
+    parser.add_argument("-n", "--new", dest='new', help="use new model", action="store_false")
+    parser.set_defaults(new=False)
     return parser.parse_args()
 
 
@@ -141,7 +149,9 @@ if __name__ == '__main__':
     # 解析命令行参数
     if not debug:
         options = parse_arg()
-
+    
+    if not debug:
+        r.publish('log', json.dumps({"type": "mainLog", "data": "正在连接手环"}))
     m = myoData.init()
     threads = []
     guestModel = ['modelOne', 'modelTwo']
@@ -157,14 +167,15 @@ if __name__ == '__main__':
     finishNumber = 0
     isRecognize = False
     '''如果存在校正模型则询问是否采用校正模型'''
+    currentPath = os.getcwd()
     if not debug:
-        if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
+        if os.path.exists(os.path.join(currentPath, 'GetDataSet/model0ne')) or os.path.exists(os.path.join(currentPath, 'GetDataSet/modelTwo')):
             if options.new:
                 isNew = True
             else:
                 isNew = False
     else:
-        if os.path.exists('GetDataSet/model0ne') or os.path.exists('GetDataSet/modelTwo'):
+        if os.path.exists(os.path.join(currentPath, 'GetDataSet/model0ne')) or os.path.exists(os.path.join(currentPath, 'GetDataSet/modelTwo')):
             print('是否采用校正模型?是则输入y，若没有或不采用否则输入n')
             flag = input()
             if flag == 'n':
@@ -173,6 +184,11 @@ if __name__ == '__main__':
                 isNew = True
             else:
                 print('error input')
+    if not debug:
+        if isNew:
+            r.publish('log', json.dumps({"type": "mainLog", "data": "使用新模型"}))
+        else:
+            r.publish('log', json.dumps({"type": "mainLog", "data": "使用原有模型"}))
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
     isFinish = False     # isFinsh 是线程锁
@@ -236,4 +252,6 @@ if __name__ == '__main__':
             t1.start()
         isTwo = False
     m.disconnect()
+    if not debug:
+        r.publish("log", json.dumps({"type": "mainLog", "data": "已断开手环连接"}))
     # 识别

@@ -3,6 +3,11 @@
 from myoAnalysis import getFloderNumber
 import os
 import shutil
+import redis
+import json
+
+r = redis.Redis(host="127.0.0.1")
+
 currentPath = os.getcwd()
 versionCount = getFloderNumber('Backup')
 versionBackPath = 'Backup/' + str(versionCount)
@@ -22,4 +27,5 @@ shutil.rmtree('GetDataSet')
 shutil.move(versionBackPath + '/GetDataSet', currentPath)
 
 shutil.rmtree(versionBackPath)
+r.publish("adjust", json.dumps({"type": "adjust", "data": "回退完成"}))
 print('回退完成')

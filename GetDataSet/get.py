@@ -20,6 +20,7 @@ import time
 import argparse
 import redis
 import json
+import logging
 
 r = redis.Redis(host="127.0.0.1")
 
@@ -150,7 +151,9 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12, myo=None):
 
     # 初始化
     currutPath = os.getcwd()
-    lastPath = os.path.dirname(currutPath)
+    lastPath = currutPath
+
+    logging.error(lastPath)
     m = myo
     if not os.path.exists(lastPath + '/GuestData'):
         os.makedirs(lastPath + '/GuestData')
@@ -178,7 +181,7 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12, myo=None):
         r.publish("adjust", json.dumps({"type": "adjust", "data": gestureCounter}))
         print(gestureCounter)
         # if emgRight == 10000:
-        if gestureCounter > DataNumber:
+        if gestureCounter >= DataNumber:
             engeryDataSeg = engeryDataSeg + [[gestureCounter - 1]]
             if HandNumber == 1:
                 path = floderPath + 'one/' + FileName
@@ -264,9 +267,9 @@ if __name__ == '__main__':
     输入是用户的自定义数据和初始数据，
     """ 
     # myo = myoData.init()
-    lastPath = os.path.dirname(os.getcwd())  # 获取上一层目录路径
+    lastPath = os.getcwd()  # 获取上一层目录路径
     # 运行需要在主目录下运行
-    gestureDataPath = os.path.join(lastPath,'myoPython/dataSheet.xlsx')
+    gestureDataPath = os.path.join(lastPath,'dataSheet.xlsx')
     dataDict = excelToDict(gestureDataPath)
 
     args = parse()
@@ -299,7 +302,6 @@ if __name__ == '__main__':
             if flag == 'n':
                 break
     r.publish("adjust", json.dumps({"type": "adjust", "data": "开始训练"}))
->>>>>>> production
     print('开始训练')
     guestOnePath = lastPath + '/GuestData/one/'
     guestTwoPath = lastPath + '/GuestData/two/'
@@ -328,7 +330,7 @@ if __name__ == '__main__':
             initOneFeature, initOneLabel = getNpyData('oneFeature.npy', 'oneLabel.npy')
             # 读取
         else:
-            initOnePath = lastPath + '/Data/allDataOne10/'
+            initOnePath = lastPath + '/Data/allDataOne15/'
             initOneFeature, initOneLabel = getInitData(initOnePath)
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataOne(initOneFeature, initOneLabel, flag=1)
@@ -340,6 +342,8 @@ if __name__ == '__main__':
         modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
         joblib.dump(modelOne, 'modelOne')
         print(accuracyOne)
+        logging.error(accuracyOne)
+        r.publish("adjust", json.dumps({"type": "adjust", "data": "训练完成"}))
 
     if gestureTwoNumber != 0:
         features = []
@@ -362,7 +366,7 @@ if __name__ == '__main__':
             initTwoFeature, initTwoLabel = getNpyData('twoFeature.npy', 'twoLabel.npy')
             # 读取
         else:
-            initTwoPath = lastPath + '/Data/allDataTwo7/'
+            initTwoPath = lastPath + '/Data/allDataTwo15/'
             initTwoFeature, initTwoLabel = getInitData(initTwoPath)
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataTwo(initTwoFeature, initTwoLabel, flag=1)
@@ -373,3 +377,5 @@ if __name__ == '__main__':
         modelTwo, accuracyTwo = getModel(twoFeature, twoLabel, 0.2)
         joblib.dump(modelTwo, 'modelTwo')
         print(accuracyTwo)
+        logging.error(accuracyTwo)
+        r.publish("adjust", json.dumps({"type": "adjust", "data": "训练完成"}))

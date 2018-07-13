@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.INFO)
 def redis_listener():
     r = redis.Redis(host="127.0.0.1")
     ps=r.pubsub()
-    ps.subscribe(["voice", "gesture", "adjust"])
+    ps.subscribe(["voice", "gesture", "adjust", "log"])
     t_io_loop = tornado.ioloop.IOLoop.instance()
     for message in ps.listen():
         #print("get message", message)
@@ -78,8 +78,8 @@ class ShowWebSocket(WebSocketHandler):
     def run_subprocess(self, name, cmd):
         cmd_proc = Subprocess(cmd, shell=True, preexec_fn=os.setsid, stdout=Subprocess.STREAM)
         self.cmd_subprocess_dict[name] = cmd_proc
-        yield self.redirect_stream(cmd_proc.stdout)
-        # yield cmd_proc.stdout.read_until_close()
+        # yield self.redirect_stream(cmd_proc.stdout)
+        yield cmd_proc.stdout.read_until_close()
         raise gen.Return(None)
 
     @gen.coroutine

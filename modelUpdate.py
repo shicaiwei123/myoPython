@@ -10,6 +10,9 @@ from myoAnalysis import saveNpyDataTwo
 from myoAnalysis import getFloderNumber
 import os
 import shutil
+import json
+import redis
+r = redis.Redis(host="127.0.0.1")
 
 '''单手数据'''
 oldOneFeaturePath = 'GetDataSet/oneFeature.npy'
@@ -80,3 +83,4 @@ if os.path.exists(newTwoFeaturePath):
     lastPath = os.path.pardir
     os.chdir(lastPath)
 print('模型更新完成')
+r.publish("adjust", json.dumps({"type":"adjust", "data": "模型更新完成"}))
