@@ -22,6 +22,11 @@ import redis
 import json
 import logging
 
+import xlrd
+import xlwt
+from xlutils.copy import copy
+from datetime import date
+
 r = redis.Redis(host="127.0.0.1")
 
 def getKey(dict=None, gestureName=None):
@@ -261,13 +266,91 @@ def parse():
     parser.add_argument('--hand', help="one hand or two", default=1, type=int)
     return parser.parse_args()
 
+
+def getMonAndDay():
+    today = date.today()
+    return str(today.month) + 'm' + str(today.day) + 'd'
+
+
+class excelutil(object):
+    """docstring for excelutil"""
+
+    def __init__(self, fileName):
+        super(excelutil, self).__init__()
+        self.fileName = fileName
+        self.readExcel(fileName)
+
+    def readExcel(self, fileName):
+        if not os.path.exists(fileName):
+            fileExcel = xlwt.Workbook()
+            fileExcel.add_sheet(getMonAndDay())
+            fileExcel.save(self.fileName)
+
+        self.rbdata = xlrd.open_workbook(self.fileName)
+        self.wbdata = copy(self.rbdata)
+        self.setCurrentTableByIndex(0)
+    def getcolLength(self):
+        data = xlrd.open_workbook(self.fileName)
+        table = data.sheet_by_index(0)  # 一个excle可能有多个sheet
+        firstCol = table.col_values(0)
+        colLength=len(firstCol)
+        return colLength
+    def setCurrentTableByIndex(self, index):
+        self.rbtable = self.rbdata.sheet_by_index(index)
+        self.wbtable = self.wbdata.get_sheet(index)
+
+    def setCurrentTableByName(self, sheetName):
+        sheetNames = self.rbdata.sheet_names()
+        tmpIndex = 0
+        for x in range(0, len(sheetNames)):
+            if sheetNames[x] == sheetName:
+                tmpIndex = x
+        self.wbtable = self.wbdata.get_sheet(tmpIndex)
+        self.rbtable = self.rbdata.sheet_by_name(sheetName)
+
+    def getValues(self, col, row):
+        if self.rbtable == None:
+            return 'current rbtable is null'
+        # 这个值是rbtable 可能和wbtable值不一样(setValues 没有保存值就不一样) saveExcel（）保存一下就会更新
+        return self.rbtable.cell(row, col).value
+
+    def setValues(self, col, row, value):
+        self.wbtable.write(row, col, value)
+
+    def addSheet(self, sheetName, new=False):  # new = true 有重名的加一个时间后缀 强制创建新的
+        isexist = False
+        for name in self.rbdata.sheet_names():
+            if name == sheetName:
+                if new:
+                    sheetName = sheetName + str(time.time())
+                isexist = True
+        if new or not isexist:
+            self.wbdata.add_sheet(sheetName)
+        self.saveExcel()
+        self.setCurrentTableByName(sheetName)
+
+    # self.setCurrentTableByName(0)
+
+    def saveExcel(self):
+        self.wbdata.save(self.fileName)
+
+def addXls(gestureName='',xlsPath=''):
+    excle=excelutil(xlsPath)
+    length = excle.getcolLength()
+    gestureLabel = 10000 + length
+    gestureRow = length
+    excle.setValues(0, gestureRow, gestureLabel)
+    excle.setValues(1, gestureRow, gestureName)
+    excle.saveExcel()
+
 if __name__ == '__main__':
     """
     用于用户进行自校正
     输入是用户的自定义数据和初始数据，
     """ 
     # myo = myoData.init()
-    lastPath = os.getcwd()  # 获取上一层目录路径
+    #lastPath = os.getcwd()  # 获取上一层目录路径
+    lastPath=os.pardir
     # 运行需要在主目录下运行
     gestureDataPath = os.path.join(lastPath,'dataSheet.xlsx')
     dataDict = excelToDict(gestureDataPath)
@@ -317,6 +400,7 @@ if __name__ == '__main__':
             gestureName = gestureOneName[i]
             label = getKey(dataDict, gestureName)
             if label == None:
+                addXls(gestureName,gestureDataPath)
                 continue
             gesturePath = guestOnePath + gestureName + '/'
             gestureFeature = getxlsFeature(gesturePath)
@@ -353,6 +437,7 @@ if __name__ == '__main__':
             gestureName = gestureTwoName[i]
             label = getKey(dataDict, gestureName)
             if label == None:
+                addXls(gestureName, gestureDataPath)
                 continue
             gesturePath = guestTwoPath + gestureName + '/'
             gestureFeature = getxlsFeature(gesturePath)

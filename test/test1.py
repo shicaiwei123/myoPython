@@ -653,12 +653,100 @@ import numpy as np
 # e=list(c)
 # e.pop(len(e)-1)
 # print(e)
+#
+#
+# sys.path.append(os.path.pardir)
+#
+# oldOneFeaturePath = 'GetDataSet/oneFeature.npy'
+# oldOneLabelPath = 'GetDataSet/oneLabel.npy'
+# feature = np.load(featureName)
+# feature = list(feature)
+# feature.pop(len(feature) - 1)
 
 
-sys.path.append(os.path.pardir)
+import os
+import xlwt
+import xlrd
+from xlutils.copy import copy
+from datetime import date
+import time
 
-oldOneFeaturePath = 'GetDataSet/oneFeature.npy'
-oldOneLabelPath = 'GetDataSet/oneLabel.npy'
-feature = np.load(featureName)
-feature = list(feature)
-feature.pop(len(feature) - 1)
+
+def getMonAndDay():
+    today = date.today()
+    return str(today.month) + 'm' + str(today.day) + 'd'
+
+
+class excelutil(object):
+    """docstring for excelutil"""
+
+    def __init__(self, fileName):
+        super(excelutil, self).__init__()
+        self.fileName = fileName
+        self.readExcel(fileName)
+
+    def readExcel(self, fileName):
+        if not os.path.exists(fileName):
+            fileExcel = xlwt.Workbook()
+            fileExcel.add_sheet(getMonAndDay())
+            fileExcel.save(self.fileName)
+
+        self.rbdata = xlrd.open_workbook(self.fileName)
+        self.wbdata = copy(self.rbdata)
+        self.setCurrentTableByIndex(0)
+    def getcolLength(self):
+        data = xlrd.open_workbook(self.fileName)
+        table = data.sheet_by_index(0)  # 一个excle可能有多个sheet
+        firstCol = table.col_values(0)
+        colLength=len(firstCol)
+        return colLength
+    def setCurrentTableByIndex(self, index):
+        self.rbtable = self.rbdata.sheet_by_index(index)
+        self.wbtable = self.wbdata.get_sheet(index)
+
+    def setCurrentTableByName(self, sheetName):
+        sheetNames = self.rbdata.sheet_names()
+        tmpIndex = 0
+        for x in range(0, len(sheetNames)):
+            if sheetNames[x] == sheetName:
+                tmpIndex = x
+        self.wbtable = self.wbdata.get_sheet(tmpIndex)
+        self.rbtable = self.rbdata.sheet_by_name(sheetName)
+
+    def getValues(self, col, row):
+        if self.rbtable == None:
+            return 'current rbtable is null'
+        # 这个值是rbtable 可能和wbtable值不一样(setValues 没有保存值就不一样) saveExcel（）保存一下就会更新
+        return self.rbtable.cell(row, col).value
+
+    def setValues(self, col, row, value):
+        self.wbtable.write(row, col, value)
+
+    def addSheet(self, sheetName, new=False):  # new = true 有重名的加一个时间后缀 强制创建新的
+        isexist = False
+        for name in self.rbdata.sheet_names():
+            if name == sheetName:
+                if new:
+                    sheetName = sheetName + str(time.time())
+                isexist = True
+        if new or not isexist:
+            self.wbdata.add_sheet(sheetName)
+        self.saveExcel()
+        self.setCurrentTableByName(sheetName)
+
+    # self.setCurrentTableByName(0)
+
+    def saveExcel(self):
+        self.wbdata.save(self.fileName)
+
+
+if __name__ == '__main__':
+    exlce=excelutil('dataSheet.xlsx')
+    length=exlce.getcolLength()
+    print(length)
+    gestureLabel=10000+length
+    gestureRow=length
+    exlce.setValues(0,gestureRow,gestureLabel)
+    exlce.setValues(1,gestureRow,'啦啦啦啦啦了')
+    exlce.saveExcel()
+
