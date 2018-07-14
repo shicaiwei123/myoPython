@@ -3,8 +3,6 @@
 import sys
 import time
 
-import pygame
-from pygame.locals import *
 from Bean.myo_hub import MyoHub
 from myoAnalysis import *
 
@@ -24,41 +22,10 @@ right_emg_list = []
 left_imu_list = []
 right_imu_list = []
 
-# 尝试导入pygame包，如果导入成功则显示emg数据轨迹，如果没有pygame包则不显示
-if HAVE_PYGAME:
-    w, h = 10, 10
-    scr = pygame.display.set_mode((w, h))
-# scr1 = pygame.display.set_mode((w, h))
 last_vals = None
 
 # 绘图函数，使用pygame绘制emg数据
 
-
-def __plot(scr, vals):
-    global w, h
-    DRAW_LINES = True
-
-    global last_vals
-    if last_vals is None:
-        last_vals = vals
-        return
-    D = 5
-    scr.scroll(-D)
-    scr.fill((0, 0, 0), (w - D, 0, w, h))
-    for i, (u, v) in enumerate(zip(last_vals, vals)):
-        if DRAW_LINES:
-            pygame.draw.line(scr, (0, 255, 0),
-                             (w - D, int(h / 8 * (i + 1 - u))),
-                             (w, int(h / 8 * (i + 1 - v))))
-            pygame.draw.line(scr, (255, 255, 255),
-                             (w - D, int(h / 8 * (i + 1))),
-                             (w, int(h / 8 * (i + 1))))
-        else:
-            c = int(255 * max(0, min(1, v)))
-            scr.fill((c, c, c), (w - D, i * h / 8, D, (i + 1) * h / 8 - i * h / 8))
-
-    pygame.display.flip()
-    last_vals = vals
 
 
 # def __left_proc_emg(emg, times=[]):
@@ -266,11 +233,6 @@ def getGestureData(m):
     qurtQuiet=np.array([20,-24,-10])
     i = 1
     while True:
-        if HAVE_PYGAME:
-            for ev in pygame.event.get():
-                if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-                    return 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000
-
         emgLeftCache, imuLeftCache, emgRightCache, imuRightCache,qurt = _getOnceData(m)
         # print(imuLeftCache[3:6], '\t', imuRightCache[3:6])
         gyo = gyo + imuRightCache[3:6]
