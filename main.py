@@ -23,7 +23,7 @@ if not debug:
     import redis
     r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-# speaker = xf_speech('/dev/ttyUSB0')
+speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -117,7 +117,7 @@ def predict(model, data):
         elif result == 401:
             out = outCache.getCache()
             output_str = "".join(out)
-            # speaker.speech_sy(str)
+            speaker.speech_sy(output_str)
             # ShowWebSocket.put_data("1", str)
             if not debug:
                 r.publish("gesture", json.dumps({"type":"complete", "data":output_str}))
@@ -140,8 +140,7 @@ def predict(model, data):
 
 def parse_arg():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--new", dest='new', help="use new model", action="store_false")
-    parser.set_defaults(new=False)
+    parser.add_argument("-n", "--new", help="use new model", action="store_true")
     return parser.parse_args()
 
 
@@ -170,6 +169,7 @@ if __name__ == '__main__':
     currentPath = os.getcwd()
     if not debug:
         if os.path.exists(os.path.join(currentPath, 'GetDataSet/model0ne')) or os.path.exists(os.path.join(currentPath, 'GetDataSet/modelTwo')):
+            logging.error(options.new)
             if options.new:
                 isNew = True
             else:
@@ -185,10 +185,11 @@ if __name__ == '__main__':
             else:
                 print('error input')
     if not debug:
+        logging.error(isNew)
         if isNew:
-            r.publish('log', json.dumps({"type": "mainLog", "data": "使用新模型"}))
+            r.publish('log', json.dumps({"type": "mainLog", "data": "使用新模型, 等待开始信号"}))
         else:
-            r.publish('log', json.dumps({"type": "mainLog", "data": "使用原有模型"}))
+            r.publish('log', json.dumps({"type": "mainLog", "data": "使用原有模型, 等待开始信号"}))
     # 导入字典数据，后期译码使用
     dataDict = excelToDict('dataSheet.xlsx')
     isFinish = False     # isFinsh 是线程锁
