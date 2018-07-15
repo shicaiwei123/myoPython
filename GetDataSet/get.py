@@ -27,7 +27,9 @@ import xlwt
 from xlutils.copy import copy
 from datetime import date
 
+import shutil
 r = redis.Redis(host="127.0.0.1")
+
 
 def getKey(dict=None, gestureName=None):
     """
@@ -49,7 +51,6 @@ def getKey(dict=None, gestureName=None):
         label = None
         print("no gesture label")
     return label
-
 
 
 def getxlsData(file='*.xls'):
@@ -116,6 +117,15 @@ def getxlsFeature(path=''):
             emgRightData, imuRightData = normalized(emgRightData, imuRightData)
             featureOne = featureGet(emgRightData, imuRightData, divisor=8)
             features.append(featureOne)
+        # '''获取存放手势的最后一级，目录'''
+        # s = path
+        # segPath = s.split('/')
+        # lastGesturePath = segPath[len(segPath) - 2]
+        # '''目标目录'''
+        # dstPath = '../Data/GuestData/one/' + lastGesturePath
+        # if os.path.exists(dstPath):
+        #     shutil.rmtree(dstPath)
+        # shutil.move(path, '../Data/GuestData/one')
     elif handNumber == 2:
         emgRightFile = path + 'emgDataRight.xls'
         imuRightFile = path + 'imuDataRight.xls'
@@ -139,6 +149,15 @@ def getxlsFeature(path=''):
             emgLeftData, imuLeftData = normalized(emgLeftData, imuLeftData)
             featureTwo = featureGetTwo(emgRightData, imuRightData, emgLeftData, imuLeftData, divisorRight=8, divisorLeft=4)
             features.append(featureTwo)
+        '''获取存放手势的最后一级，目录'''
+        # s = path
+        # segPath = s.split('/')
+        # lastGesturePath = segPath[len(segPath) - 2]
+        # '''目标目录'''
+        # dstPath = '../Data/GuestData/one/' + lastGesturePath
+        # if os.path.exists(dstPath):
+        #     shutil.rmtree(dstPath)
+        # shutil.move(path, '../Data/GuestData/two')
     else:
         print('error')
     return features
@@ -156,7 +175,10 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12, myo=None):
 
     # 初始化
     currutPath = os.getcwd()
-    lastPath = currutPath
+    if not debug:
+        lastPath = currutPath
+    else:
+        lastPath = os.path.pardir
 
     logging.error(lastPath)
     m = myo
@@ -183,7 +205,8 @@ def getDataSet(HandNumber=1, FileName=None, DataNumber=12, myo=None):
             engeryAll, engerySeg = myoData.getGestureData(m)
 
         gestureCounter = gestureCounter + 1
-        r.publish("adjust", json.dumps({"type": "adjust", "data": gestureCounter}))
+        if not debug:
+            r.publish("adjust", json.dumps({"type": "adjust", "data": gestureCounter}))
         print(gestureCounter)
         # if emgRight == 10000:
         if gestureCounter >= DataNumber:
@@ -259,6 +282,7 @@ def getInitData(path=None):
         labels.append(label)
     return features, labels
 
+
 def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--word', help="adjust the world", default="")
@@ -289,12 +313,14 @@ class excelutil(object):
         self.rbdata = xlrd.open_workbook(self.fileName)
         self.wbdata = copy(self.rbdata)
         self.setCurrentTableByIndex(0)
+
     def getcolLength(self):
         data = xlrd.open_workbook(self.fileName)
         table = data.sheet_by_index(0)  # 一个excle可能有多个sheet
         firstCol = table.col_values(0)
-        colLength=len(firstCol)
+        colLength = len(firstCol)
         return colLength
+
     def setCurrentTableByIndex(self, index):
         self.rbtable = self.rbdata.sheet_by_index(index)
         self.wbtable = self.wbdata.get_sheet(index)
@@ -334,57 +360,71 @@ class excelutil(object):
     def saveExcel(self):
         self.wbdata.save(self.fileName)
 
-def addXls(gestureName='',xlsPath=''):
-    excle=excelutil(xlsPath)
+
+def addXls(gestureName='', xlsPath=''):
+    '''
+    如果一个数据不存在于数据集中，则扩充数据集
+    为了防止额之前的数据冲突，扩充数据集的标号是从当前存在的数据长度加上10000而得到
+    :param gestureName: 扩充的手势名字
+    :param xlsPath: 数据集xls表格所在地方
+    :return: 返回新数据的label
+    '''
+    excle = excelutil(xlsPath)
     length = excle.getcolLength()
     gestureLabel = 10000 + length
     gestureRow = length
     excle.setValues(0, gestureRow, gestureLabel)
     excle.setValues(1, gestureRow, gestureName)
     excle.saveExcel()
+    return gestureLabel
+
 
 if __name__ == '__main__':
     """
     用于用户进行自校正
     输入是用户的自定义数据和初始数据，
-    """ 
-    # myo = myoData.init()
-    #lastPath = os.getcwd()  # 获取上一层目录路径
-    lastPath=os.pardir
+    """
+    debug = False
+    # lastPath = os.getcwd()  # 获取上一层目录路径
+    lastPath = os.pardir
     # 运行需要在主目录下运行
-    gestureDataPath = os.path.join(lastPath,'dataSheet.xlsx')
+    gestureDataPath = os.path.join(lastPath, 'dataSheet.xlsx')
     dataDict = excelToDict(gestureDataPath)
-
-    args = parse()
-    if args.word != "":
-        # 使用了命令行作为参数
-        if args.hand != 1 and args.hand != 2:
-            sys.exit()
-        handNumber = args.hand
-        fileName = args.word
-        dataNumber = args.n
-        r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
-        myo = myoData.init()
-        r.publish("adjust", json.dumps({"type": "adjust", "data": "开始采集"}))
-        getDataSet(handNumber, fileName, dataNumber, myo)
-    else:
-        r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
-        myo = myoData.init()
-        while True:
-            print("采集单手手势输入1，双手手势输入2：\t")
-            handNumber = int(input())
-            print("请输入要采集的手势名称：\t")
-            fileName = input()
-            print("请输入要采集手势的采集数目：\t")
-            dataNumber = int(input())
-            time.sleep(1)
-            print("开始采集\t")
+    if not debug:
+        args = parse()
+        if args.word != "":
+            # 使用了命令行作为参数
+            if args.hand != 1 and args.hand != 2:
+                sys.exit()
+            handNumber = args.hand
+            fileName = args.word
+            dataNumber = args.n
+            r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
+            myo = myoData.init()
+            r.publish("adjust", json.dumps({"type": "adjust", "data": "开始采集"}))
             getDataSet(handNumber, fileName, dataNumber, myo)
-            print('是否继续？继续请输入y，否则输入n')
-            flag = input()
-            if flag == 'n':
-                break
-    r.publish("adjust", json.dumps({"type": "adjust", "data": "开始训练"}))
+        else:
+            r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
+            myo = myoData.init()
+
+    else:
+        myo=myoData.init()
+    while True:
+        print("采集单手手势输入1，双手手势输入2：\t")
+        handNumber = int(input())
+        print("请输入要采集的手势名称：\t")
+        fileName = input()
+        print("请输入要采集手势的采集数目：\t")
+        dataNumber = int(input())
+        time.sleep(1)
+        print("开始采集\t")
+        getDataSet(handNumber, fileName, dataNumber, myo)
+        print('是否继续采集数据，是则输入y，否则输入n')
+        flag = input()
+        if flag == 'n':
+            break
+    if not debug:
+        r.publish("adjust", json.dumps({"type": "adjust", "data": "开始训练"}))
     print('开始训练')
     guestOnePath = lastPath + '/GuestData/one/'
     guestTwoPath = lastPath + '/GuestData/two/'
@@ -400,8 +440,7 @@ if __name__ == '__main__':
             gestureName = gestureOneName[i]
             label = getKey(dataDict, gestureName)
             if label == None:
-                addXls(gestureName,gestureDataPath)
-                continue
+                label = addXls(gestureName, gestureDataPath)
             gesturePath = guestOnePath + gestureName + '/'
             gestureFeature = getxlsFeature(gesturePath)
             features = features + gestureFeature
@@ -414,20 +453,19 @@ if __name__ == '__main__':
             initOneFeature, initOneLabel = getNpyData('oneFeature.npy', 'oneLabel.npy')
             # 读取
         else:
-            initOnePath = lastPath + '/Data/allDataOne15/'
+            initOnePath = lastPath + '/Data/allDataOne14/'
             initOneFeature, initOneLabel = getInitData(initOnePath)
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataOne(initOneFeature, initOneLabel, flag=1)
         saveNpyDataOne(features, labels)
         oneFeature = features + initOneFeature
         oneLabel = labels + initOneLabel
-        if len(features)<20:
-            print('error')
         modelOne, accuracyOne = getModel(oneFeature, oneLabel, 0.2)
         joblib.dump(modelOne, 'modelOne')
         print(accuracyOne)
         logging.error(accuracyOne)
-        r.publish("adjust", json.dumps({"type": "adjust", "data": "训练完成"}))
+        if not debug:
+            r.publish("adjust", json.dumps({"type": "adjust", "data": "训练完成"}))
 
     if gestureTwoNumber != 0:
         features = []
@@ -437,8 +475,7 @@ if __name__ == '__main__':
             gestureName = gestureTwoName[i]
             label = getKey(dataDict, gestureName)
             if label == None:
-                addXls(gestureName, gestureDataPath)
-                continue
+                label = addXls(gestureName, gestureDataPath)
             gesturePath = guestTwoPath + gestureName + '/'
             gestureFeature = getxlsFeature(gesturePath)
             features = features + gestureFeature
@@ -451,7 +488,7 @@ if __name__ == '__main__':
             initTwoFeature, initTwoLabel = getNpyData('twoFeature.npy', 'twoLabel.npy')
             # 读取
         else:
-            initTwoPath = lastPath + '/Data/allDataTwo15/'
+            initTwoPath = lastPath + '/Data/allDataTwo11/'
             initTwoFeature, initTwoLabel = getInitData(initTwoPath)
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataTwo(initTwoFeature, initTwoLabel, flag=1)
@@ -463,4 +500,5 @@ if __name__ == '__main__':
         joblib.dump(modelTwo, 'modelTwo')
         print(accuracyTwo)
         logging.error(accuracyTwo)
-        r.publish("adjust", json.dumps({"type": "adjust", "data": "训练完成"}))
+        if not debug:
+            r.publish("adjust", json.dumps({"type": "adjust", "data": "训练完成"}))

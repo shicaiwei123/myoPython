@@ -23,7 +23,7 @@ if not debug:
     import redis
     r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
-speaker = xf_speech('/dev/ttyUSB0')
+    speaker = xf_speech('/dev/ttyUSB0')
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -65,13 +65,15 @@ def predict(model, data):
     '''判定手语识别的开始和结束'''
     '''如果还没有开始识别那么就检测识别标志，开始识别后就检测结束标志'''
     if not isRecognize:
-        r.publish("log", json.dumps({"type": "mainLog", "data": "等待开始信号, 当前识别手势编号：" + str(result)}))
+        if not debug:
+            r.publish("log", json.dumps({"type": "mainLog", "data": "等待开始信号, 当前识别手势编号：" + str(result)}))
     if not isRecognize:
         if result == 402:
             deleteNumber = deleteNumber + 1
         else:
             deleteNumber = 0
-        r.publish("log", json.dumps({"type": "mainLog", "data": "已接收到" + str(deleteNumber) + "/2" + "个开始信号"}))
+        if not debug:
+            r.publish("log", json.dumps({"type": "mainLog", "data": "已接收到" + str(deleteNumber) + "/2" + "个开始信号"}))
     else:
         if result==401:
             finishNumber=finishNumber+1
@@ -86,14 +88,16 @@ def predict(model, data):
 
         outCache.clear()
         print('开始识别')
-        r.publish("log", json.dumps({"type": "mainLog", "data": "开始识别"}))
+        if not debug:
+            r.publish("log", json.dumps({"type": "mainLog", "data": "开始识别"}))
         logging.info('开始识别')
 
     if finishNumber == 2:
         isRecognize = False
         finishNumber = 0
         logging.info('结束识别')
-        r.publish("log", json.dumps({"type": "mainLog", "data": "结束识别"}))
+        if not debug:
+            r.publish("log", json.dumps({"type": "mainLog", "data": "结束识别"}))
     """
     401是完成
     402是删除
@@ -117,7 +121,8 @@ def predict(model, data):
         elif result == 401:
             out = outCache.getCache()
             output_str = "".join(out)
-            speaker.speech_sy(output_str)
+            if not debug:
+                speaker.speech_sy(output_str)
             # ShowWebSocket.put_data("1", str)
             if not debug:
                 r.publish("gesture", json.dumps({"type":"complete", "data":output_str}))
@@ -146,6 +151,7 @@ def parse_arg():
 
 if __name__ == '__main__':
     # 解析命令行参数
+    global debug
     if not debug:
         options = parse_arg()
     
@@ -194,7 +200,6 @@ if __name__ == '__main__':
     dataDict = excelToDict('dataSheet.xlsx')
     isFinish = False     # isFinsh 是线程锁
     outCache = DataCache()
-    outCache.__init__()
     # 导入模型
     # 如果存在客户自定义模型则导入，不然导入默认模型
     gusetModelPath = 'GetDataSet'
