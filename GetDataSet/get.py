@@ -384,47 +384,47 @@ if __name__ == '__main__':
     用于用户进行自校正
     输入是用户的自定义数据和初始数据，
     """
-    debug = False
+    debug = True
     # lastPath = os.getcwd()  # 获取上一层目录路径
     lastPath = os.pardir
     # 运行需要在主目录下运行
     gestureDataPath = os.path.join(lastPath, 'dataSheet.xlsx')
     dataDict = excelToDict(gestureDataPath)
-    if not debug:
-        args = parse()
-        if args.word != "":
-            # 使用了命令行作为参数
-            if args.hand != 1 and args.hand != 2:
-                sys.exit()
-            handNumber = args.hand
-            fileName = args.word
-            dataNumber = args.n
-            r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
-            myo = myoData.init()
-            r.publish("adjust", json.dumps({"type": "adjust", "data": "开始采集"}))
-            getDataSet(handNumber, fileName, dataNumber, myo)
-        else:
-            r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
-            myo = myoData.init()
-
-    else:
-        myo=myoData.init()
-    while True:
-        print("采集单手手势输入1，双手手势输入2：\t")
-        handNumber = int(input())
-        print("请输入要采集的手势名称：\t")
-        fileName = input()
-        print("请输入要采集手势的采集数目：\t")
-        dataNumber = int(input())
-        time.sleep(1)
-        print("开始采集\t")
-        getDataSet(handNumber, fileName, dataNumber, myo)
-        print('是否继续采集数据，是则输入y，否则输入n')
-        flag = input()
-        if flag == 'n':
-            break
-    if not debug:
-        r.publish("adjust", json.dumps({"type": "adjust", "data": "开始训练"}))
+    # if not debug:
+    #     args = parse()
+    #     if args.word != "":
+    #         # 使用了命令行作为参数
+    #         if args.hand != 1 and args.hand != 2:
+    #             sys.exit()
+    #         handNumber = args.hand
+    #         fileName = args.word
+    #         dataNumber = args.n
+    #         r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
+    #         myo = myoData.init()
+    #         r.publish("adjust", json.dumps({"type": "adjust", "data": "开始采集"}))
+    #         getDataSet(handNumber, fileName, dataNumber, myo)
+    #     else:
+    #         r.publish("adjust", json.dumps({"type": "adjust", "data": "正在连接手环"}))
+    #         myo = myoData.init()
+    #
+    # else:
+    #     myo = myoData.init()
+    # while True:
+    #     print("采集单手手势输入1，双手手势输入2：\t")
+    #     handNumber = int(input())
+    #     print("请输入要采集的手势名称：\t")
+    #     fileName = input()
+    #     print("请输入要采集手势的采集数目：\t")
+    #     dataNumber = int(input())
+    #     time.sleep(1)
+    #     print("开始采集\t")
+    #     getDataSet(handNumber, fileName, dataNumber, myo)
+    #     print('是否继续采集数据，是则输入y，否则输入n')
+    #     flag = input()
+    #     if flag == 'n':
+    #         break
+    # if not debug:
+    #     r.publish("adjust", json.dumps({"type": "adjust", "data": "开始训练"}))
     print('开始训练')
     guestOnePath = lastPath + '/GuestData/one/'
     guestTwoPath = lastPath + '/GuestData/two/'
@@ -453,8 +453,22 @@ if __name__ == '__main__':
             initOneFeature, initOneLabel = getNpyData('oneFeature.npy', 'oneLabel.npy')
             # 读取
         else:
-            initOnePath = lastPath + '/Data/allDataOne14/'
-            initOneFeature, initOneLabel = getInitData(initOnePath)
+            # initOnePath = lastPath + '/Data/allDataOne14/'
+            # initOneFeature, initOneLabel = getInitData(initOnePath)
+            '''读取上次缓存的数据当做此次增加数据的基础数据'''
+            backupNumber = getFloderNumber(lastPath + '/Backup/')
+            backupPath = lastPath + '/Backup/' + str(backupNumber) + '/GetDataSet'
+            initOneFeatureOldPath = backupPath + '/oneFeature.npy'
+            initOneLabelOldPath = backupPath + '/oneLabel.npy'
+            initOneFeatureOld, initOneLabelOld = getNpyData(initOneFeatureOldPath, initOneLabelOldPath)
+
+            initOneFeatureNewPath = backupPath + '/oneFeatureCache.npy'
+            initOneLabelNewPath = backupPath + '/oneLabelCache.npy'
+            initOneFeatureNew, initOneLabelNew = getNpyData(initOneFeatureNewPath, initOneLabelNewPath)
+            '''新旧的都要读出来'''
+            initOneFeature = initOneFeatureOld + initOneFeatureNew
+            initOneLabel = initOneLabelOld + initOneLabelNew
+
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataOne(initOneFeature, initOneLabel, flag=1)
         saveNpyDataOne(features, labels)
@@ -488,8 +502,20 @@ if __name__ == '__main__':
             initTwoFeature, initTwoLabel = getNpyData('twoFeature.npy', 'twoLabel.npy')
             # 读取
         else:
-            initTwoPath = lastPath + '/Data/allDataTwo11/'
-            initTwoFeature, initTwoLabel = getInitData(initTwoPath)
+            # initTwoPath = lastPath + '/Data/allDataTwo11/'
+            # initTwoFeature, initTwoLabel = getInitData(initTwoPath)
+            '''读取上次缓存的数据当做此次增加数据的基础数据'''
+            backupNumber = getFloderNumber(lastPath + '/Backup/')
+            backupPath = lastPath + '/Backup/' + str(backupNumber) + '/GetDataSet'
+            initTwoFeatureOldPath = backupPath + '/twoFeature.npy'
+            initTwoLabelOldPath = backupPath + '/twoLabel.npy'
+            initTwoFeatureOld, initTwoLabelOld = getNpyData(initTwoFeatureOldPath, initTwoLabelOldPath)
+
+            initTwoFeatureNewPath = backupPath + '/twoFeatureCache.npy'
+            initTwoLabelNewPath = backupPath + '/twoLabelCache.npy'
+            initTwoFeatureNew, initTwoLabelNew = getNpyData(initTwoFeatureNewPath, initTwoLabelNewPath)
+            initTwoFeature = initTwoFeatureOld + initTwoFeatureNew
+            initTwoLabel = initTwoLabelOld + initTwoLabelNew
             '''加0是方便读取，使用时候不带0'''
             saveNpyDataTwo(initTwoFeature, initTwoLabel, flag=1)
 
