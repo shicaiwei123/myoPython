@@ -15,7 +15,7 @@ import json
 import argparse
 import logging
 
-debug = True
+debug = False
 
 logging.basicConfig(level=logging.INFO)
 
