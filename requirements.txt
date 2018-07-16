@@ -20,4 +20,4 @@ Wave==0.0.2
 redis==2.10.6
 argparse==1.4.0
 pycurl==7.43.0.2
-
+butterfly==3.2.3
