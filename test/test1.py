@@ -750,7 +750,19 @@ import numpy as np
 #     exlce.setValues(1,gestureRow,'啦啦啦啦啦了')
 #     exlce.saveExcel()
 #
+#
+# path='../GuestData'
+# floderExist = os.path.exists(path)
+# print(floderExist)
 
-path='../GuestData'
-floderExist = os.path.exists(path)
-print(floderExist)
+
+#随意删除列表
+a=[1,2,3,4,5,6,2]
+c=[1,2]
+for i in range(len(c)):
+
+    del a[c[len(c)-i-1]]
+print(a)
+find=2
+b=[i for i, v in enumerate(a) if v==find ]
+print(b)
