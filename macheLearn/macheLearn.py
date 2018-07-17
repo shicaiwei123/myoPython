@@ -4,6 +4,8 @@ from myoAnalysis import getMatFeature
 from myoAnalysis import getModel
 import os
 from sklearn.externals import joblib
+from myoAnalysis import getNpyData
+from myoAnalysis import getFloderNumber
 
 
 if __name__ == '__main__':
@@ -18,35 +20,37 @@ if __name__ == '__main__':
     featuresTwo = []
     labelsTwo = []
     parentPath = os.path.dirname(os.getcwd())
+    lastPath = os.path.pardir
     '''单手数据训练'''
     if isOne:
-        pathOne = parentPath + '/Data/allDataOne15/'
-        dirDataOne = os.listdir(pathOne)
-        length = len(dirDataOne)  # 数据总数,
-        for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试
-            fileOne = pathOne + str(i) + '.mat'
-            featureOne, labelOne = getMatFeature(fileOne)
-            labelOne = list(labelOne[0])
-            featuresOne.append(featureOne)
-            labelsOne.append(labelOne)
-        modelOne, accuracy = getModel(featuresOne,labelsOne,0.2)
+        # pathOne = parentPath + '/Data/allDataOne15/'
+        # dirDataOne = os.listdir(pathOne)
+        # length = len(dirDataOne)  # 数据总数,
+        # for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试
+        #     fileOne = pathOne + str(i) + '.mat'
+        #     featureOne, labelOne = getMatFeature(fileOne)
+        #     labelOne = list(labelOne[0])
+        #     featuresOne.append(featureOne)
+        #     labelsOne.append(labelOne)
+        initOneFeatureOldPath = lastPath + '/GetDataSet' + '/oneFeature.npy'
+        initOneLabelOldPath = lastPath + '/GetDataSet'  + '/oneLabel.npy'
+        initOneFeatureOld, initOneLabelOld = getNpyData(initOneFeatureOldPath, initOneLabelOldPath)
+        '''新旧的都要读出来'''
+        initOneFeature = initOneFeatureOld
+        initOneLabel = initOneLabelOld
+        modelOne, accuracy = getModel(initOneFeature,initOneLabel,0.2)
         joblib.dump(modelOne, 'SVM3One')
         print(accuracy)
 
     '''双手数据训练'''
     if isTwo:
-        pathTwo = parentPath + '/Data/allDataTwo12/'
-        dirDataTwo = os.listdir(pathTwo)
-        length = len(dirDataTwo)  # 数据总数,
-        for i in range(1, length):  # 数据分割，一部分用于训练，一部分用于测试
-            fileTwo = pathTwo + str(i) + '.mat'
-            featureTwo, labelTwo = getMatFeature(fileTwo)
-            if len(featureTwo)==312:
-                print(i)
-            labelTwo = list(labelTwo[0])
-            featuresTwo.append(featureTwo)
-            labelsTwo.append(labelTwo)
+        initTwoFeatureOldPath = lastPath+ '/GetDataSet' + '/twoFeature.npy'
+        initTwoLabelOldPath = lastPath+ '/GetDataSet'  + '/twoLabel.npy'
+        initTwoFeatureOld, initTwoLabelOld = getNpyData(initTwoFeatureOldPath, initTwoLabelOldPath)
+        '''新旧的都要读出来'''
+        initTwoFeature = initTwoFeatureOld
+        initTwoLabel = initTwoLabelOld
         # 训练模型
-        modelTwo, accuracy = getModel(featuresTwo,labelsTwo,0.2)
+        modelTwo, accuracy = getModel(initTwoFeature,initTwoLabel,0.2)
         joblib.dump(modelTwo, 'SVM3Two')
         print(accuracy)

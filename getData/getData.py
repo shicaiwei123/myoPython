@@ -300,12 +300,12 @@ def getGestureData(m):
             # 判断是否满足一次手势要求
             if gyoRightQuiet > GyoRightQuietTimes - 1:
 
-                if gyoRightActive < 2:  # 滤波
+               if gyoRightActive < 2:  # 滤波
 
                     gyoRightQuiet = 0
-               # elif diffThreshold>6000:
-                #    gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
-                else:
+               elif diffThreshold>6000:
+                   gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
+               else:
 
                     gyoRightQuiet = 0
 

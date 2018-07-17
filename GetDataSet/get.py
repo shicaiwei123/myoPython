@@ -114,6 +114,8 @@ def getxlsFeature(path=''):
             imuRightData = imuRightDataAll.pop()
             emgRightData = np.array(emgRightData, dtype='float_')
             imuRightData = np.array(imuRightData, dtype='float_')
+            if len(emgRightData) == 0 or len(imuRightData) == 0:
+                continue
             emgRightData, imuRightData = normalized(emgRightData, imuRightData)
             featureOne = featureGet(emgRightData, imuRightData, divisor=8)
             features.append(featureOne)
@@ -145,6 +147,8 @@ def getxlsFeature(path=''):
             imuRightData = np.array(imuRightData, dtype='float_')
             emgLeftData = np.array(emgLeftData, dtype='float_')
             imuLeftData = np.array(imuLeftData, dtype='float_')
+            if len(emgRightData) == 0 or len(imuRightData) == 0 or len(emgLeftData) == 0 or len(imuLeftData) == 0:
+                continue
             emgRightData, imuRightData = normalized(emgRightData, imuRightData)
             emgLeftData, imuLeftData = normalized(emgLeftData, imuLeftData)
             featureTwo = featureGetTwo(emgRightData, imuRightData, emgLeftData, imuLeftData, divisorRight=8, divisorLeft=4)

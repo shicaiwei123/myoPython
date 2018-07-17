@@ -116,6 +116,7 @@ def predict(model, data):
                     r.publish("log", json.dumps({"type": "mainLog", "data": "识别结果: " + output_str}))
                 # ShowWebSocket.put_data("2", str)
                 logging.info(output_str)  # 输出结果
+                outCache.clear()
             # else:
                 # r.publish("gesture", json.dumps({"type": "incomplete", "data": ""}))
         elif result == 401:
