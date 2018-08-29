@@ -2,9 +2,14 @@
 
 import sys
 import time
+import logging
 
 from Bean.myo_hub import MyoHub
 from myoAnalysis import *
+import redis
+import json
+
+r = redis.Redis(host="127.0.0.1")
 
 HAVE_PYGAME = False
 
@@ -24,6 +29,7 @@ right_imu_list = []
 
 last_vals = None
 
+logging.basicConfig(level=logging.WARNING)
 # 绘图函数，使用pygame绘制emg数据
 
 
@@ -141,8 +147,17 @@ def _getOnceData(m):
     """
     global dataCounter
     global dataLeftFresh
+    
+    is_connecting = True
     while True:
         emgLeftData, emgRightData, imuLeftData, imuRightData = m.get_data()
+        if emgLeftData is None and emgRightData is None and imuLeftData is None and imuRightData is None:
+            logging.warning("reconnecting myo")
+            is_connecting = False
+            continue
+        elif not is_connecting:
+            is_connecting = True
+            r.publish("log", json.dumps({"type": "mainLog", "data": "已重新连接手环"}))
         # print(emgLeftData, emgRightData, imuLeftData, imuRightData)
         # emgLeftData=list(emgLeftData)
         emgRightData = list(emgRightData)
@@ -303,8 +318,8 @@ def getGestureData(m):
                 if gyoRightActive < 2:  # 滤波
 
                     gyoRightQuiet = 0
-               # elif diffThreshold>6000:
-                #    gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
+                elif diffThreshold>6000:
+                    gyoRightQuiet=gyoRightQuiet   #不做任何事,做最后的补充矫正，判断是不是静止
                 else:
 
                     gyoRightQuiet = 0

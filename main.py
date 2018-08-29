@@ -12,6 +12,7 @@ import os
 from voice.speech import xf_speech
 from Server.server import ShowWebSocket
 import json
+
 import argparse
 import logging
 
@@ -23,7 +24,11 @@ if not debug:
     import redis
     r = redis.Redis(host="127.0.0.1")
 # speaker = xf_speech()    # 在minnowboard板子上无需设置端口号，默认'/dev/ttyS4'
+try:
     speaker = xf_speech('/dev/ttyUSB0')
+except:
+    logging.warning("no audio output device, skip")
+    speaker = None
 
 # isSave取True时时存储数据，取False时时分析数据
 # 代码逻辑
@@ -112,20 +117,21 @@ def predict(model, data):
                 output_str = "".join(out)
                 # speaker.speech_sy(str)
                 if not debug:
-                    r.publish("gesture", json.dumps({"type":"incomplete", "data":output_str}))
+                    r.publish("gesture", json.dumps({"type":"incomplete", "data":output_str}, ensure_ascii=False))
                     r.publish("log", json.dumps({"type": "mainLog", "data": "识别结果: " + output_str}))
                 # ShowWebSocket.put_data("2", str)
                 logging.info(output_str)  # 输出结果
-            # else:
-                # r.publish("gesture", json.dumps({"type": "incomplete", "data": ""}))
+                # outCache.clear()
+            else:
+                r.publish("gesture", json.dumps({"type": "incomplete", "data": ""}))
         elif result == 401:
             out = outCache.getCache()
             output_str = "".join(out)
-            if not debug:
+            if not debug and speaker is not None:
                 speaker.speech_sy(output_str)
             # ShowWebSocket.put_data("1", str)
             if not debug:
-                r.publish("gesture", json.dumps({"type":"complete", "data":output_str}))
+                r.publish("gesture", json.dumps({"type":"complete", "data":output_str}, ensure_ascii=False))
                 r.publish("log", json.dumps({"type": "mainLog", "data": "识别结果: " + output_str}))
             logging.info(output_str)  # 输出结果
             outCache.clear()
@@ -138,7 +144,7 @@ def predict(model, data):
             # speaker.speech_sy(str)
             # ShowWebSocket.put_data("1", str)
             if not debug:
-                r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}))
+                r.publish("gesture", json.dumps({"type":"incomplete", "data":"".join(outCache.getCache())}, ensure_ascii=False))
                 r.publish("log", json.dumps({"type": "mainLog", "data": "识别结果: " + output_str}))
             logging.info(output_str)  # 输出结果
 
@@ -205,6 +211,7 @@ if __name__ == '__main__':
     gusetModelPath = 'GetDataSet'
     guestModelContext = os.listdir(gusetModelPath)
     if guestModel[0] in guestModelContext and isNew:
+        print("use new model")
         modelPath = 'GetDataSet/' + guestModel[0]
         modelOne = joblib.load(modelPath)
     else:

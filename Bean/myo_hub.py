@@ -10,6 +10,7 @@ import logging
 import queue
 import time
 import threading
+import signal
 
 sys.path.append(os.path.abspath(os.path.pardir))
 
@@ -18,6 +19,11 @@ from Bean.myo_config import MyoConfig
 from Bean.myo_info import Arm
 from serial.tools.list_ports import comports
 from Bean.myo_packet import MyoDataPacket, MyoDataType
+import redis
+import json
+
+logging.basicConfig(level=logging.INFO)
+r = redis.Redis(host="127.0.0.1")
 
 class MyoDataProcess(multiprocessing.Process):
     """
@@ -85,28 +91,31 @@ class MyoDataProcess(multiprocessing.Process):
         self.serial_port = serial_port
         self.mac_addr = mac_addr
 
-        self.myo = None
-
+        self.myo = MyoRaw(self.serial_port, mac_address=self.mac_addr)
         self.kill_received = False
         self.arm_type = arm_type
         self.open_data = open_data
         self.ready = False
-
+        
+        signal.signal(signal.SIGTERM, self.disconnect_myo)
+    
+    def disconnect_myo(self, signal, signal_state):
+        self.myo.disconnect()
+        sys.exit(1)
+        
     def run(self):
         """
         先连接到手环，然后一直循环，直到kill_received标志位为True
         """
-        if self.myo is None:
-            self.connect_myo()
+        self.connect_myo()
         if self.myo is not None:
             self.init_myo()
         self.logger.info("Start to get myo data")
-        while not self.kill_received:
+        while True:
             #self.lock.acquire()
             self.myo.run(1)
             #self.lock.release()
         self.logger.info("Process exits")
-        self.disconnect_myo()
         
     def config_logger(self, logger_name=__name__):
         logger = logging.getLogger(logger_name)
@@ -118,20 +127,11 @@ class MyoDataProcess(multiprocessing.Process):
         return logger
 
     def connect_myo(self):
-        if self.myo is None:
-            self.myo = MyoRaw(self.serial_port, mac_address=self.mac_addr)
-        try:
-            self.lock.acquire()
-            self.myo.connect(timeout=self.timeout)
-            self.myo.never_sleep()
-            self.myo.vibrate(1)
-            self.lock.release()
-        except TimeoutError as e:
-            self.myo = None
-            self.logger.error("Cannot connect myo through %s, %s exit", self.serial_port, self.process_name)
-
-    def disconnect_myo(self):
-        self.myo.disconnect()
+        self.lock.acquire()
+        self.myo.connect(timeout=self.timeout)
+        self.myo.never_sleep()
+        self.myo.vibrate(1)
+        self.lock.release()
     
     def init_myo(self, open_data=True):
         if self.myo is None:
@@ -211,6 +211,7 @@ class MyoHub:
 
         ]
         self.drop_num = 2
+        self.is_reconnecting = False
         self.is_droped = False
 
     def config_logger(self, logger_name=__name__):
@@ -305,7 +306,7 @@ class MyoHub:
     #             except queue.Empty as e:
     #                 continue
     
-    def get_data(self):
+    def get_data(self, timeout=5):
         if self.myo_num == 1:
             try:
                 emg_left = self.emg_left_pool.get_nowait()
@@ -317,11 +318,12 @@ class MyoHub:
                 imu_left = None
             return emg_left, imu_left
         elif self.myo_num == 2:
-
+            t = None if self.is_reconnecting else timeout 
             # 首先丢弃@self.drop_num次imu数据，使数据同步
-            emg_left_data_packet = self.emg_left_pool.get()
-            emg_left = emg_left_data_packet.data
-            emg_left_timestamp = emg_left_data_packet.timestamp
+            try:
+                emg_left_data_packet = self.emg_left_pool.get(timeout=t)
+                emg_left = emg_left_data_packet.data
+                emg_left_timestamp = emg_left_data_packet.timestamp
 
             # if not self.is_droped:
             #     for i in range(self.drop_num):
@@ -329,13 +331,13 @@ class MyoHub:
             #         imu_left = imu_left_data_packet.data
             #         imu_left_timestamp = imu_left_data_packet.timestamp
             # else:
-            imu_left_data_packet = self.imu_left_pool.get()
-            imu_left = imu_left_data_packet.data
-            imu_left_timestamp = imu_left_data_packet.timestamp
+                imu_left_data_packet = self.imu_left_pool.get(timeout=t)
+                imu_left = imu_left_data_packet.data
+                imu_left_timestamp = imu_left_data_packet.timestamp
 
-            emg_right_data_packet = self.emg_right_pool.get()
-            emg_right = emg_right_data_packet.data
-            emg_right_timestamp = emg_right_data_packet.timestamp
+                emg_right_data_packet = self.emg_right_pool.get(timeout=t)
+                emg_right = emg_right_data_packet.data
+                emg_right_timestamp = emg_right_data_packet.timestamp
 
             # if not self.is_droped:
             #     for i in range(self.drop_num):
@@ -343,13 +345,38 @@ class MyoHub:
             #         imu_right = imu_right_data_packet.data
             #         imu_right_timestamp = imu_right_data_packet.timestamp
             # else:
-            imu_right_data_packet = self.imu_right_pool.get()
-            imu_right = imu_right_data_packet.data
-            imu_right_timestamp = imu_right_data_packet.timestamp
+                imu_right_data_packet = self.imu_right_pool.get(timeout=t)
+                imu_right = imu_right_data_packet.data
+                imu_right_timestamp = imu_right_data_packet.timestamp
 
-            self.is_droped = True
+                self.is_droped = True
+                self.is_reconnecting = False
 
-            return emg_left, emg_right, imu_left, imu_right
+                return emg_left, emg_right, imu_left, imu_right
+            except queue.Empty:
+                self.is_reconnecting = True
+                r.publish("log", json.dumps({"type": "mainLog", "data": "检测到手环已断开，正在重连"}))
+                # clear pool
+                while True:
+                    try:
+                        self.emg_left_pool.get_nowait()
+                    except queue.Empty:
+                        break
+                while True:
+                    try:
+                        self.imu_left_pool.get_nowait()
+                    except queue.Empty:
+                        break
+                while True:
+                    try:
+                        self.imu_right_pool.get_nowait()
+                    except queue.Empty:
+                        break
+                self.disconnect()
+                self.process_pool.clear()
+                self.init_myos()
+                while not self.is_ready(): continue
+                return None, None, None, None 
             # return emg_left_timestamp, emg_right_timestamp, imu_left_timestamp, imu_right_timestamp, emg_left_timestamp - imu_left_timestamp, emg_right_timestamp - imu_right_timestamp
             # return 0.0, 0.0, 0.0, 0.0
 
@@ -379,12 +406,10 @@ class MyoHub:
     def disconnect(self):
         self.logger.warning("Send signal to data process")
         for process in self.process_pool:
-            process.kill_received = True
-        for process in self.process_pool:
-            while process.is_alive():
-                continue
+            process.terminate()
+            process.join()
         self.running = False
-        while self.collect_data_process.is_alive():
+        while self.collect_data_process is not None and self.collect_data_process.is_alive():
             continue
         self.logger.info("All process has been killed")
     
@@ -394,8 +419,10 @@ if __name__ == '__main__':
     hub.start()
     while not hub.is_ready():
         continue
-    # time.sleep(1)
     while True:
-        data = hub.get_data()
-        print("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f" % data)
+        print(hub.get_data())
+    logging.error("exit signal")
+    hub.disconnect()
+
+
 

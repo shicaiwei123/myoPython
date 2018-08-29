@@ -14,15 +14,19 @@ from tornado.iostream import StreamClosedError
 import signal
 import traceback
 import psutil
+from upm import pyupm_jhd1313m1 as lcd
+
 
 data = list()
 lock = threading.Lock()
-user_set = dict()
+user_set = set()
 
 COMMAND_TYPE ="command"
 KILL_TYPE = "kill"
 
 logging.basicConfig(level=logging.INFO)
+
+myLcd = lcd.Jhd1313m1(0, 0x3E, 0x62)
 
 def redis_listener():
     r = redis.Redis(host="127.0.0.1")
@@ -31,15 +35,15 @@ def redis_listener():
     t_io_loop = tornado.ioloop.IOLoop.instance()
     for message in ps.listen():
         #print("get message", message)
-        for key, user in user_set.items():
+        for user in user_set:
             t_io_loop.add_callback(user.write_message,str(message['data'], encoding="utf-8"))
-
 
 class ShowWebSocket(WebSocketHandler):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cmd_subprocess_dict = dict()
+
 
     def check_origin(self, origin):
         return True
@@ -50,11 +54,15 @@ class ShowWebSocket(WebSocketHandler):
         except tornado.web.MissingArgumentError:
             username = "default"
 
-        user_set[username] = self
-        print("WebSocket opened")
+        user_set.add(self)
+
         print(user_set)
-        self.write_message(json.dumps({"type": "voice", "data": "Connect"}))
-    
+        myLcd.setColor(0, 255, 0)
+        myLcd.setCursor(0,0)
+        myLcd.write(username + " connected")
+
+        self.write_message(json.dumps({"type": "voice", "data": "连接成功"}, ensure_ascii=False))
+
     @gen.coroutine
     def on_message(self, message_json):
         try:
@@ -62,17 +70,32 @@ class ShowWebSocket(WebSocketHandler):
             if message["type"] == COMMAND_TYPE:
                 # 执行命令
                 self.run_subprocess(message["name"], message["data"])
-                self.write_message({"type": "log", "data": "run command success"}) 
+                self.write_message(json.dumps({"type": "log", "data": "run command success"}, ensure_ascii=False))
+                myLcd.setColor(255, 0, 0)
+                myLcd.setCursor(0,0)
+                myLcd.write("run " + message["name"])
+                
             elif message["type"] == KILL_TYPE:
                 # 停止命令
                 self.kill_subprocess(message["name"])
+                myLcd.setColor(0, 255, 0)
+                myLcd.setCursor(0, 0)
+                myLcd.write("stop " + message["name"])
         except:
-            self.write_message({"type": "log", "data": "command failed"})
+            self.write_message(json.dumps({"type": "log", "data": "command faied"}, ensure_ascii=False))
+            myLcd.setColor(255, 0, 0)
+            myLcd.setCursor(0, 0)
+            myLcd.write(message["name"] + " failed")
+
             traceback.print_exc()
             return
 
     def on_close(self):
-        print("Websocket closed")
+        logging.warning("someone closed")
+        user_set.remove(self)
+        myLcd.setColor(255, 0, 0)
+        myLcd.setCursor(0, 0)
+        myLcd.write("someone closed")
 
     @gen.coroutine
     def run_subprocess(self, name, cmd):
@@ -99,7 +122,7 @@ class ShowWebSocket(WebSocketHandler):
             p = psutil.Process(self.cmd_subprocess_dict[name].pid)
             child_pid = p.children(recursive=True)
             for pid in child_pid:
-                os.kill(pid.pid, signal.SIGTERM)
+                os.kill(pid.pid, signal.SIGKILL)
             p.terminate()
             self.write_message({"type": "log", "data": "kill command success"})
             # os.killpg(os.getpid(cmd_subprocess_dict[name]), signal.SIGTERM)
