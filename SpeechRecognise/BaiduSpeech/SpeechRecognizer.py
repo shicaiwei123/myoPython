@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
 import uuid
-
+import sys
+sys.path.append("..")
 try:
     from io import BytesIO as StringIO
 except ImportError:
@@ -10,10 +11,10 @@ except ImportError:
     except ImportError:
         from StringIO import StringIO
 
-from SpeechRecognise.ConfigFileInfoParser import InitializationConfigParser
-from SpeechRecognise.WaveOperate.WavFileReader import *
-from SpeechRecognise.WaveOperate.AudioRecord import *
-from SpeechRecognise.WebCurl.WebCurl import *
+from ConfigFileInfoParser import InitializationConfigParser
+from WaveOperate.WavFileReader import *
+from WaveOperate.AudioRecord import *
+from WebCurl.WebCurl import *
 
 def get_baidu_api_key_config(path):
     ini_Parser = InitializationConfigParser(path)

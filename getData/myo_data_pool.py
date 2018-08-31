@@ -3,7 +3,8 @@ import threading
 import time
 
 import numpy as np
-
+import sys
+sys.path.append("..")
 from Bean.myo import MyoRaw
 from Bean.myo_config import MyoConfig
 

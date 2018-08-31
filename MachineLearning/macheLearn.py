@@ -1,13 +1,17 @@
-from DataAnalysis.myoAnalysis import getModel
 import os
+import sys
+sys.path.append("..")
 from sklearn.externals import joblib
+
+from DataAnalysis.myoAnalysis import getModel
+
 from DataAnalysis.myoAnalysis import getNpyData
 
 if __name__ == '__main__':
     '''用于数据更新之后，用户模型的训练'''
     '''输入是全部新的数据，输出是新的模型'''
     # 初始化
-    '''如果置为真则训练'''
+    '''如果置为真则训练，可以单独训练单手或者双手的模型'''
     isOne=True
     isTwo=True
     featuresOne = []

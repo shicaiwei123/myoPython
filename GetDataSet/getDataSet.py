@@ -1,7 +1,6 @@
 import os
 import sys
-sys.path.append(os.path.pardir)
-sys.path.append(os.path.curdir)
+sys.path.append("..")
 import GetData.getData as myoData  # 数据接口
 from DataAnalysis.myoAnalysis import saveExcle  # 数据操作
 from DataAnalysis.myoAnalysis import excelToDict
@@ -122,15 +121,7 @@ def getxlsFeature(path=''):
             emgRightData, imuRightData = normalized(emgRightData, imuRightData)
             featureOne = featureGet(emgRightData, imuRightData, divisor=8)
             features.append(featureOne)
-        # '''获取存放手势的最后一级，目录'''
-        # s = path
-        # segPath = s.split('/')
-        # lastGesturePath = segPath[len(segPath) - 2]
-        # '''目标目录'''
-        # dstPath = '../Data/GuestData/one/' + lastGesturePath
-        # if os.path.exists(dstPath):
-        #     shutil.rmtree(dstPath)
-        # shutil.move(path, '../Data/GuestData/one')
+
     elif handNumber == 2:
         emgRightFile = path + 'emgDataRight.xls'
         imuRightFile = path + 'imuDataRight.xls'
@@ -471,8 +462,7 @@ if __name__ == '__main__':
             initOneFeature, initOneLabel = getNpyData('oneFeature.npy', 'oneLabel.npy')
             # 读取
         else:
-            # initOnePath = lastPath + '/Data/allDataOne14/'
-            # initOneFeature, initOneLabel = getInitData(initOnePath)
+
             '''读取上次缓存的数据当做此次增加数据的基础数据'''
             backupNumber = getFloderNumber(lastPath + '/Backup/')
             backupPath = lastPath + '/Backup/' + str(backupNumber) + '/GetDataSet'
