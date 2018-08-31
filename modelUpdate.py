@@ -2,12 +2,12 @@
 '''更新原始数据缓存，并且将采集的数据的xls以及更新前的数据数据全部放到备份区，方便回退'''
 
 
-from myoAnalysis import getNpyData
-from myoAnalysis import getSVM
+from DataAnalysis.myoAnalysis import getNpyData
+from DataAnalysis.myoAnalysis import getSVM
 from sklearn.externals import joblib
-from myoAnalysis import saveNpyDataOne
-from myoAnalysis import saveNpyDataTwo
-from myoAnalysis import getFloderNumber
+from DataAnalysis.myoAnalysis import saveNpyDataOne
+from DataAnalysis.myoAnalysis import saveNpyDataTwo
+from DataAnalysis.myoAnalysis import getFloderNumber
 import os
 import shutil
 import json

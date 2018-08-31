@@ -1,6 +1,6 @@
 '''用户模型回退，可以回退到过去的10个节点
    回退之后，当前的数据会被完全清空'''
-from myoAnalysis import getFloderNumber
+from DataAnalysis.myoAnalysis import getFloderNumber
 import os
 import shutil
 import redis

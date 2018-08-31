@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import time
 import logging
 
 from Bean.myo_hub import MyoHub
-from myoAnalysis import *
+from DataAnalysis.myoAnalysis import *
 import redis
 import json
 
@@ -30,102 +29,7 @@ right_imu_list = []
 last_vals = None
 
 logging.basicConfig(level=logging.WARNING)
-# 绘图函数，使用pygame绘制emg数据
 
-
-
-# def __left_proc_emg(emg, times=[]):
-#     global left_emg_list
-#     global dataLeftFresh
-#     dataLeftFresh = True
-#     t = [1.1]
-#     global emgCount
-#     # if HAVE_PYGAME:
-#     #     # update pygame display
-#     #     plot(scr, [e / 2000. for e in emg])
-#
-#     # print frame rate of received data
-#     times.append(time.time())
-#     if len(times) > 20:
-#         # print((len(times) - 1) / (times[-1] - times[0]))
-#         times.pop(0)
-#     if emg[0] > 0:
-#         t1 = (time.time() - timeBegin)
-#         # print(t1)
-#         # print(emg)
-#         emg = list(emg)
-#         t[0] = t1
-#         data = t + emg
-#         left_emg_list = data
-#
-#
-# def __right_proc_emg(emg, times=[]):
-#     global right_emg_list
-#     global dataRightFresh
-#     dataRightFresh = True
-#     t = [1.1]
-#     global emgCount
-#     # if HAVE_PYGAME:
-#     #     # update pygame display
-#     #     plot(scr, [e / 2000. for e in emg])
-#
-#     # print frame rate of received data
-#     times.append(time.time())
-#     if len(times) > 20:
-#         # print((len(times) - 1) / (times[-1] - times[0]))
-#         times.pop(0)
-#
-#     if emg[0] > 0:
-#         t1 = (time.time() - timeBegin)
-#         # print(t1)
-#         # print(emg)
-#         emg = list(emg)
-#         t[0] = t1
-#         data = t + emg
-#         right_emg_list = data
-#
-#
-# def __left_imu_proc(a, b, c):
-#     global imuCount
-#     global left_imu_list
-#     # imuCount = imuCount + 1
-#     t = [1.1]
-#     a = list(a)
-#     b = list(b)
-#     c = list(c)
-#     data = c
-#     # if HAVE_PYGAME:
-#     #     # update pygame display
-#     #     plot(scr, [e / 2000. for e in data])
-#     global timeBegin
-#     t1 = (time.time() - timeBegin)
-#     # print(t1)
-#     # print(a, b, c)
-#     t[0] = t1
-#     c = t + a + b + c
-#     left_imu_list = c
-#
-#
-# def __right_imu_proc(a, b, c):
-#     global imuCount
-#     global right_imu_list
-#     # imuCount = imuCount + 1
-#     t = [1.1]
-#     # t[0] = int(t1*10000)
-#     a = list(a)
-#     b = list(b)
-#     c = list(c)
-#     data = c
-#     # if HAVE_PYGAME:
-#     #     # update pygame display
-#     #     plot(scr, [e / 2000. for e in data])
-#     global timeBegin
-#     t1 = (time.time() - timeBegin)
-#     t[0] = t1
-#     # print(t1)
-#     # print(a, b, c)
-#     c = t + a + b + c
-#     right_imu_list = c
 
 
 def init():

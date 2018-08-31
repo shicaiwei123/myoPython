@@ -1,5 +1,0 @@
-"""
-Threshold Spotting By GA
-
-"""
-
