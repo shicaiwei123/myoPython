@@ -13,8 +13,8 @@ except ImportError:
         from cStringIO import StringIO
     except ImportError:
         from StringIO import StringIO
-from .WaveOperate.WaveFilter import *
-from .BaiduSpeech.SpeechRecognizer import *
+from WaveOperate.WaveFilter import *
+from BaiduSpeech.SpeechRecognizer import *
 import redis
 
 r = redis.Redis(host="127.0.0.1")

@@ -18,7 +18,7 @@ import json
 
 import argparse
 import logging
-
+"如果置真，则进入调试模式。可以直接运行py文件，而不需要"
 debug = False
 
 logging.basicConfig(level=logging.INFO)

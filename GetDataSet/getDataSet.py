@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append("..")
 import GetData.getData as myoData  # 数据接口
-from DataAnalysis.myoAnalysis import saveExcle  # 数据操作
+# from DataAnalysis.myoAnalysis import saveExcle  # 数据操作
 from DataAnalysis.myoAnalysis import excelToDict
 from DataAnalysis.myoAnalysis import featureGetTwo, featureGet
 from DataAnalysis.myoAnalysis import normalized

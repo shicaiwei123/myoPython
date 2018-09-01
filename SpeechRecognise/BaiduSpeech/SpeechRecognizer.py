@@ -121,5 +121,9 @@ class BaiduSpeechRecognizer:
         post_thread = threading.Thread(target=self.recognize_callback, args=(sonic, callback, traceback))
         post_thread.start()
 
+if __name__ == '__main__':
+    print('a')
+
+
 
 
