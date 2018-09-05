@@ -2,6 +2,9 @@ from .myo_utils import multichr, multiord
 
 
 class Packet(object):
+    """
+    Myo数据包格式
+    """
     def __init__(self, ords):
         self.typ = ords[0]
         self.cls = ords[2]

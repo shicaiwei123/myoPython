@@ -1,4 +1,7 @@
 class MyoConfig:
+    """
+    手环配置类，控制emg，imu，arm和emg_raw的数据开关，默认所有数据都处于关闭状态
+    """
 
     def __init__(self):
         self.emg_enable = False

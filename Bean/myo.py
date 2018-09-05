@@ -19,7 +19,7 @@ import logging
 class MyoHandler(enum.Enum):
     """
     Myo 不同Handle的值和对应的意义
-    CCC 代表对应数据的控制位Handle
+    CCC 代表相应数据的控制位，其值表示是否广播对应的数据以及广播的类型（通知/指示），详见低功耗蓝牙相关资料
     """
     EMG_DATA_HANDLE = 0x27
     EMG_CCC_HANDLE = 0x28
@@ -42,13 +42,13 @@ class MyoHandler(enum.Enum):
 
 
 class MyoRaw(object):
-    """Implements the Myo-specific communication protocol."""
+    """实现Myo特定的协议"""
 
     def __init__(self, tty=None, config=None, mac_address=""):
         """
         :param tty: 串口实例
         :param config: Myo配置文件，应传入myo_config实例
-        :param both: if connect two myos
+        :param mac_address: 待连接的Myo手环对应的mac地址，如果未指定，则表示任意一个手环
         """
         if tty is None:
             tty = self.detect_tty()
@@ -78,7 +78,7 @@ class MyoRaw(object):
 
     def detect_tty(self):
         """
-        检测tty
+        检测myo适配器是否存在
         :return:
         """
         for p in comports():
@@ -88,6 +88,11 @@ class MyoRaw(object):
         return None
 
     def run(self, timeout=None):
+        """
+        开始运行，接收手环发送的数据包
+        :param timeout: 超时时间
+        :return:
+        """
         self.bt.recv_packet(timeout)
 
     def write_attr(self, conn, attr, val):
@@ -101,7 +106,8 @@ class MyoRaw(object):
 
     def connect(self, timeout=30):
         """
-        连接two myos
+        连接Myo手环
+        :param timeout 连接超时时间
         :return:
         """
         # 停止之前的扫描和连接
@@ -124,12 +130,14 @@ class MyoRaw(object):
             p = self.bt.recv_packet()
             self.logger.info("Scan response: %s", p)
 
-            # Find Two Myo armband
+            # 识别到是Myo手环发出的广播报文
             if p.payload.endswith(b'\x06\x42\x48\x12\x4A\x7F\x2C\x48\x47\xB9\xDE\x04\xA9\x01\x00\x06\xD5'):
+                # 从数据包中截取mac地址
                 address = list(multiord(p.payload[2:8]))
                 if self.mac_address == "":
                     break
                 else:
+                    # 如果手环的mac地址与指定的mac地址相同，则结束扫描
                     if self.get_mac_address(address) == self.mac_address.lower():
                         break
         self.bt.end_scan()
@@ -137,16 +145,17 @@ class MyoRaw(object):
         if address is None:
             raise TimeoutError("Scan myo timeout using %s" % self.tty)
 
-        # make address:conn dict
-        # use bt manager to connect
+        # 连接手环
         conn_pkt = self.bt.connect(address)
+        # 手环对应的连接地址
         self.conn = multiord(conn_pkt.payload)[-1]
         self.bt.wait_event(3, 0)
         self.logger.info("Device name: %s", self.get_name(self.conn))
 
-        # 禁止休眠
+        # 对手环进行配置
         self.config_myo(self.config)
 
+        # 数据回调类，根据不同的数据类型调用不同的回调函数
         def data_handler(p):
             # check whether is the command response packet
             if (p.cls, p.cmd) != (4, 5): return
@@ -156,55 +165,65 @@ class MyoRaw(object):
             # print(attr)
             pay = p.payload[5:]
 
+            # emg原始数据类型
             if attr in (0x2B, 0x2E, 0x31, 0x34):
                 # raw data 0 1
                 emg_raw_data = unpack('16B', pay)
                 self.on_emg_raw(emg_raw_data[:8])
                 self.on_emg_raw(emg_raw_data[8:])
 
+            # emg数据类型
             elif attr == 0x27:
                 # emg data
                 vals = unpack('8HB', pay)
                 emg = vals[:8]
                 self.on_emg(emg)
+            # imu数据类型
             elif attr == 0x1c:
-                # imu data
                 vals = unpack('10h', pay)
+                # 四元数
                 quat = vals[:4]
+                # 加速度数据
                 acc = vals[4:7]
+                # 陀螺仪数据
                 gyro = vals[7:10]
                 self.on_imu(quat, acc, gyro)
             elif attr == 0x23:
-                # arm data
+                # 手势数据类型
                 typ, val, xdir, _, _, _ = unpack('6B', pay)
 
-                if typ == 1:  # on arm
+                if typ == 1:  # 手臂和佩戴方向
                     self.on_arm(Arm(val), XDirection(xdir))
-                elif typ == 2:  # removed from arm
+                elif typ == 2:  # 未佩戴
                     self.on_arm(Arm.UNKNOWN, XDirection.UNKNOWN)
-                elif typ == 3:  # pose
+                elif typ == 3:  # 姿势数据
                     self.on_pose(Pose(val))
             else:
                 print('data with unknown attr: %02X %s' % (attr, p))
 
+        # 绑定数据回调类
         self.bt.add_handler(data_handler)
 
     def disconnect(self):
+        """
+        断开手环的连接
+        :return:
+        """
         if self.conn is not None:
-            # normal sleep
             self.bt.disconnect(self.conn)
 
     def config_myo(self, myo_config):
         """
-        如果沒有配置文件则默认开启emg数据通道
-        :param myo_config:
+        根据myo_config配置Myo手环，打开或关闭相应的数据以及对应的数据通知
+        :param myo_config: 配置类
         :return:
         """
         if myo_config is None:
             return
-
+        # 是否使能emg数据通知
         if myo_config.emg_enable:
             self.is_broadcast_data(self.conn, MyoHandler.EMG_CCC_HANDLE.value, True)
+        # 是否使能emg原始数据通知
         elif myo_config.emg_raw_enable:
             self.is_broadcast_data(self.conn, MyoHandler.EMG_RAW_DATA_1_CCC_HANDLE.value, True)
             self.is_broadcast_data(self.conn, MyoHandler.EMG_RAW_DATA_2_CCC_HANDLE.value, True)
@@ -213,18 +232,19 @@ class MyoRaw(object):
         else:
             self.is_broadcast_data(self.conn, MyoHandler.EMG_CCC_HANDLE.value, False)
 
+        # 是否使能imu数据通知
         if myo_config.imu_enable:
             self.is_broadcast_data(self.conn, MyoHandler.IMU_CCC_HANDLE.value, True)
         else:
             self.is_broadcast_data(self.conn, MyoHandler.IMU_CCC_HANDLE.value, False)
 
+        # 是否使能arm数据通知
         if myo_config.arm_enable:
-            # 使能arm数据通知
             self.is_broadcast_data(self.conn, MyoHandler.ARM_CCC_HANDLE.value, True)
         else:
             self.is_broadcast_data(self.conn, MyoHandler.ARM_CCC_HANDLE.value, False)
 
-
+        # 根据配置项使能对应的数据监测
         self.is_enable_data(self.conn,
                             emg_enable=myo_config.emg_enable,
                             imu_enable=myo_config.imu_enable,
@@ -232,6 +252,11 @@ class MyoRaw(object):
                             emg_raw_enable=myo_config.emg_raw_enable)
 
     def vibrate(self, length):
+        """
+        控制Myo手环震动
+        :param length: 强度，范围1-4
+        :return:
+        """
         if length in range(1, 4):
             command = MyoVibrateCommandPacket(
                 header=MyoCommandHeader(
@@ -246,6 +271,11 @@ class MyoRaw(object):
                             )
 
     def normal_sleep(self, conn):
+        """
+        控制Myo手环进入正常休眠模式
+        :param conn: 连接，tty
+        :return:
+        """
         command = MyoSetSleepCommandPacket(
             header=MyoCommandHeader(
                 command=MyoCommand.SET_SLEEP_MODE.value,
@@ -258,6 +288,10 @@ class MyoRaw(object):
                         command.get_bytes())
 
     def never_sleep(self):
+        """
+        控制Myo手环永远不休眠
+        :return:
+        """
         command = MyoSetSleepCommandPacket(
             header=MyoCommandHeader(
                 command=MyoCommand.SET_SLEEP_MODE.value,
@@ -272,9 +306,9 @@ class MyoRaw(object):
 
     def set_lock(self, conn, lock_type):
         """
-        configure lock status
-        :param conn: connection
-        :param lock_type: lock type in MyoUnlockMode
+        设置Myo手环锁定状态
+        :param conn: 手环对应的连接地址
+        :param lock_type: 锁定类型，参考MyoUnlockMode
         :return:
         """
         if lock_type in [x.value for x in MyoUnlockMode]:
@@ -290,17 +324,22 @@ class MyoRaw(object):
                             command.get_bytes()
                             )
 
-    def get_battery_level(self, conn):
-        level = self.read_attr(conn, MyoHandler.BATTERY_LEVEL_HANDLE.value)
-        # TODO: 验证Packet的内容
-        return
-
     def get_firmware_version(self, conn):
+        """
+        获得手环固件版本
+        :param conn: 手环连接地址
+        :return:
+        """
         fw = self.read_attr(conn, 0x17)
         _, _, _, _, v0, v1, v2, v3 = unpack('BHBBHHHH', fw.payload)
         return v0, v1, v2, v3
 
     def get_name(self, conn):
+        """
+        获得手环的名称
+        :param conn: 手环连接地址
+        :return:
+        """
         return self.read_attr(conn, 0x03).payload
 
     def is_broadcast_data(self, conn, handle, enable):
@@ -388,8 +427,7 @@ class MyoRaw(object):
             h(arm, xdir)
 
     def on_emg_raw(self, data):
-        # index: emg sensor index
-        # 对数据进行矫正
+        # 对数据进行矫正，由于采样的原始数据为0-256，而真实的数据为-128-128，所以需要做预处理
         data = self.process_emg_raw_data(data)
         for h in self.emg_raw_handlers:
             h(data)

@@ -16,6 +16,9 @@ import traceback
 import psutil
 from upm import pyupm_jhd1313m1 as lcd
 
+"""
+使用Tornado创建一个Websocket Server，与GUI通信
+"""
 
 data = list()
 lock = threading.Lock()
@@ -26,7 +29,13 @@ KILL_TYPE = "kill"
 
 logging.basicConfig(level=logging.INFO)
 
+# 此处与开发板相关，是grove套件中的LCD，可以忽略
 myLcd = lcd.Jhd1313m1(0, 0x3E, 0x62)
+
+"""
+监听redis，如果myo_hub写入对应的数据，就将数据发送到GUI
+"""
+
 
 def redis_listener():
     r = redis.Redis(host="127.0.0.1")
@@ -34,9 +43,9 @@ def redis_listener():
     ps.subscribe(["voice", "gesture", "adjust", "log"])
     t_io_loop = tornado.ioloop.IOLoop.instance()
     for message in ps.listen():
-        #print("get message", message)
         for user in user_set:
             t_io_loop.add_callback(user.write_message,str(message['data'], encoding="utf-8"))
+
 
 class ShowWebSocket(WebSocketHandler):
     
@@ -44,11 +53,14 @@ class ShowWebSocket(WebSocketHandler):
         super().__init__(*args, **kwargs)
         self.cmd_subprocess_dict = dict()
 
-
     def check_origin(self, origin):
         return True
 
     def open(self):
+        """
+        收到websocket连接请求
+        :return:
+        """
         try:
             username = self.get_argument("username")
         except tornado.web.MissingArgumentError:
@@ -65,6 +77,11 @@ class ShowWebSocket(WebSocketHandler):
 
     @gen.coroutine
     def on_message(self, message_json):
+        """
+        收到信息
+        :param message_json:
+        :return:
+        """
         try:
             message = json.loads(message_json)
             if message["type"] == COMMAND_TYPE:
@@ -99,6 +116,12 @@ class ShowWebSocket(WebSocketHandler):
 
     @gen.coroutine
     def run_subprocess(self, name, cmd):
+        """
+        执行指定的名称，并将线程绑定到对应的名称
+        :param name: 线程绑定的名称
+        :param cmd:  要在bash运行的命令
+        :return:
+        """
         cmd_proc = Subprocess(cmd, shell=True, preexec_fn=os.setsid, stdout=Subprocess.STREAM)
         self.cmd_subprocess_dict[name] = cmd_proc
         # yield self.redirect_stream(cmd_proc.stdout)
@@ -118,6 +141,11 @@ class ShowWebSocket(WebSocketHandler):
     
     @gen.coroutine
     def kill_subprocess(self, name):
+        """
+        收到杀死进程的命令，杀死对应name的进程
+        :param name: 指定的名称
+        :return:
+        """
         try:
             p = psutil.Process(self.cmd_subprocess_dict[name].pid)
             child_pid = p.children(recursive=True)
@@ -125,7 +153,6 @@ class ShowWebSocket(WebSocketHandler):
                 os.kill(pid.pid, signal.SIGKILL)
             p.terminate()
             self.write_message({"type": "log", "data": "kill command success"})
-            # os.killpg(os.getpid(cmd_subprocess_dict[name]), signal.SIGTERM)
         except KeyError as e:
             self.write_message({"type": "log", "data": "no command with this name"})
         except Exception as e:
@@ -153,10 +180,10 @@ class Application(tornado.web.Application):
 
 
 def main():
-    threading.Thread(target=redis_listener).start()
+    threading.Thread(target=redis_listener).start() # 开启redis监听进程
     app = Application()
+    # websocket监听2233端口
     app.listen("2233", address='0.0.0.0')
-    #tornado.ioloop.IOLoop.current().spawn_callback(redis_listener)
     tornado.ioloop.IOLoop.current().start()
 
 

@@ -6,6 +6,9 @@ import enum
 
 
 class MyoUUID(enum.Enum):
+    """
+    各个Handle的UUID
+    """
     IMU = "d5060402-a904-deb9-4748-2c7f4a124842"
     EMG = "d5060104-a904-deb9-4748-2c7f4a124842"
     RAW_EMG1 = "d5060105-a904-deb9-4748-2c7f4a124842"
@@ -15,6 +18,9 @@ class MyoUUID(enum.Enum):
 
 
 class MyoService(enum.Enum):
+    """
+    各个Service的UUID，参考低功耗蓝牙相关资料
+    """
     BATTERY_SERVICE = "0000180f-0000-1000-8000-00805f9b34fb"
     MYO_CONTROL_SERVICE = "d5060001-a904-deb9-4748-2c7f4a124842"
     IMU_SERVICE = "d5060002-a904-deb9-4748-2c7f4a124842"
@@ -49,85 +55,81 @@ class MyoHandler(enum.Enum):
 
 
 class MyoPose(enum.Enum):
-    POSE_REST = 0
-    POSE_FIST = 1
-    POSE_WAVE_IN = 2
-    POSE_WAVE_OUT = 3
-    POSE_FINGERS_SPREAD = 4
-    POSE_DOUBLE_TAP = 5
+    """
+    各个姿态，参考Myo官方指定的手势
+    """
+    POSE_REST = 0   # 放松
+    POSE_FIST = 1   # 握拳
+    POSE_WAVE_IN = 2    # 手腕向里
+    POSE_WAVE_OUT = 3   # 手腕向外
+    POSE_FINGERS_SPREAD = 4 # 手指伸开
+    POSE_DOUBLE_TAP = 5 # 大拇指与中指相互敲击两下
 
 
 class MyoMKU(enum.Enum):
-    BLACK_MYO = 1
-    WHITE_MYO = 2
-
-
-class MyoCommand(enum.Enum):
-    SET_MODE = 1
-    VIBRATE = 2
-    DEEP_SLEEP = 3
-    VIBRATE2 = 4
-    SET_SLEEP_MODE = 9
-    UNLOCK = 10
-    USER_ACTION = 11
-
-
-class MyoVibrationMode(enum.Enum):
-    NONE = 0
-    SHORT = 1
-    MEDIUM = 2
-    LONG = 3
-
-
-class MyoSleepMode(enum.Enum):
-    NORMAL = 0
-    NEVER_SLEEP = 1
-
-
-class MyoUnlockMode(enum.Enum):
-    LOCK = 0
-    LOCK_TIMED = 1
-    HOLD = 2
+    """
+    手环外观颜色
+    """
+    BLACK_MYO = 1   # 黑色
+    WHITE_MYO = 2   # 白色
 
 
 class MyoEmgMode(enum.Enum):
+    """
+    Emg数据发送模式
+    """
     NONE = 0
-    SEND_EMG = 1
-    SEND_EMG_RAW = 2
+    SEND_EMG = 1    # 发送内部滤波之后的EMG数据
+    SEND_EMG_RAW = 2    # 发送未滤波的EMG数据（原始数据）
 
 
 class MyoImuMode(enum.Enum):
+    """
+    IMU数据发送模式
+    """
     NONE = 0
-    SEND_DATA = 1
-    SEND_EVENT = 2
-    SEND_ALL = 3
-    SEND_RAW = 4
+    SEND_DATA = 1   # 发送数据
+    SEND_EVENT = 2  # 发送事件
+    SEND_ALL = 3    # 都发送
+    SEND_RAW = 4    # 发送原始数据
 
 
 class MyoClassifierMode(enum.Enum):
-    DISABLED = 0
-    ENABLED = 1
+    """
+    手环内部的分类器状态
+    """
+    DISABLED = 0    # 关闭
+    ENABLED = 1     # 开启
 
 
 class MyoClassifierEventType(enum.Enum):
-    ARM_SYNCED = 1
-    ARM_UNSYNCED = 2
-    POSE = 3
-    UNLOCKED = 4
-    LOCKED = 5
-    SYNC_FAILED = 6
+    """
+    手环内部的分类器事件类型
+    """
+    ARM_SYNCED = 1  # 手环同步事件
+    ARM_UNSYNCED = 2    # 手环未同步事件
+    POSE = 3    # 姿态事件
+    UNLOCKED = 4    # 解锁事件
+    LOCKED = 5  # 锁定事件
+    SYNC_FAILED = 6 # 同步失败事件
 
 
 class Arm(enum.Enum):
-    UNKNOWN = 0
-    RIGHT = 1
-    LEFT = 2
+    """
+    手臂类型
+    """
+    UNKNOWN = 0 # 未知
+    RIGHT = 1   # 右手臂
+    LEFT = 2    # 左手臂
 
 
 class XDirection(enum.Enum):
+    """
+    手环佩戴方向
+    """
     UNKNOWN = 0
-    X_TOWARD_WRIST = 1
-    X_TOWARD_ELBOW = 2
+    X_TOWARD_WRIST = 1  # 朝向手腕
+    X_TOWARD_ELBOW = 2  # 朝向手肘
 
 
 class Pose(enum.Enum):
